@@ -1,21 +1,22 @@
 import { Link } from 'umi';
 import styles from './index.less';
 
-const Menu = () => {
+const Settings = () => {
     return (
-        <div className={styles.menu}>
+        <div className={styles.settings}>
             <ul>
                 <li>
-                    <Link to="/">Assets</Link>
+                    <Link to="/">Security</Link>
                 </li>
                 <li>
-                    <Link to="/">Buy</Link>
+                    <Link to="/">Lock</Link>
                 </li>
                 <li>
-                    <Link to="/">Transfer</Link>
+                    <Link to="/">Contact</Link>
                 </li>
             </ul>
         </div>
     )
 }
-export default Menu;
+
+export default Settings;
