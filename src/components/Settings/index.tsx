@@ -4,15 +4,16 @@ import styles from './index.less';
 const Settings = () => {
     return (
         <div className={styles.settings}>
+            <div className={styles.settingsPlace}></div>
             <ul>
                 <li>
-                    <Link to="/">Security</Link>
+                    <img src={require('@/assets/menu-security.png')} alt=""/><Link to="/">Security</Link>
                 </li>
                 <li>
-                    <Link to="/">Lock</Link>
+                    <img src={require('@/assets/menu-lock.png')} alt=""/><Link to="/">Lock</Link>
                 </li>
                 <li>
-                    <Link to="/">Contact</Link>
+                    <img src={require('@/assets/menu-contact.png')} alt=""/><Link to="/">Contact</Link>
                 </li>
             </ul>
         </div>

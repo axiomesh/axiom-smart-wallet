@@ -1,3 +1,40 @@
 .personinfo {
-
+  display: flex;
+  padding: 22px 36px 22px 20px;
+  .img{
+    width: 48px;
+    height: 48px;
+  }
+  .information {
+    display: flex;
+    flex-direction: column;
+    margin-left: 8px;
+    .email {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .address {
+      font-size: 14px;
+      font-weight: 400;
+      color: #718096;
+      .downIcon {
+        display: inline-block;
+        width:  12px;
+        height: 7.5px;
+        background: url("../../assets/down.png") no-repeat center;
+        background-size: cover;
+        margin-left: 10px;
+      }
+    }
+  }
+}
+.personinfo:hover {
+  background: #2D3748;
+  cursor: pointer;
+  border-radius: 20px;
+  .downIcon {
+    transform: rotate(-180deg);
+    transition: transform ease 0.5s;
+  }
 }

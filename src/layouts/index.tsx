@@ -7,12 +7,12 @@ import Settings from "@/components/Settings";
 
 export default function Layout() {
   return (
-    <div className={styles.navs}>
-      <div>
-        <Logo />
+    <div className={styles.layout}>
+      <div className={styles.navs}>
         <PersonInfo />
         <Menu />
         <Settings />
+        <Logo />
       </div>
       <Outlet />
     </div>

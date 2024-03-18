@@ -6,13 +6,10 @@ const Menu = () => {
         <div className={styles.menu}>
             <ul>
                 <li>
-                    <Link to="/">Assets</Link>
+                    <span><Link to="/"><i className={styles.assetIcon}></i>Asset</Link></span>
                 </li>
                 <li>
-                    <Link to="/">Buy</Link>
-                </li>
-                <li>
-                    <Link to="/">Transfer</Link>
+                    <span><Link to="/"><i className={styles.assetIcon}></i>Transfer</Link></span>
                 </li>
             </ul>
         </div>
