@@ -1,4 +1,5 @@
 .personinfo {
+  position: relative;
   display: flex;
   padding: 22px 36px 22px 20px;
   .img{
@@ -22,14 +23,83 @@
         display: inline-block;
         width:  12px;
         height: 7.5px;
-        background: url("../../assets/down.png") no-repeat center;
-        background-size: cover;
+        background: url("../../assets/down.png") no-repeat center / cover;
         margin-left: 10px;
       }
     }
   }
+  .logoutModal {
+    position: absolute;
+    width: 100%;
+    padding: 20px 0px;
+    background: #2D3748;
+    top: 96px;
+    border-radius: 20px;
+    left: 0;
+    gap: 8px;
+    display: flex;
+    justify-content: space-evenly;
+    .logoutInfo {
+      padding: 9px 8px 9px 8px;
+      display: flex;
+      flex-direction: column;
+      .title {
+        font-family: Inter;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 18px;
+        color: #CBD5E0;
+      }
+      .info {
+        font-family: Inter;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+        color: #718096;
+      }
+    }
+    .logoutButton {
+      width: 60px;
+      height: 56px;
+      padding: 20px;
+      border-radius: 12px;
+      background: #4A5568;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      .copy {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background: url("../../assets/copy.png") no-repeat center / cover;
+      }
+      .copyClick {
+        width: 20px;
+        height: 20px;
+        background: url("../../assets/copy-success.png") no-repeat center / cover;
+      }
+      .logout {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background: url("../../assets/logout.png") no-repeat center / cover;
+      }
+      &:hover {
+        background: #718096;
+      }
+      &:active {
+        background: #1A202C;
+      }
+    }
+  }
+  .show {
+    display: flex;
+  }
+  .hide {
+    display: none;
+  }
 }
-.personinfo:hover {
+.personinfoHover {
   background: #2D3748;
   cursor: pointer;
   border-radius: 20px;
