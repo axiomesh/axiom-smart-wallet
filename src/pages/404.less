@@ -1,0 +1,69 @@
+.page_404{
+  width: 100%;
+  height: 100vh;
+  min-height: 730px;
+  margin: 0;
+  box-sizing: border-box;
+  min-width: 1200px;
+  overflow: hidden;
+
+  &_container{
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+    background: url("https://raw.githubusercontent.com/axiomesh/axiom-source/main/axiom-home-source/img/404_bg.png") no-repeat;
+    background-size: 100% 100%;
+  }
+
+  &_img{
+    width: 400px;
+  }
+
+  &_title{
+    color: #fff;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 43px;
+    margin-top: 20px;
+  }
+
+  &_insert1{
+    position: absolute;
+    top: 580px;
+    left: 160px;
+  }
+
+  &_insert2{
+    position: absolute;
+    top: 400px;
+    right: 240px;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .page_404{
+    &_img{
+      width: 240px;
+    }
+    &_insert1{
+      width: 35px;
+      top: 580px;
+      left: 20px;
+    }
+
+    &_insert2{
+      width: 23px;
+      top: 220px;
+      right: 40px;
+    }
+
+    &_title{
+      font-size: 20px;
+    }
+  }
+}
