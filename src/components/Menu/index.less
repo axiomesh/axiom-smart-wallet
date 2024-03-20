@@ -16,9 +16,26 @@
         display: inline-block;
         width: 24px;
         height: 24px;
-        background: url("../../assets/menu-assets.png") no-repeat center;
-        background-size: cover;
+        background: url("../../assets/menu-assets.png") no-repeat center / cover;
         margin-right: 8px;
+      }
+      .transferIcon {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background: url("../../assets/menu-transfer.png") no-repeat center / cover;
+        margin-right: 8px;
+      }
+    }
+    .active {
+      span {
+        color: #ECC94B;
+      }
+      .assetIcon {
+        background: url("../../assets/menu-assets-active.png") no-repeat center / cover;
+      }
+      .transferIcon {
+        background: url("../../assets/menu-transfer-active.png") no-repeat center / cover;
       }
     }
     li:hover {
