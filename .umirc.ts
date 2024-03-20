@@ -34,6 +34,10 @@ export default defineConfig({
       component: '@/pages/login',
       layout: false,
     },
+    {
+      path: '/transfer',
+      component: '@/pages/transfer',
+    },
     { path: '/*', component: '@/pages/404', layout: false }
   ],
   npmClient: 'yarn',

@@ -1,0 +1,70 @@
+.transfer {
+  margin: auto;
+  &Title {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    h1 {
+      font-family: Inter;
+      font-size: 44px;
+      font-weight: 700;
+      color: #000000;
+    }
+  }
+  &History {
+    display: flex;
+    align-items: center;
+    span {
+      font-family: Inter;
+      font-size: 14px;
+      font-weight: 600;
+      color: #718096;
+    }
+  }
+  &Content {
+    width: 600px;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid #EDF2F7;
+    background: #fff;
+    margin-top: 20px;
+  }
+  .form {
+    &Control {
+      margin-bottom: 23px;
+    }
+    &Title {
+      font-family: Inter;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4B5563;
+    }
+    &Option {
+      display: flex;
+      align-items: center;
+      border-radius: 20px;
+      padding: 16px;
+      background: #fff;
+      color: #292D32;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: Inter;
+      gap: 10px;
+      &:hover {
+        background: #EDF2F7
+      }
+    }
+  }
+}
+.iconEth {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: url("../../assets/transfer/eth.png") no-repeat center / cover;
+}
+.iconAxm {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: url("../../assets/transfer/axm.png") no-repeat center / cover;
+}
