@@ -1,6 +1,54 @@
+@import './assets/font/index.less';
+
 html,  body, #root{
   height: 100%;
   margin: 0;
   padding: 0;
   font-family: "Inter" !important;
+}
+.a_link{
+   color: #ECC94B;
+  &:hover{
+    color: #F6E05E;
+  }
+
+  &:active{
+    color: #D4B443;
+  }
+}
+
+.chakra-toast__inner .chakra-alert{
+  background: #DD6B20 !important;
+  border-radius: 20px;
+
+
+}
+
+.chakra-toast__inner .chakra-alert .chakra-alert__title{
+  font-family: "Inter" !important;
+  font-weight: 700 !important;
+  font-size: 16px;
+}
+
+.chakra-checkbox__control{
+  border-width: 1px !important;
+  border-radius: 50% !important;
+  border-color: #718096 !important;
+
+  &:hover{
+    border-color: #2D3748 !important;
+  }
+
+  &[data-checked]{
+    background: #ECC94B !important;
+    border-color: #ECC94B !important;
+
+    &:hover{
+      border-color: #ECC94B !important;
+    }
+
+    svg{
+      font-size: 7px !important;
+    }
+  }
 }

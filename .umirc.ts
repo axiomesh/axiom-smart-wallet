@@ -34,6 +34,16 @@ export default defineConfig({
       component: '@/pages/login',
       layout: false,
     },
+    {
+      path: '/verify-code',
+      component: '@/pages/login/verify-code',
+      layout: false,
+    },
+    {
+      path: '/privacy',
+      component: '@/pages/agreement/privacy',
+      layout: false
+    },
     { path: '/*', component: '@/pages/404', layout: false }
   ],
   npmClient: 'yarn',
