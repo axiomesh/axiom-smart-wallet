@@ -1,0 +1,122 @@
+.transfer {
+  margin: auto;
+  &Title {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    h1 {
+      font-family: Inter;
+      font-size: 44px;
+      font-weight: 700;
+      color: #000000;
+    }
+  }
+  &History {
+    display: flex;
+    align-items: center;
+    span {
+      font-family: Inter;
+      font-size: 14px;
+      font-weight: 600;
+      color: #718096;
+    }
+  }
+  &Content {
+    width: 600px;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid #EDF2F7;
+    background: #fff;
+    margin-top: 20px;
+  }
+  .form {
+    &Control {
+      position: relative;
+      margin-bottom: 23px;
+    }
+    &Title {
+      font-family: Inter;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4B5563;
+    }
+    &Option {
+      display: flex;
+      align-items: center;
+      border-radius: 20px;
+      padding: 16px;
+      background: #fff;
+      color: #292D32;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: Inter;
+      gap: 10px;
+      &:hover {
+        background: #EDF2F7
+      }
+    }
+    &Single {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    &Send {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    &Gas {
+      font-family: Inter;
+      font-size: 12px;
+      font-weight: 400;
+      color: #718096;
+      position: absolute;
+      bottom: -27px;
+      left: 10px;
+    }
+    &Balance {
+      font-family: Inter;
+      font-size: 12px;
+      font-weight: 400;
+      color: #718096;
+      position: absolute;
+      top: -12px;
+      right: 8px;
+    }
+    &Max {
+      padding: 8px 12px 8px 12px;
+      gap: 4px;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      font-family: Inter;
+      font-size: 14px;
+      font-weight: 500;
+      color: #718096;
+      cursor: pointer;
+      background: #F7FAFC;
+      &:hover {
+        color: #2D3748;
+        border-color: #2D3748;
+        background: #EDF2F7;
+      }
+      &:active {
+        background: #CBD5E0;
+        color: #171923;
+        border-color: #171923;
+      }
+    }
+  }
+}
+.iconEth {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: url("../../assets/transfer/eth.png") no-repeat center / cover;
+}
+.iconAxm {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: url("../../assets/transfer/axm.png") no-repeat center / cover;
+}

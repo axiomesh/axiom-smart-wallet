@@ -35,6 +35,10 @@ export default defineConfig({
       layout: false,
     },
     {
+      path: '/transfer',
+      component: '@/pages/transfer',
+    },
+    {
       path: '/verify-code',
       component: '@/pages/login/verify-code',
       layout: false,
