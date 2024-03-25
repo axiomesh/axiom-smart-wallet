@@ -12,6 +12,8 @@ import useContinueButton from "@/hooks/ContinueButton";
 import React, {useState, useEffect} from "react";
 import { Field, Form, Formik } from 'formik';
 import {token} from "@/utils/tokenList";
+import TransferModal from "@/components/TransferModal";
+import SetPayPasswordModal from "@/components/SetPayPasswordModal";
 
 interface token {
     value: string;
@@ -243,6 +245,8 @@ const Transfer = () => {
                 </Formik>
                 <Button onClick={confirmCallback} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
             </div>
+            <TransferModal />
+            <SetPayPasswordModal />
         </div>
     )
 }

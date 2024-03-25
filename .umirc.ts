@@ -63,6 +63,18 @@ export default defineConfig({
       component: '@/pages/agreement/privacy',
       layout: false
     },
+    {
+      path: '/security',
+      component: '@/pages/security',
+    },
+    {
+      path: '/contact',
+      component: '@/pages/contact',
+    },
+    {
+      path: '/reset-transfer',
+      component: '@/pages/reset-transfer',
+    },
     { path: '/*', component: '@/pages/404', layout: false }
   ],
   npmClient: 'yarn',
