@@ -13,7 +13,7 @@ import {useState} from "react";
 import Right from './componments/right';
 import { sendVerifyCode } from '@/services/login';
 
-export default function HomePage() {
+export default function LoginPassword() {
     const toast = useToast();
     const [errorText, setErrorText] = useState('');
     const [isCheck, setIsCheck] = useState(false);

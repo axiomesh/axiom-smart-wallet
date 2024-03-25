@@ -10,8 +10,12 @@ interface verifyFunc {
 interface sendFunc {
     (): void;
 }
-const InputPassword = (props:{ type: string, loading: boolean, timer: string, isError: boolean, onSend:sendFunc, onVerify:verifyFunc }) => {
-    const { type, loading, timer, isError, onSend, onVerify} = props;
+
+interface setFunc {
+    (isError: boolean): void;
+}
+const InputPassword = (props:{ type: string, loading: boolean, timer: string, isError: boolean, onSend:sendFunc, onVerify:verifyFunc, setIsError: setFunc }) => {
+    const { type, loading, timer, isError, onSend, onVerify, setIsError} = props;
     const [value, setValue] = useState(["-", "-","-","-","-","-"]);
     const [isFocus, setIsFocus] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -20,6 +24,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer: string, is
         // e.preventDefault();
         // e.stopPropagation();
         if (e.key === 'Backspace') {
+            setIsError(false)
             const newValue = [...value];
             if(e.target.value === '-' || e.target.value === '' || index === 5){
                 if(index){

@@ -35,6 +35,21 @@ export default defineConfig({
       layout: false,
     },
     {
+      path: '/set-password',
+      component: '@/pages/login/set-password',
+      layout: false,
+    },
+    {
+      path: '/reset-password',
+      component: '@/pages/login/set-password',
+      layout: false,
+    },
+    {
+      path: '/login-password',
+      component: '@/pages/login/login-password',
+      layout: false,
+    },
+    {
       path: '/transfer',
       component: '@/pages/transfer',
     },

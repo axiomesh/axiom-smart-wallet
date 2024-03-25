@@ -1,22 +1,68 @@
 import InputPassword from '@/components/InputPassword'
 import styles from './index.less';
-// import { history, useLocation } from 'umi';
+import { history } from 'umi';
 import { getQueryParam } from '@/utils/help';
 import Right from "./componments/right";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {checkVerifyCode} from "@/services/login";
+import { sendVerifyCode } from '@/services/login';
 
-export default function HomePage() {
+let loadTimer:any = null;
+export default function VerifyCode() {
     const email = getQueryParam('email');
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState('');
     const [isError, setIsError] = useState(false);
 
-    const handleSend = () => {
-
+    const runTimer = (cm = 120) => {
+        if(cm > 0) {
+            if(cm >= 10){
+                setTimer(`${cm} s` )
+            } else {
+                setTimer(`0${cm} s` )
+            }
+            loadTimer = setTimeout(() => {
+                cm -=1;
+                runTimer(cm)
+            }, 1000)
+        } else {
+            setTimer('');
+        }
     }
 
-    const handleVerify = (code: string) => {
+    const initData = async () => {
+        const lastTime = await sendVerifyCode(email);
+        runTimer(lastTime)
+    }
 
+    useEffect(() => {
+        // initData();
+        runTimer()
+
+        return () => {
+            if(loadTimer){
+                clearTimeout(loadTimer)
+            }
+        }
+    }, []);
+
+    const handleVerify = async (code: string) => {
+        try{
+            setLoading(true)
+            // const data =await checkVerifyCode({email, verify_code: code})
+            ////0未注册，1已注册
+            // if(data === 0) {
+            //     history.push(`/set-password?email=${email}`)
+            // } else {
+            //     history.push(`/login-password?email=${email}`)
+            // }
+
+            history.push(`/set-password?email=${email}`)
+        } catch (e) {
+            setIsError(true)
+        } finally {
+            setLoading(false)
+        }
     }
 
   return (
@@ -35,8 +81,9 @@ export default function HomePage() {
                             loading={loading}
                             timer={timer}
                             isError={isError}
-                            onSend={handleSend}
+                            onSend={initData}
                             onVerify={handleVerify}
+                            setIsError={setIsError}
                         />
                     </div>
                 </div>
