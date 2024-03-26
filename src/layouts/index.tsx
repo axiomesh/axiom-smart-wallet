@@ -14,7 +14,9 @@ export default function Layout() {
         <Settings />
         <Logo />
       </div>
-      <Outlet />
+      <div className={styles.outlet}>
+        <Outlet />
+      </div>
     </div>
   );
 }

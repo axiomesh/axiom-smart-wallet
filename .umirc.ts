@@ -75,6 +75,10 @@ export default defineConfig({
       path: '/reset-transfer',
       component: '@/pages/reset-transfer',
     },
+    {
+      path: '/transfer-free',
+      component: '@/pages/transfer-free',
+    },
     { path: '/*', component: '@/pages/404', layout: false }
   ],
   npmClient: 'yarn',
