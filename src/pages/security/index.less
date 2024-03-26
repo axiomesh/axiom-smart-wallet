@@ -1,3 +1,73 @@
+.security {
+  padding: 48px;
+  &Title {
+    font-family: Inter;
+    font-size: 44px;
+    font-weight: 700;
+    color: #000000;
+  }
+  &List {
+    display: flex;
+    margin-top: 20px;
+    gap: 20px;
+    &Item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 23px;
+      width: 328px;
+      height: 316px;
+      border-radius: 20px;
+      border: 1px solid rgba(236, 201, 75, 0.2);
+      box-shadow: 0px 4px 35px 0px rgba(82, 93, 107, 0.03);
+      cursor: pointer;
+      overflow: hidden;
+      span {
+        font-family: Inter;
+        font-size: 20px;
+        font-weight: 700;
+        color: #171923;
+      }
+      &Copy {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        span {
+          font-family: Inter;
+          font-size: 14px;
+          font-weight: 400;
+          color: #718096;
+        }
+      }
+      &Hover {
+        width: 168px;
+        height: 168px;
+        background: #ECC94B;
+        filter: blur(150px);
+        position: absolute;
+        top: -74px;
+        left: -68px;
+      }
+      &:hover {
+        border-color: #D4B443;
+        span {
+          color: #ECC94B;
+        }
+      }
+    }
+    &Discord {
+      svg path {
+        fill: #171923;
+      }
+      &:hover {
+        svg path {
+          fill: #ECC94B;
+        }
+      }
+    }
+  }
 .desc{
   color:#4B5563;
   font-size: 16px;
