@@ -10,6 +10,15 @@ export async function sendVerifyCode(email: string | null) {
     return res.data;
 }
 
+export async function resendVerifyCode(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/send-verify-code/reset-login`,
+        method: 'post',
+        data,
+    });
+    return res.data;
+}
+
 
 export async function checkVerifyCode(data: any) {
     const res = await request({
@@ -20,9 +29,29 @@ export async function checkVerifyCode(data: any) {
     return res.data;
 }
 
+export async function checkResendVerifyCode(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/check-verify-code/reset-login`,
+        method: 'post',
+        data,
+    });
+    return res.data;
+}
+
 export async function addOrUpdatePassword(data: any) {
     const res = await request({
         url: `/api/axm-wallet/account/login-password/addOrUpdate`,
+        method: 'post',
+        data,
+    });
+    return res.data;
+}
+
+//
+
+export async function checkLoginPassword(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login-password/check`,
         method: 'post',
         data,
     });

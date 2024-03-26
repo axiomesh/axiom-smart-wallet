@@ -2,9 +2,8 @@ import InputPassword from '@/components/InputPassword'
 import styles from './index.less';
 import {history, useLocation} from 'umi';
 import { getQueryParam } from '@/utils/help';
-import Right from "./componments/right";
 import {useEffect, useState} from "react";
-import {sendVerifyCode, checkVerifyCode, resendVerifyCode, checkResendVerifyCode} from '@/services/login';
+import {sendVerifyCode, resendVerifyCode, checkResendVerifyCode} from '@/services/login';
 
 let loadTimer:any = null;
 export default function VerifyCode() {
@@ -77,32 +76,26 @@ export default function VerifyCode() {
         }
     }
 
+    const handleResend = () => {
+        if(timer) return
+        initData();
+    }
+
   return (
-      <div className={styles.loginPage}>
-        <div className={styles.loginContainer}>
-            <div className={styles.loginLeft}>
-                <div className={styles.loginLeftContainer}>
-                    <div className={styles.desc} style={{fontSize: 20, marginBottom: 8}}>Enter the code we send to</div>
-                    <div className={styles.title}>{email}</div>
-                    <a className='a_link' href='/login' style={{marginTop: 4, fontSize: 14}}>
-                        Use a different account
-                    </a>
-                    <div style={{marginTop: 32}}>
-                        <InputPassword
-                            needTimer={true}
-                            type='text'
-                            loading={loading}
-                            timer={timer}
-                            isError={isError}
-                            onSend={initData}
-                            onVerify={handleVerify}
-                            setIsError={setIsError}
-                        />
-                    </div>
-                </div>
-            </div>
-            <Right />
-        </div>
+      <div>
+          <div className='page-title'>Reset Unlock Password</div>
+          <div className={styles.desc}>Please complete the email verification code first .</div>
+          <div style={{marginTop: 20}}>
+              <InputPassword
+                  type='text'
+                  loading={loading}
+                  timer={timer}
+                  isError={isError}
+                  onSend={initData}
+                  onVerify={handleVerify}
+                  setIsError={setIsError}
+              />
+          </div>
       </div>
   );
 }

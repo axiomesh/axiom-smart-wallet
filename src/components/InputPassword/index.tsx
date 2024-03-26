@@ -1,6 +1,7 @@
 import styles from './index.less'
 import React, {useState, useEffect} from 'react';
 import { Spinner } from '@chakra-ui/react';
+import ButtonPro from "@/components/Button";
 const reg = /^[0-9]*$/;
 
 interface verifyFunc {
@@ -14,8 +15,8 @@ interface sendFunc {
 interface setFunc {
     (isError: boolean): void;
 }
-const InputPassword = (props:{ type: string, loading: boolean, timer: string, isError: boolean, onSend:sendFunc, onVerify:verifyFunc, setIsError: setFunc }) => {
-    const { type, loading, timer, isError, onSend, onVerify, setIsError} = props;
+const InputPassword = (props:{ type: string, loading: boolean, timer?: string, isError: boolean, onSend:sendFunc, onVerify:verifyFunc, setIsError: setFunc, needTimer?: boolean }) => {
+    const { type, loading, timer, isError, onSend, onVerify, setIsError, needTimer} = props;
     const [value, setValue] = useState(["-", "-","-","-","-","-"]);
     const [isFocus, setIsFocus] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -140,10 +141,12 @@ const InputPassword = (props:{ type: string, loading: boolean, timer: string, is
             </div>
             {loading ?  <div className={styles.loading}><Spinner size='xs' /><span>Verifing</span></div>: null}
             {isError ?  <div className={styles.error}>Verification code error, please try again.</div>: null}
-            {timer ? <div className={styles.timer}>({timer})</div> : <div className={styles.timer}>
+             {needTimer ? timer ? <div className={styles.timer}>({timer})</div> : <div className={styles.timer}>
                 <span>Not received an email? </span>
                 <a className='a_link' onClick={onSend}>Resent</a>
-            </div>}
+            </div> : <ButtonPro mt="20px" w="320px" isDisabled={timer !== '' || loading} onClick={onSend}>
+                 {timer ? timer : 'Resend'}
+             </ButtonPro>}
         </div>
     )
 }

@@ -45,7 +45,32 @@ export default defineConfig({
       layout: false,
     },
     {
+      path: '/security/reset-unlock-password',
+      component: '@/pages/security/set-password',
+    },
+    {
+      path: '/security/forget-password',
+      component: '@/pages/security/forget-password',
+    },
+    {
+      path: '/security/verify',
+      component: '@/pages/security/verify-code',
+    },
+    {
+      path: '/security/update-password',
+      component: '@/pages/security/update-password',
+    },
+    {
+      path: '/security/update-reset-password',
+      component: '@/pages/security/update-password',
+    },
+    {
       path: '/login-password',
+      component: '@/pages/login/login-password',
+      layout: false,
+    },
+    {
+      path: '/lock-password',
       component: '@/pages/login/login-password',
       layout: false,
     },
@@ -56,6 +81,16 @@ export default defineConfig({
     {
       path: '/verify-code',
       component: '@/pages/login/verify-code',
+      layout: false,
+    },
+    {
+      path: '/reset-verify-code',
+      component: '@/pages/login/verify-code',
+      layout: false,
+    },
+    {
+      path: '/lock',
+      component: '@/pages/login/lock',
       layout: false,
     },
     {
