@@ -1,100 +1,92 @@
 import styles from './index.less';
-import logo from '@/assets/axiom.svg'
 import InputPro from '@/components/Input';
 import ButtonPro from '@/components/Button'
 import {
     FormControl,
     FormErrorMessage,
-    Checkbox,
-    useToast
 } from '@chakra-ui/react';
-import { history } from 'umi';
+import { history, useLocation } from 'umi';
 import {useState} from "react";
 import Right from './componments/right';
-import { sendVerifyCode } from '@/services/login';
+import {checkLoginPassword, sendVerifyCode} from '@/services/login';
+import {getQueryParam} from "@/utils/help";
+import LogoutModal from "@/pages/login/componments/logout-modal";
 
 export default function LoginPassword() {
-    const toast = useToast();
+    const location = useLocation();
+    const email = getQueryParam('email');
     const [errorText, setErrorText] = useState('');
-    const [isCheck, setIsCheck] = useState(false);
-    const [mail, setMail] = useState('');
+    const [password, setPassword] = useState('');
+    const [open, setOpen] = useState(false);
 
     const handleSubmit = async () => {
         if(errorText) return;
-        if(!isCheck){
-            toast({
-                position: 'top',
-                title: 'Please agree to the user agreement',
-                status: 'error',
-                containerStyle:{bg: 'red.400', borderRadius: 20},
-                duration: 1500,
-            })
+        if(!password){
+            setErrorText('Please enter a password')
             return
         }
-
-        // await sendVerifyCode(mail)
-        //调用接口 type为 新成员，老成员
-        history.push(`/verify-code?email=${mail}`);
+        await checkLoginPassword({
+            email,
+            address: '',
+            login_password: password,
+        })
+        history.push('/home');
     }
-    const validateName = (value: string) => {
-        const reg =  /^\w+@([\da-z\.-]+)\.([a-z]+|[\u2E80-\u9FFF]+)$/;
-        if (!value) {
-            setErrorText('Please enter your email address');
-            return
-        } else if (!reg.test(value)) {
-            setErrorText("Invalid email address");
-            return
+
+    const handleChangePassWord = (e:any) => {
+        setErrorText('');
+        setPassword(e.target.value);
+    }
+
+    const handleBlurPassWord = (e:any) => {
+        if(e.target.value === ""){
+            setErrorText('Please enter a password')
+        } else {
+            setErrorText('');
         }
-        setErrorText("");
     }
 
-    const handleBlur = (e: any) => {
-        const { value } = e.target;
-        validateName(value);
-        setMail(value);
+    const handleBack = () =>{
+        if(location.pathname === '/lock-password'){
+            setOpen(true);
+        } else {
+            history.replace('/login')
+        }
     }
+
+    // lock-password
   return (
       <div className={styles.loginPage}>
         <div className={styles.loginContainer}>
             <div className={styles.loginLeft}>
                 <div className={styles.loginLeftContainer}>
-                    <img src={logo} alt="logo"/>
-                    <div className={styles.title}>Axiomesh Smart Account</div>
-                    <div className={styles.desc} style={{marginTop: 8, marginBottom: 32}}>
-                        Get started with your email address
-                    </div>
-                    <div>
-                        {/*<InputPro placeholder='Enter your email address' style={{height: 56}} />*/}
+                    <div className={styles.desc} style={{fontSize: 20, marginBottom: 8}}>Enter your password</div>
+                    <div className={styles.title}>{email}</div>
+                    <a className='a_link' onClick={handleBack} style={{marginTop: 4, fontSize: 14}}>
+                        Use a different account
+                    </a>
+                    <div style={{marginTop: 32}}>
                         <FormControl isInvalid={errorText !==''}>
                             <InputPro
-                                placeholder='Enter your email address'
+                                type="password"
+                                placeholder='Password'
                                 style={{height: 56}}
-                                onBlur={handleBlur}
+                                onChange={handleChangePassWord}
+                                onBlur={handleBlurPassWord}
                             />
                             <FormErrorMessage>{errorText}</FormErrorMessage>
                         </FormControl>
-                        <FormControl mt="40px">
-                            <Checkbox
-                                colorScheme='red'
-                                borderRadius="50%"
-                                onChange={(e) => {setIsCheck(e.target.checked)}}
-                            >
-                                <span style={{fontSize: 14}}>
-                                    I agree with <a
-                                    target="_blank"
-                                    href="/privacy"
-                                    className="a_link"
-                                    style={{fontStyle: 'italic'}}
-                                >Axiomesh Smart Account User Agreement</a>
-                                </span>
-                            </Checkbox>
-                        </FormControl>
-                        <ButtonPro mt="24px" onClick={handleSubmit}>Continue</ButtonPro>
                     </div>
+
+                    <div style={{fontSize: 14, marginTop: 20}}>
+                        <a target="_blank" href="/privacy" className="a_link">Forget it?</a>
+                    </div>
+                    <ButtonPro mt="20px" onClick={handleSubmit}>Continue</ButtonPro>
                 </div>
             </div>
             <Right />
         </div>
+          <LogoutModal isOpen={open} onClose={() => setOpen(false)} />
       </div>
   );
 }

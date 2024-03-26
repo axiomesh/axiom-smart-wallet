@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { history } from 'umi';
 
 // 只支持一层简单json格式的对象
 const jsonToUrlEncode = (data:any) =>
@@ -38,8 +39,14 @@ export default async function request(params: any) {
             },
         );
 
-        if (res.status === 200 && res.data.code === 0) {
-            return res.data;
+        if (res.status === 200) {
+            if(res.data.code === 0){
+                return res.data;
+            }
+            if(res.data.code === 10102 || res.data.code === 10103 || res.data.code === 10104){
+                history.replace('/home')
+            }
+
         } else {
             throw new Error(res?.error || res.data.message || 'Error');
         }
