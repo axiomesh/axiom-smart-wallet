@@ -15,7 +15,7 @@ export interface PromptProps {
     when?: boolean
 }
 
-export function Prompt({ message, when }: PromptProps) {
+export default function Prompt({ message, when }: PromptProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [unlockFn, setUnlockFn] = useState({});
     const onClose = () => {

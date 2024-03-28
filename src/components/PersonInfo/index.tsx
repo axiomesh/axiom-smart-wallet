@@ -1,6 +1,7 @@
 import styles from './index.less'
 import React, { useState, useEffect } from 'react';
 import useCancelModal from "@/hooks/CancelModal";
+import {exchangeAddress, getImgFromHash} from '@/utils/help';
 
 const PersonInfo = () => {
     const [isHover, setIsHover] = useState(false);
@@ -33,11 +34,13 @@ const PersonInfo = () => {
     }
 
     return (
-        <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseEnter={() => { setIsHover(true) }} onMouseLeave={() => {setIsHover(false)}}>
-            <img className={styles.img} src={require('@/assets/avatar.png')} alt=""/>
+        <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseOver={() => { setIsHover(true) }} onMouseLeave={() => {setIsHover(false)}}>
+            {/*@ts-ignore*/}
+            <img className={styles.img} src={getImgFromHash(window.testAddress)} alt=""/>
             <div className={styles.information}>
                 <span className={styles.email}>dasdsa211223@gmail.com</span>
-                <span className={styles.address}>0x06b…f2713 <i className={styles.downIcon}></i></span>
+                {/*@ts-ignore*/}
+                <span className={styles.address}>{exchangeAddress(window.testAddress)} <i className={styles.downIcon}></i></span>
             </div>
             <div className={styles.white}></div>
             {isHover && <div className={`${styles.logoutModal} hover-content`}>

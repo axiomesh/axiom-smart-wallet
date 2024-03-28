@@ -6,7 +6,8 @@ import { addOrUpdatePassword } from '@/services/login';
 import InputPro from "@/components/Input";
 import {FormControl, FormErrorMessage, Progress} from "@chakra-ui/react";
 import ButtonPro from "@/components/Button";
-import { Prompt } from "@/components/Prompt";
+import Prompt from "@/components/Prompt";
+import Page from '@/components/Page'
 
 let loadTimer:any = null;
 export default function SetPassword() {
@@ -118,43 +119,44 @@ export default function SetPassword() {
     return (
         <>
             <Prompt message='Are you sure to cancel password reset?' />
-            <div className={styles.loginLeftContainer}>
-
-                <div className='page-title'>Reset Unlock Password</div>
-                <div className={styles.desc} style={{marginTop: 20, fontSize: 16}}>Please update your unlock password</div>
-                <div style={{marginTop: 32}}>
-                    <FormControl isInvalid={newErrorText !==''}>
-                        <InputPro
-                            type="password"
-                            placeholder='New password'
-                            style={{height: 56}}
-                            onChange={handleChangePassWord}
-                            onBlur={handleBlurPassWord}
-                        />
-
-                        {password && !reg.test(password) ? <>
-                            <Progress value={progress} className='login-progress' size='xs' />
-                            <div className={styles.progressText}>{progressText}</div>
-                        </> : null}
-                        <FormErrorMessage>{newErrorText}</FormErrorMessage>
-                    </FormControl>
-                </div>
-                <div style={{marginTop: 32}}>
-                    <FormControl isInvalid={errorText !==''}>
-                        <InputPro
-                            type="password"
-                            placeholder='Repeat password'
-                            style={{height: 56}}
-                            onChange={handleChangeRePassWord}
-                            onBlur={handleBlurRePassWord}
-                        />
-                        <FormErrorMessage>{errorText}</FormErrorMessage>
-                    </FormControl>
-                </div>
+            <Page needBack>
                 <div>
-                    <ButtonPro mt="24px" w="320px" onClick={handleSubmit}>Continue</ButtonPro>
+                    <div className='page-title'>Reset Unlock Password</div>
+                    <div className={styles.desc} style={{marginTop: 20, fontSize: 16}}>Please update your unlock password</div>
+                    <div style={{marginTop: 32}}>
+                        <FormControl isInvalid={newErrorText !==''}>
+                            <InputPro
+                                type="password"
+                                placeholder='New password'
+                                style={{height: 56}}
+                                onChange={handleChangePassWord}
+                                onBlur={handleBlurPassWord}
+                            />
+
+                            {password && !reg.test(password) ? <>
+                                <Progress value={progress} className='login-progress' size='xs' />
+                                <div className={styles.progressText}>{progressText}</div>
+                            </> : null}
+                            <FormErrorMessage>{newErrorText}</FormErrorMessage>
+                        </FormControl>
+                    </div>
+                    <div style={{marginTop: 32}}>
+                        <FormControl isInvalid={errorText !==''}>
+                            <InputPro
+                                type="password"
+                                placeholder='Repeat password'
+                                style={{height: 56}}
+                                onChange={handleChangeRePassWord}
+                                onBlur={handleBlurRePassWord}
+                            />
+                            <FormErrorMessage>{errorText}</FormErrorMessage>
+                        </FormControl>
+                    </div>
+                    <div>
+                        <ButtonPro mt="24px" w="320px" onClick={handleSubmit}>Continue</ButtonPro>
+                    </div>
                 </div>
-            </div>
+            </Page>
         </>
     );
 }

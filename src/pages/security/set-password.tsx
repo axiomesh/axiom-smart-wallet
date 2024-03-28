@@ -9,7 +9,7 @@ import { history, useLocation } from 'umi';
 import {useState} from "react";
 import {checkLoginPassword, sendVerifyCode} from '@/services/login';
 import {getQueryParam} from "@/utils/help";
-import LogoutModal from "@/pages/login/componments/logout-modal";
+import Page from '@/components/Page';
 
 export default function ResetUnlockPassword() {
     const email = getQueryParam('email');
@@ -43,9 +43,13 @@ export default function ResetUnlockPassword() {
         }
     }
 
+    const handleForget = () => {
+        history.push('/security/forget-password')
+    }
+
     // lock-password
   return (
-      <div>
+      <Page needBack>
           <div>
               <div className='page-title'>Reset Unlock Password</div>
               <div className={styles.desc}>Please enter the old password for verification</div>
@@ -63,10 +67,10 @@ export default function ResetUnlockPassword() {
               </div>
 
               <div style={{fontSize: 14, marginTop: 20}}>
-                  <a target="_blank" href="/privacy" className="a_link">Forget it?</a>
+                  <a onClick={handleForget} className="a_link">Forget it?</a>
               </div>
               <ButtonPro mt="20px" w="320px" onClick={handleSubmit}>Verify</ButtonPro>
           </div>
-      </div>
+      </Page>
   );
 }
