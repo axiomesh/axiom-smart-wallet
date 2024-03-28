@@ -11,6 +11,7 @@ import {
 import Input from '@/components/Input';
 import useContinueButton from '@/hooks/ContinueButton';
 import ModalInputPassword from "@/components/ModalInputPassword";
+import TransferPassword from "@/components/TransferPassword";
 
 const SetPayPasswordModal = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -46,12 +47,7 @@ const SetPayPasswordModal = () => {
                             />
                             <Button>Verify</Button>
                         </div>}
-                        {isVerify && <div>
-                            <div className={styles.setPassTitle}><span className={styles.setPassText}>Transfer password</span><span className={styles.setPassTip}>（Supports numbers from 0 to 9）</span></div>
-                            <ModalInputPassword />
-                            <div className={styles.setPassTitle}><span className={styles.setPassText}>Transfer password</span></div>
-                            <ModalInputPassword />
-                        </div>}
+                        {isVerify && <TransferPassword />}
                     </ModalBody>
                     <ModalFooter>
                     </ModalFooter>
