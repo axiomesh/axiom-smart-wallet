@@ -4,6 +4,7 @@ import {history, useLocation} from 'umi';
 import { getQueryParam } from '@/utils/help';
 import {useEffect, useState} from "react";
 import {sendVerifyCode, resendVerifyCode, checkResendVerifyCode} from '@/services/login';
+import Page from '@/components/Page'
 
 let loadTimer:any = null;
 export default function VerifyCode() {
@@ -82,20 +83,22 @@ export default function VerifyCode() {
     }
 
   return (
-      <div>
-          <div className='page-title'>Reset Unlock Password</div>
-          <div className={styles.desc}>Please complete the email verification code first .</div>
-          <div style={{marginTop: 20}}>
-              <InputPassword
-                  type='text'
-                  loading={loading}
-                  timer={timer}
-                  isError={isError}
-                  onSend={initData}
-                  onVerify={handleVerify}
-                  setIsError={setIsError}
-              />
+      <Page needBack>
+          <div>
+              <div className='page-title'>Reset Unlock Password</div>
+              <div className={styles.desc}>Please complete the email verification code first .</div>
+              <div style={{marginTop: 20}}>
+                  <InputPassword
+                      type='text'
+                      loading={loading}
+                      timer={timer}
+                      isError={isError}
+                      onSend={initData}
+                      onVerify={handleVerify}
+                      setIsError={setIsError}
+                  />
+              </div>
           </div>
-      </div>
+      </Page>
   );
 }

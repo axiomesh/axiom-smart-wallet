@@ -22,11 +22,10 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
     const [activeIndex, setActiveIndex] = useState(0);
     // 处理一些键盘特殊按键，清除默认行为
     const handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index:number):void => {
-        // e.preventDefault();
-        // e.stopPropagation();
         if (e.key === 'Backspace') {
             setIsError(false)
             const newValue = [...value];
+            // @ts-ignore
             if(e.target.value === '-' || e.target.value === '' || index === 5){
                 if(index){
                     newValue[index] = '-';
@@ -35,6 +34,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
                     newValue[index] = '';
                 }
                 setValue(newValue);
+                // @ts-ignore
                 const prevInput = e.target.previousElementSibling;
                 if (prevInput && index > 0) {
                     prevInput.focus();
@@ -44,6 +44,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
                 const numbersString = newValue.join('');
                 const numbersArray = [...numbersString].map(digit => digit=== '' || digit==='-' ? '-' : parseInt(digit, 10))
                 const list = numbersArray.concat(Array(6 - (numbersArray.length)).fill('-'))
+                // @ts-ignore
                 setValue(list);
             }
 
@@ -56,6 +57,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
                 onVerify(newValue.join(''));
             }
             setValue(newValue);
+            // @ts-ignore
             const nextInput = e.target.nextElementSibling;
             if(nextInput){
                 nextInput.focus();
@@ -66,6 +68,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, index:number) => {
         e.preventDefault();
         e.stopPropagation();
+        // @ts-ignore
         const clipboardData = e.clipboardData || window.clipboardData;
         const pastedText = clipboardData.getData('text').trim();
 

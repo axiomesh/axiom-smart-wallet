@@ -75,8 +75,16 @@ export default defineConfig({
       layout: false,
     },
     {
+      path: '/home',
+      component: '@/pages/home',
+    },
+    {
       path: '/transfer',
       component: '@/pages/transfer',
+    },
+    {
+      path: '/transfer-history',
+      component: '@/pages/transfer/history',
     },
     {
       path: '/verify-code',

@@ -69,3 +69,31 @@ html,  body, #root{
   font-size: 44px;
   line-height: 66px;
 }
+
+.page-back{
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  color: #718096;
+  margin-bottom: 20px;
+  span {
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  &:hover{
+    color: #2D3748;
+  }
+
+  &:active{
+    color: #171923;
+  }
+}
+
+.chakra-menu__menu-button[data-active]{
+  .select_down_icon{
+    transform: rotate(-180deg);
+    transition: transform ease 0.5s;
+  }
+}

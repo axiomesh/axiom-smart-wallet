@@ -9,12 +9,15 @@
     "start": "npm run dev"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "axios": "^1.6.8",
     "formik": "^2.4.5",
     "framer-motion": "^11.0.12",
+    "generate-avatar": "^1.4.10",
+    "rc-pagination": "^4.0.4",
     "react-select": "^5.8.0",
     "umi": "^4.1.2"
   },
