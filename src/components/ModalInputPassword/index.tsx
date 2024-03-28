@@ -5,7 +5,11 @@ import {
     PinInputField,
 } from '@chakra-ui/react';
 
-const ModalInputPassword = () => {
+interface Props {
+    onSubmit: (password: string) => void;
+}
+
+const ModalInputPassword = (props: Props) => {
     const [pinValues, setPinValues] = useState<string[]>(["", "", "", "", "", ""]);
 
     const handlePinChange = (index: number, value: string) => {
@@ -14,13 +18,10 @@ const ModalInputPassword = () => {
         setPinValues(newPinValues);
 
         if (index === newPinValues.length - 1 && value !== "") {
-            handleSubmit();
+            props.onSubmit(newPinValues.join(""))
         }
     };
 
-    const handleSubmit = () => {
-
-    }
 
     return (
         <div className={styles.PinInput}>

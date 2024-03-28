@@ -33,12 +33,13 @@ const PersonInfo = () => {
     }
 
     return (
-        <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseOver={() => { setIsHover(true) }}>
+        <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseEnter={() => { setIsHover(true) }} onMouseLeave={() => {setIsHover(false)}}>
             <img className={styles.img} src={require('@/assets/avatar.png')} alt=""/>
             <div className={styles.information}>
                 <span className={styles.email}>dasdsa211223@gmail.com</span>
                 <span className={styles.address}>0x06b…f2713 <i className={styles.downIcon}></i></span>
             </div>
+            <div className={styles.white}></div>
             {isHover && <div className={`${styles.logoutModal} hover-content`}>
                 <div className={styles.logoutInfo}>
                     <span className={styles.title}>Address</span>
