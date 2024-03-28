@@ -79,6 +79,8 @@ const Transfer = () => {
     const [buttonText, setButtonText] = useState("Transfer");
     const [tokenList, setTokenList] = useState<token[]>();
     const [isChangeSend, setIsChangeSend] = useState(false);
+    const [passwordOpen, setPasswordOpen] = useState(false);
+    const [toError, setToError] = useState<string>("")
 
     const {Button} = useContinueButton();
 
@@ -114,11 +116,19 @@ const Transfer = () => {
 
 
     const confirmCallback = () => {
+        if(isSetPassword) {
 
+        }else {
+            setPasswordOpen(true)
+        }
     }
 
-    const validateName = () => {
-
+    const validateName = (value) => {
+        const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+        const isValid = ethAddressRegex.test(value);
+        if(!isValid) {
+            return "Invalid address !"
+        }
     }
 
     const handleFromChange = (e: any) => {
@@ -127,6 +137,10 @@ const Transfer = () => {
 
     const handleSendChange = () => {
         setIsChangeSend(true)
+    }
+
+    const handlePasswordClose = () => {
+        setPasswordOpen(false)
     }
 
     return (
@@ -168,7 +182,7 @@ const Transfer = () => {
                                 )}
                             </Field>
                             <div className={styles.formSend}>
-                                <Field name='send' validate={validateName}>
+                                <Field name='send'>
                                     {({ field, form }) => (
                                         <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}}>
                                             <FormLabel className={styles.formTitle}>Send</FormLabel>
@@ -183,7 +197,7 @@ const Transfer = () => {
                                         </FormControl>
                                     )}
                                 </Field>
-                                {isChangeSend && <Field name='to' validate={validateName}>
+                                {isChangeSend && <Field name='send'>
                                     {({ field, form }) => (
                                         <FormControl className={styles.formControl}>
                                             <FormLabel className={styles.formTitle}></FormLabel>
@@ -218,9 +232,10 @@ const Transfer = () => {
 
                             <Field name='to' validate={validateName}>
                                 {({ field, form }) => (
-                                    <FormControl className={styles.formControl}>
+                                    <FormControl className={styles.formControl} isInvalid={form.errors.to}>
                                         <FormLabel className={styles.formTitle}>To</FormLabel>
                                         <Input
+                                            {...field}
                                             isDisabled={!isSetPassword}
                                             fontSize="14px"
                                             fontWeight="400"
@@ -237,6 +252,7 @@ const Transfer = () => {
                                                 color: "#A0AEC0"
                                             }}
                                         />
+                                        <FormErrorMessage>{form.errors.to}</FormErrorMessage>
                                     </FormControl>
                                 )}
                             </Field>
@@ -246,7 +262,7 @@ const Transfer = () => {
                 <Button onClick={confirmCallback} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
             </div>
             <TransferModal />
-            <SetPayPasswordModal />
+            <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
         </div>
     )
 }

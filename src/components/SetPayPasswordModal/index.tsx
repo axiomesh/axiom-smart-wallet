@@ -1,5 +1,5 @@
 import styles from "./index.less";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Modal,
     ModalOverlay,
@@ -12,19 +12,37 @@ import Input from '@/components/Input';
 import useContinueButton from '@/hooks/ContinueButton';
 import ModalInputPassword from "@/components/ModalInputPassword";
 import TransferPassword from "@/components/TransferPassword";
+import { setFirstPassword } from '@/services/transfer';
+import Toast from "@/hooks/Toast";
 
-const SetPayPasswordModal = () => {
-    const [isOpen, setIsOpen] = useState(false);
+interface Props {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const SetPayPasswordModal = (props: Props) => {
+    const [open, setOpen] = useState<Boolean>(props.isOpen);
     const [isVerify, setIsVerify] = useState(false);
-
     const {Button}  = useContinueButton();
+    const {showSuccessToast} = Toast();
+
+    useEffect(() => {
+        setOpen(props.isOpen)
+    },[props.isOpen])
+
     const onClose = () => {
-        setIsOpen(false);
+        props.onClose()
+    }
+
+    const handleSubmit = async (e: string) => {
+        await setFirstPassword("", "", e);
+        showSuccessToast("Password set successfully!");
+        props.onClose();
     }
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={onClose} closeOnOverlayClick={false}>
+            <Modal isOpen={open} onClose={onClose} closeOnOverlayClick={false}>
                 <ModalOverlay />
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
@@ -47,7 +65,7 @@ const SetPayPasswordModal = () => {
                             />
                             <Button>Verify</Button>
                         </div>}
-                        {isVerify && <TransferPassword />}
+                        {isVerify && <TransferPassword onSubmit={handleSubmit} />}
                     </ModalBody>
                     <ModalFooter>
                     </ModalFooter>

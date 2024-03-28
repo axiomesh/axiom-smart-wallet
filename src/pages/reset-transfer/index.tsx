@@ -4,20 +4,33 @@ import InputPassword from "@/components/InputPassword";
 import TransferPassword from "@/components/TransferPassword";
 import ContinueButton from "@/hooks/ContinueButton";
 import Back from "@/components/Back";
-import { sendVerifyCode } from "@/services/transfer"
+import { sendVerifyCode, checkVerifyCode, setNewPassword } from "@/services/transfer"
+import {history} from "@@/core/history";
 
 const ResetTransfer = () => {
     const [isLock, setIsLock] = useState(true);
-    const [step, setStep] = useState(0);
+    const [step, setStep] = useState(2);
 
     const { Button } = ContinueButton();
 
     const handleBack = () => {
-
+        history.push('/security')
     }
 
     const handleSendEmail = () => {
         sendVerifyCode("").then((res: any) => {
+
+        })
+    }
+
+    const handleVerify = (code: string) => {
+        checkVerifyCode("", code).then((res: any) => {
+
+        })
+    }
+
+    const handleSubmit = (value: string) => {
+        setNewPassword("","","", "").then((res: any) =>{
 
         })
     }
@@ -33,9 +46,9 @@ const ResetTransfer = () => {
             {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>
                 <span>Send a verify email</span>
             </div>}
-            {step === 1 && <div style={{marginTop: "20px"}}><InputPassword timer="120"/></div>}
+            {step === 1 && <div style={{marginTop: "20px"}}><InputPassword onVerify={handleVerify} needTimer={false} timer="120"/></div>}
             {step === 2 && <div style={{marginTop: "20px"}}>
-                <TransferPassword />
+                <TransferPassword onSubmit={handleSubmit} />
                 <div style={{width: "320px",marginTop: "40px"}}><Button>Confirm</Button></div>
             </div>}
         </div>

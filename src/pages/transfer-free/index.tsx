@@ -15,6 +15,7 @@ import { extendTheme } from '@chakra-ui/react'
 import { ChakraProvider } from '@chakra-ui/react'
 import ContinueButton from "@/hooks/ContinueButton";
 import VerifyTransferModal from "@/components/VerifyTransferModal";
+import { history } from 'umi';
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -60,7 +61,7 @@ const TransferFree = () => {
     return (
         <ChakraProvider theme={theme}>
             <div className={styles.free}>
-                <Back />
+                <Back onClick={() => {history.push('/security')}} />
                 <h1 className={styles.freeTitle}>Reset Transfer Password</h1>
                 <p className={styles.freeTip}>once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification .</p>
                 <div className={styles.freeSwitch}>
