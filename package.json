@@ -14,15 +14,18 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "axios": "^1.6.8",
+    "dayjs": "^1.11.10",
     "formik": "^2.4.5",
     "framer-motion": "^11.0.12",
     "generate-avatar": "^1.4.10",
     "rc-pagination": "^4.0.4",
+    "react-copy-to-clipboard": "^5.1.0",
     "react-select": "^5.8.0",
     "umi": "^4.1.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.33",
+    "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-dom": "^18.0.11",
     "typescript": "^5.0.3"
   }

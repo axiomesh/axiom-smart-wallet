@@ -17,7 +17,7 @@ const Page: React.FC<Props> = ({needBack, backFn, children}) => {
         }
     }
     return (
-        <div style={{padding: 48,
+        <div style={{
             width: '100%',
             boxSizing: 'border-box',
             minHeight: 700,

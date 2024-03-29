@@ -2,6 +2,7 @@ import Pagination from 'rc-pagination';
 import React from "react";
 import './index.less';
 import { ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon, ArrowLeftIcon } from '@chakra-ui/icons';
+import enUS from './en_US';
 
 export default function PaginationPro (props: any) {
     return <Pagination
@@ -31,5 +32,7 @@ export default function PaginationPro (props: any) {
         }
         showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
         showQuickJumper
-        {...props} total={5000} />
+        locale={enUS}
+        {...props}
+    />
 }
