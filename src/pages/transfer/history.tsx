@@ -6,7 +6,7 @@ import PaginationPro from '@/components/Pagination';
 import { ProgressIcon, SuccessIcon, FailIcon } from '@/components/Icons';
 import dayjs from '@/utils/dayjs';
 import Copy from '@/components/Copy';
-import { exchangeAddress } from '@/utils/help';
+import {exchangeAddress, getMail} from '@/utils/help';
 import MainTag from '@/components/Tag/main';
 import { selectCurrencyList } from '../home/config';
 import eth from '@/assets/currency/eth/eth.png';
@@ -25,6 +25,7 @@ interface ListItem {
     url: string;
 }
 const TransferHistory = () => {
+    const email: string | any = getMail();
     const [loading, setLoading] = useState(false);
     const skeletonList = [{}, {}, {}, {}, {}];
     const [list, setList] = useState<Array<ListItem>>([{
@@ -53,7 +54,7 @@ const TransferHistory = () => {
     ];
 
     const initData = async (cur: number) => {
-        const params = { page: cur, size: 10, email: ''};
+        const params = { page: cur, size: 10, email};
         try{
             setLoading(true)
             setCurrent(cur)

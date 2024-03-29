@@ -1,6 +1,6 @@
 import styles from './index.less';
 import { history } from 'umi';
-import {getQueryParam, passWordReg} from '@/utils/help';
+import {getMail, passWordReg} from '@/utils/help';
 import {useState} from "react";
 import {resetPassword, updatePassword} from '@/services/login';
 import InputPro from "@/components/Input";
@@ -26,7 +26,7 @@ function SecurityUpdatePassword(props: any) {
     const { userInfo } = props;
     const location = useLocation();
     const {showErrorToast} = Toast();
-    const email = getQueryParam('email');
+    const email: string | any = getMail();
     const [errorText, setErrorText] = useState('');
     const [newErrorText, setNewErrorText] = useState('');
     const [password, setPassword] = useState('');

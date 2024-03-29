@@ -7,6 +7,7 @@ import { currencyList } from './config';
 import { SelectDownIcon } from '@/components/Icons';
 import TokenList from './componment/tokenList';
 import {getImgFromHash, toThousands} from "@/utils/help";
+
 const Home = () => {
     const [activeKey, setActiveKey] = useState('all');
     const activeList = currencyList.filter(item => item.value === activeKey)[0];
@@ -82,7 +83,7 @@ const Home = () => {
             <Box mb="20px">
                 <Divider />
             </Box>
-            <Flex gap="20px">
+            <Flex gap="20px" pb="40px">
                 <Box flex={1}>
                     <Tabs colorScheme='gray.300' index={activeType} onChange={handleChangeType} mb="20px" variant="unstyled">
                         <TabList>

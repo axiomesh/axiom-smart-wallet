@@ -1,14 +1,14 @@
 import InputPassword from '@/components/InputPassword'
 import styles from './index.less';
 import {history} from 'umi';
-import { getQueryParam } from '@/utils/help';
+import {getMail} from '@/utils/help';
 import {useEffect, useState} from "react";
 import {resendVerifyCode, checkResendVerifyCode} from '@/services/login';
 import Page from '@/components/Page'
 
 let loadTimer:any = null;
 export default function SecurityVerifyCode() {
-    const email = getQueryParam('email');
+    const email: string | any = getMail();
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState('');
     const [isError, setIsError] = useState(false);
