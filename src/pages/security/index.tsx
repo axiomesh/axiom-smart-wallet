@@ -28,8 +28,14 @@ const list: listItem[] = [
 const Security = () => {
     const [isHover, setIsHover] = useState<number>(null);
     const handleClickItem = (i: number) => {
-        if(i === 2){
+        if(i === 0){
             history.push('/security/reset-unlock-password')
+        }
+        if(i === 1) {
+            history.push('/reset-transfer')
+        }
+        if(i === 2) {
+            history.push('/transfer-free')
         }
     }
 

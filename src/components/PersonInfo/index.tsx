@@ -34,7 +34,7 @@ const PersonInfo = () => {
     }
 
     return (
-        <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseOver={() => { setIsHover(true) }}>
+        <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseOver={() => { setIsHover(true) }} onMouseLeave={() => {setIsHover(false)}}>
             {/*@ts-ignore*/}
             <img className={styles.img} src={getImgFromHash(window.testAddress)} alt=""/>
             <div className={styles.information}>
@@ -42,6 +42,7 @@ const PersonInfo = () => {
                 {/*@ts-ignore*/}
                 <span className={styles.address}>{exchangeAddress(window.testAddress)} <i className={styles.downIcon}></i></span>
             </div>
+            <div className={styles.white}></div>
             {isHover && <div className={`${styles.logoutModal} hover-content`}>
                 <div className={styles.logoutInfo}>
                     <span className={styles.title}>Address</span>

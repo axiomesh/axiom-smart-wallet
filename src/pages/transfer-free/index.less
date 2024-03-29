@@ -1,4 +1,5 @@
 .free {
+  width: 100%;
   &Title {
     font-family: Inter;
     font-size: 44px;
@@ -17,12 +18,81 @@
     display: flex;
     flex-direction: column;
     margin-top: 40px;
-    gap: 4px;
+    gap: 8px;
     span {
       font-family: Inter;
       font-size: 16px;
       font-weight: 700;
       color: #000000;
+    }
+  }
+  &Setting {
+    padding: 40px;
+    border: 1px solid #EDF2F7;
+    border-radius: 20px;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #fff;
+    &Top {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      &Title {
+        font-family: Inter;
+        font-size: 18px;
+        font-weight: 700;
+        color: #000000;
+      }
+      &Tip {
+        font-family: Inter;
+        font-size: 14px;
+        font-weight: 500;
+        color: #4B5563;
+      }
+    }
+    &Center {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      &Title {
+        font-family: Inter;
+        font-size: 16px;
+        font-weight: 600;
+        color: #2D3748;
+      }
+      &Before {
+        font-family: Inter;
+        font-size: 14px;
+        font-weight: 400;
+        color: #A0AEC0;
+      }
+      &Max {
+        padding: 8px 12px 8px 12px;
+        gap: 4px;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        font-family: Inter;
+        font-size: 14px;
+        font-weight: 500;
+        color: #718096;
+        cursor: pointer;
+        background: #F7FAFC;
+        &:hover {
+          color: #2D3748;
+          border-color: #2D3748;
+          background: #EDF2F7;
+        }
+        &:active {
+          background: #CBD5E0;
+          color: #171923;
+          border-color: #171923;
+        }
+      }
+    }
+    &Bottom {
+      width: 320px;
     }
   }
 }
