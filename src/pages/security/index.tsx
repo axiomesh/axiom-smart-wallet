@@ -1,9 +1,11 @@
 import styles from './index.less'
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { ReactComponent as Free } from '@/assets/security/free.svg'
 import { ReactComponent as Unlock } from '@/assets/security/unlock.svg'
 import { ReactComponent as Transfer } from '@/assets/security/transfer.svg'
 import { history } from 'umi';
+import {lockPage} from "@/services/login";
+import {getMail} from "@/utils/help";
 
 interface listItem {
     label: string,
@@ -26,9 +28,11 @@ const list: listItem[] = [
 ]
 
 const Security = () => {
-    const [isHover, setIsHover] = useState<number>(null);
-    const handleClickItem = (i: number) => {
+    const email: string | any = getMail();
+    const [isHover, setIsHover] = useState<number | any>(null);
+    const handleClickItem = async (i: number) => {
         if(i === 0){
+            await lockPage(email)
             history.push('/security/reset-unlock-password')
         }
         if(i === 1) {

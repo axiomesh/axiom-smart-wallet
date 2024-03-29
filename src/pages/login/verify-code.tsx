@@ -1,14 +1,16 @@
 import InputPassword from '@/components/InputPassword'
 import styles from './index.less';
 import {history, useLocation} from 'umi';
-import { getQueryParam } from '@/utils/help';
+import {getMail, getQueryParam} from '@/utils/help';
 import Right from "./componments/right";
 import {useEffect, useState} from "react";
 import {sendVerifyCode, checkVerifyCode, resendVerifyCode, checkResendVerifyCode} from '@/services/login';
 
 let loadTimer:any = null;
+
+// //为重置支付密码 reset-verify-code验证码页面 。老用户，新用户登陆的验证码页面
 export default function VerifyCode() {
-    const email = getQueryParam('email');
+    const email: string | any = getMail();
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState('');
     const [isError, setIsError] = useState(false);
@@ -17,9 +19,9 @@ export default function VerifyCode() {
     const runTimer = (cm = 120) => {
         if(cm > 0) {
             if(cm >= 10){
-                setTimer(`${cm} s` )
+                setTimer(`${cm}s` )
             } else {
-                setTimer(`0${cm} s` )
+                setTimer(`0${cm}s` )
             }
             loadTimer = setTimeout(() => {
                 cm -=1;
@@ -30,11 +32,15 @@ export default function VerifyCode() {
         }
     }
 
+    useEffect(() => {
+        if(!email) history.replace('/login')
+    }, [email])
+
     const initData = async () => {
         // resendVerifyCode
         let lastTime = 0;
         if(loaction.pathname === '/reset-verify-code'){
-            lastTime = await resendVerifyCode({email, address: ''})
+            lastTime = await resendVerifyCode(email)
         } else {
             lastTime = await sendVerifyCode(email)
         }
@@ -56,20 +62,20 @@ export default function VerifyCode() {
         try{
             setLoading(true)
             if(loaction.pathname === '/reset-verify-code'){
-                await checkResendVerifyCode({email, verify_code: code, address: ''})
-                history.push(`/reset-password?email=${email}`)
+                await checkResendVerifyCode(email)
+                history.replace(`/reset-password`)
             } else {
                 // const data =await checkVerifyCode({email, verify_code: code})
                 ////0未注册，1已注册
                 // if(data === 0) {
-                //     history.push(`/set-password?email=${email}`)
+                //      history.replace(`/set-password`)
                 // } else {
-                //     history.push(`/login-password?email=${email}`)
+                //     history.replace(`/login-password`)
                 // }
             }
 
 
-            history.push(`/set-password?email=${email}`)
+            history.replace(`/set-password`)
         } catch (e) {
             setIsError(true)
         } finally {

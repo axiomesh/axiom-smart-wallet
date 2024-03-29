@@ -1,13 +1,38 @@
 import styles from './index.less'
 import React, { useState, useEffect } from 'react';
 import useCancelModal from "@/hooks/CancelModal";
-import {exchangeAddress, getImgFromHash} from '@/utils/help';
+import {exchangeAddress, getImgFromHash, getMail} from '@/utils/help';
+import {getUserInfo} from "@/services/login";
+import {history} from "@@/core/history";
+import { connect } from 'umi';
 
-const PersonInfo = () => {
+const PersonInfo = (props: any) => {
+    const {dispatch, userInfo} = props;
+    console.log('userInfo', props)
     const [isHover, setIsHover] = useState(false);
     const [isCopy, setIsCopy] = useState(false);
+    const [info, setInfo] = useState({});
+    const email: string | any = getMail();
 
     const [ModalComponent, openModal] = useCancelModal();
+
+    const initUserInfo = async () => {
+        const res = await getUserInfo(email);
+        if(res.lock_screen_status){
+            history.push('/lock')
+        }
+        setInfo(res);
+        dispatch({
+            type: 'global/setUser',
+            payload: res,
+        })
+    }
+
+    useEffect(() => {
+        // if(!userInfo.id){
+        //     initUserInfo();
+        // }
+    }, [userInfo]);
 
     useEffect(() => {
         document.addEventListener('click', handleClickOutside);
@@ -58,4 +83,6 @@ const PersonInfo = () => {
     )
 }
 
-export default PersonInfo;
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(PersonInfo)

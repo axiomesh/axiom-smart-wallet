@@ -6,28 +6,31 @@ import {
     FormErrorMessage,
 } from '@chakra-ui/react';
 import { history, useLocation } from 'umi';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Right from './componments/right';
 import {checkLoginPassword, sendVerifyCode} from '@/services/login';
-import {getQueryParam} from "@/utils/help";
+import {getMail, passWordReg} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
 
 export default function LoginPassword() {
     const location = useLocation();
-    const email = getQueryParam('email');
+    const email: string | any = getMail();
     const [errorText, setErrorText] = useState('');
     const [password, setPassword] = useState('');
     const [open, setOpen] = useState(false);
 
+
     const handleSubmit = async () => {
         if(errorText) return;
+        if(!passWordReg.test(password)){
+            setErrorText('Invalid password')
+        }
         if(!password){
             setErrorText('Please enter a password')
-            return
         }
+        if(!password || !passWordReg.test(password)) return
         await checkLoginPassword({
             email,
-            address: '',
             login_password: password,
         })
         history.push('/home');
@@ -53,6 +56,10 @@ export default function LoginPassword() {
             history.replace('/login')
         }
     }
+
+    useEffect(() => {
+        if(!email) history.replace('/login')
+    }, [])
 
     // lock-password
   return (

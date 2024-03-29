@@ -15,6 +15,8 @@ export default defineConfig({
   lessLoader: {
     javascriptEnabled: true,
   },
+  plugins: ['@umijs/plugins/dist/dva'],
+  dva: {},
   hash: true,
   targets: {
     ie: 11,

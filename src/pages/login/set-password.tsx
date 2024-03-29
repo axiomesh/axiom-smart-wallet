@@ -1,16 +1,24 @@
 import styles from './index.less';
 import { history, useLocation } from 'umi';
-import { getQueryParam } from '@/utils/help';
+import {getMail, passWordReg} from '@/utils/help';
 import Right from "./componments/right";
-import {useState} from "react";
-import { addOrUpdatePassword } from '@/services/login';
+import {useEffect, useState} from "react";
+import { resetPassword, registerUser } from '@/services/login';
 import InputPro from "@/components/Input";
 import {FormControl, FormErrorMessage, Progress} from "@chakra-ui/react";
 import ButtonPro from "@/components/Button";
 
-let loadTimer:any = null;
+interface ParamsItem {
+    email: string | any;
+    address?: string;
+    login_password: string;
+    enc_private_key: string;
+    owner_address?: string;
+}
+// 设置登陆密码需要调用sdk
+// 老用户的重置密码， 新用户设置密码共用这个页面
 export default function SetPassword() {
-    const email = getQueryParam('email');
+    const email: string | any = getMail();
     const location = useLocation();
     const [errorText, setErrorText] = useState('');
     const [newErrorText, setNewErrorText] = useState('');
@@ -18,35 +26,48 @@ export default function SetPassword() {
     const [rePassword, setRePassword] = useState('');
     const [progress, setProgress] = useState(25);
     const [progressText, setProgressText] = useState('');
-    const reg = /^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$/;
 
 
     const handleSubmit = async () => {
+        if(!passWordReg.test(password)){
+            setNewErrorText('Invalid password')
+        }
         if(!password){
             setNewErrorText('Please enter a new password')
-            return
+        }
+        if(!passWordReg.test(rePassword)){
+            setErrorText('Invalid password')
         }
         if(!rePassword){
             setErrorText('Please enter a repeat password')
-            return
         }
-        if(password === rePassword && reg.test(password)){
-            await addOrUpdatePassword({
+
+        if(!password || !rePassword || errorText || newErrorText) return
+        if(password === rePassword && passWordReg.test(password)){
+            const params:ParamsItem = {
                 email,
-                address: '',
                 login_password: password,
                 enc_private_key: '', //登录密码对私钥进行对称加密-加密后的密钥
-            })
+            }
 
             if(location.pathname === '/set-password'){
+                params.address = ''; //从sdk中获取
+                await registerUser(params)
                 history.replace('/home');
-            }else {
+            } else {
+                params.owner_address = ''; //从sdk中获取
+                await resetPassword({})
                 history.replace('/login');
             }
 
 
         }
     }
+
+    useEffect(() => {
+        console.log('email', email)
+      // if(!email) history.replace('/login')
+    }, [])
     const handleChangePassWord = (e: any) => {
         setPassword(e.target.value);
         const newValue = e.target.value;
@@ -131,7 +152,7 @@ export default function SetPassword() {
                                     onBlur={handleBlurPassWord}
                                 />
 
-                                {password && !reg.test(password) ? <>
+                                {password && !passWordReg.test(password) ? <>
                                     <Progress value={progress} className='login-progress' size='xs' />
                                     <div className={styles.progressText}>{progressText}</div>
                                 </> : null}

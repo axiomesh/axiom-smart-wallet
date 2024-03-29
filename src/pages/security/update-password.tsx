@@ -1,51 +1,80 @@
 import styles from './index.less';
-import { history, useLocation } from 'umi';
-import { getQueryParam } from '@/utils/help';
+import { history } from 'umi';
+import {getQueryParam, passWordReg} from '@/utils/help';
 import {useState} from "react";
-import { addOrUpdatePassword } from '@/services/login';
+import {resetPassword, updatePassword} from '@/services/login';
 import InputPro from "@/components/Input";
 import {FormControl, FormErrorMessage, Progress} from "@chakra-ui/react";
 import ButtonPro from "@/components/Button";
 import Prompt from "@/components/Prompt";
 import Page from '@/components/Page'
+import {connect, useLocation} from "@@/exports";
+import Toast from "@/hooks/Toast";
 
-let loadTimer:any = null;
-export default function SetPassword() {
-    const email = getQueryParam('email');
+// /security/update-password更新密码
+// /security/update-reset-password 重置密码
+
+interface ParamsItem {
+    email: string | any;
+    old_login_password?: string | any,
+    old_enc_private_key?: string,
+    login_password: string;
+    enc_private_key: string;
+    owner_address?: string;
+}
+function SecurityUpdatePassword(props: any) {
+    const { userInfo } = props;
     const location = useLocation();
+    const {showErrorToast} = Toast();
+    const email = getQueryParam('email');
     const [errorText, setErrorText] = useState('');
     const [newErrorText, setNewErrorText] = useState('');
     const [password, setPassword] = useState('');
     const [rePassword, setRePassword] = useState('');
     const [progress, setProgress] = useState(25);
     const [progressText, setProgressText] = useState('');
-    const reg = /^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$/;
 
 
     const handleSubmit = async () => {
+        if(!passWordReg.test(password)){
+            setNewErrorText('Invalid password')
+        }
         if(!password){
             setNewErrorText('Please enter a new password')
-            return
         }
-        if(!reg.test(password)){
-            setNewErrorText('Invalid password')
-            return
+        if(!passWordReg.test(rePassword)){
+            setErrorText('Invalid password')
         }
         if(!rePassword){
             setErrorText('Please enter a repeat password')
-            return
         }
-        if(!reg.test(rePassword)){
-            setErrorText('Invalid password')
-            return
-        }
-        if(password === rePassword && reg.test(password)){
-            await addOrUpdatePassword({
+        if(!password || !passWordReg.test(password) || !rePassword || !passWordReg.test(rePassword)) return;
+        if(password === rePassword && passWordReg.test(password)){
+            const params: ParamsItem = {
                 email,
-                address: '',
                 login_password: password,
                 enc_private_key: '', //登录密码对私钥进行对称加密-加密后的密钥
-            })
+            }
+            if(location.pathname === '/security/update-reset-password'){
+                params.owner_address = ''
+                await resetPassword({
+                    email,
+                    login_password: password,
+                    enc_private_key: '', //登录密码对私钥进行对称加密-加密后的密钥
+                })
+            } else {
+                const oldPassword = sessionStorage.getItem('Old_Password');
+                if(!oldPassword){
+                    showErrorToast("Please enter a password");
+                    history.replace('/security/reset-unlock-password');
+                    return;
+                }
+                params.old_login_password = oldPassword;
+                params.old_enc_private_key = userInfo.enc_private_key;
+                await updatePassword(params);
+            }
+
+            // owner_address
 
             history.replace('/lock');
         }
@@ -133,7 +162,7 @@ export default function SetPassword() {
                                 onBlur={handleBlurPassWord}
                             />
 
-                            {password && !reg.test(password) ? <>
+                            {password && !passWordReg.test(password) ? <>
                                 <Progress value={progress} className='login-progress' size='xs' />
                                 <div className={styles.progressText}>{progressText}</div>
                             </> : null}
@@ -160,3 +189,7 @@ export default function SetPassword() {
         </>
     );
 }
+
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(SecurityUpdatePassword)

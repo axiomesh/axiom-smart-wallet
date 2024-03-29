@@ -1,23 +1,13 @@
 import styles from './index.less';
-import logo from '@/assets/axiom.svg'
-import InputPro from '@/components/Input';
 import ButtonPro from '@/components/Button'
-import {
-    FormControl,
-    FormErrorMessage,
-    Checkbox,
-    useToast
-} from '@chakra-ui/react';
 import { history } from 'umi';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Right from './componments/right';
-import {checkLoginPassword, sendVerifyCode} from '@/services/login';
-import InputPassword from "@/components/InputPassword";
-import {getQueryParam} from "@/utils/help";
+import {getMail} from "@/utils/help";
 import LogoutModal from './componments/logout-modal';
 
-export default function LoginPassword() {
-    const email = getQueryParam('email');
+export default function LockPage() {
+    const email: string | any = getMail();
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async () => {
@@ -27,6 +17,10 @@ export default function LoginPassword() {
     const handleClose = () => {
         setOpen(false)
     }
+
+    useEffect(() => {
+        if(!email) history.replace('/login')
+    }, [])
 
   return (
       <div className={styles.loginPage}>

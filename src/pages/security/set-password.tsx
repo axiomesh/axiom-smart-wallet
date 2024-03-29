@@ -5,29 +5,34 @@ import {
     FormControl,
     FormErrorMessage,
 } from '@chakra-ui/react';
-import { history, useLocation } from 'umi';
+import { history } from 'umi';
 import {useState} from "react";
 import {checkLoginPassword, sendVerifyCode} from '@/services/login';
-import {getQueryParam} from "@/utils/help";
+import {getMail, passWordReg} from "@/utils/help";
 import Page from '@/components/Page';
 
 export default function ResetUnlockPassword() {
-    const email = getQueryParam('email');
+    const email: string | any = getMail();
     const [errorText, setErrorText] = useState('');
     const [password, setPassword] = useState('');
 
     const handleSubmit = async () => {
         if(errorText) return;
-        if(!password){
-            setErrorText('Please enter a password')
-            return
+        if(!passWordReg.test(password)){
+            setErrorText('Invalid password')
         }
+
+        if(!password){
+            setErrorText('Please enter a password');
+        }
+
+        if(!password || !passWordReg.test(password)) return
         await checkLoginPassword({
             email,
-            address: '',
             login_password: password,
         })
-        history.push('/home');
+        sessionStorage.setItem('Old_Password', password)
+        history.push('/security/update-password');
     }
 
     const handleChangePassWord = (e:any) => {

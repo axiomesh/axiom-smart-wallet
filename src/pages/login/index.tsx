@@ -12,15 +12,30 @@ import { history } from 'umi';
 import {useState} from "react";
 import Right from './componments/right';
 import { sendVerifyCode } from '@/services/login';
+import { setMail } from "@/utils/help";
 
 export default function HomePage() {
     const toast = useToast();
     const [errorText, setErrorText] = useState('');
     const [isCheck, setIsCheck] = useState(false);
-    const [mail, setMail] = useState('');
+    const [mail, setEmail] = useState('');
+
+    const validateName = (value: string) => {
+        const reg =  /^\w+@([\da-z\.-]+)\.([a-z]+|[\u2E80-\u9FFF]+)$/;
+        if (!value) {
+            setErrorText('Please enter your email address');
+            return false
+        } else if (!reg.test(value)) {
+            setErrorText("Invalid email address");
+            return false
+        }
+        setErrorText("");
+        return true
+    }
 
     const handleSubmit = async () => {
-        if(errorText) return;
+        if(!validateName(mail)) return
+
         if(!isCheck){
             toast({
                 position: 'top',
@@ -31,27 +46,21 @@ export default function HomePage() {
             })
             return
         }
-
+        setMail(mail);
         // await sendVerifyCode(mail)
-        //调用接口 type为 新成员，老成员
-        history.push(`/verify-code?email=${mail}`);
-    }
-    const validateName = (value: string) => {
-        const reg =  /^\w+@([\da-z\.-]+)\.([a-z]+|[\u2E80-\u9FFF]+)$/;
-        if (!value) {
-            setErrorText('Please enter your email address');
-            return
-        } else if (!reg.test(value)) {
-            setErrorText("Invalid email address");
-            return
-        }
-        setErrorText("");
+        history.push(`/verify-code`);
     }
 
     const handleBlur = (e: any) => {
         const { value } = e.target;
         validateName(value);
-        setMail(value);
+
+    }
+
+    const handleChangeMail = (e:any) => {
+        const { value } = e.target;
+        setEmail(value);
+        setErrorText('');
     }
   return (
       <div className={styles.loginPage}>
@@ -69,6 +78,7 @@ export default function HomePage() {
                             <InputPro
                                 placeholder='Enter your email address'
                                 style={{height: 56}}
+                                onChange={handleChangeMail}
                                 onBlur={handleBlur}
                             />
                             <FormErrorMessage>{errorText}</FormErrorMessage>

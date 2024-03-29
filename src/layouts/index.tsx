@@ -4,8 +4,15 @@ import Logo from '@/components/Logo';
 import Menu from '@/components/Menu'
 import PersonInfo from "@/components/PersonInfo";
 import Settings from "@/components/Settings";
+import {getMail} from "@/utils/help";
+import {useEffect} from "react";
+import {history} from "@@/core/history";
 
 export default function Layout() {
+    const email: string | any = getMail();
+    useEffect(() => {
+        if(!email) history.replace('/login')
+    }, [])
   return (
     <div className={styles.layout}>
       <div className={styles.navs}>
