@@ -19,6 +19,7 @@ export default function HomePage() {
     const [errorText, setErrorText] = useState('');
     const [isCheck, setIsCheck] = useState(false);
     const [mail, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const validateName = (value: string) => {
         const reg =  /^\w+@([\da-z\.-]+)\.([a-z]+|[\u2E80-\u9FFF]+)$/;
@@ -47,8 +48,14 @@ export default function HomePage() {
             return
         }
         setMail(mail);
-        // await sendVerifyCode(mail)
-        history.push(`/verify-code`);
+        try{
+            setLoading(true)
+            await sendVerifyCode(mail)
+            history.push(`/verify-code`);
+        } finally {
+            setLoading(false)
+        }
+
     }
 
     const handleBlur = (e: any) => {
@@ -99,7 +106,7 @@ export default function HomePage() {
                                 </span>
                             </Checkbox>
                         </FormControl>
-                        <ButtonPro mt="24px" onClick={handleSubmit}>Continue</ButtonPro>
+                        <ButtonPro mt="24px" loading={loading} onClick={handleSubmit}>Continue</ButtonPro>
                     </div>
                 </div>
             </div>

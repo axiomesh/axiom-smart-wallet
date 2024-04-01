@@ -7,18 +7,22 @@ type Props = {
     activeKey: string;
 };
 
+interface Item {
+    label: string,
+    icon: string | any,
+    value?: string,
+}
 function Loading (props: any) {
     return <div className='loader' {...props}></div>
 }
 const TokenList = ({activeKey}: Props) => {
     const [loading, setLoading] = useState(true);
     const list = selectCurrencyList[activeKey];
-    console.log(list);
     return (
         <div>
             <Box w="100%">
                 {
-                    list.map(item =>  <Flex
+                    list.map((item: Item) =>  <Flex
                         align="center"
                         w="100%"
                         bg="#fff"

@@ -44,12 +44,12 @@ export default function VerifyCode() {
         } else {
             lastTime = await sendVerifyCode(email)
         }
-        runTimer(lastTime)
+        runTimer((lastTime / 1000).toFixed(0))
     }
 
     useEffect(() => {
-        // initData();
-        runTimer()
+        initData();
+        // runTimer()
 
         return () => {
             if(loadTimer){
@@ -65,11 +65,14 @@ export default function VerifyCode() {
                 await checkResendVerifyCode(email)
                 history.replace(`/reset-password`)
             } else {
-                // const data =await checkVerifyCode({email, verify_code: code})
-                ////0未注册，1已注册
+                const data = await checkVerifyCode({email, verify_code: code})
+                console.log(data);
+                // //0未注册，1已注册
                 // if(data === 0) {
+                //     console.log('aaaa');
                 //      history.replace(`/set-password`)
                 // } else {
+                //     console.log('bbbbb');
                 //     history.replace(`/login-password`)
                 // }
             }

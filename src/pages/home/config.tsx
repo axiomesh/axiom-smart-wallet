@@ -13,12 +13,19 @@ import allWeth from '@/assets/currency/all/all-weth.png';
 import allUsdc from '@/assets/currency/all/all-usdc.png';
 import allUsdt from '@/assets/currency/all/all-usdt.png';
 import all from '@/assets/currency/all/all.png';
-interface listItem {
+interface Item {
     label: string,
-    tip: string
+    icon: string | any,
+    value?: string,
 }
 
-export const selectCurrencyList = {
+interface selectItem{
+    eth: Array<Item | any>,
+    axc: Array<Item | any>,
+    all: Array<Item | any>,
+}
+
+export const selectCurrencyList: selectItem | any = {
     eth: [{
         label: 'wAXC',
         icon: waxc
@@ -72,7 +79,7 @@ export const selectCurrencyList = {
     }]
 }
 
-export const currencyList = [
+export const currencyList: Array<Item> = [
     {
         label: 'All Chains',
         value: 'all',

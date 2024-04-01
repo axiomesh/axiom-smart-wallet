@@ -4,12 +4,12 @@ const baseUrl = '/';
 export default defineConfig({
   title: 'AxiomWallet',
   jsMinifier: 'terser',
-  // proxy: {
-  //   '/api': {
-  //     target: 'http://172.16.13.132:8480/',
-  //     changeOrigin: true,
-  //   },
-  // },
+  proxy: {
+    '/api': {
+      target: 'http://172.16.13.133:8580/',
+      changeOrigin: true,
+    },
+  },
   base: baseUrl,
   publicPath: baseUrl,
   lessLoader: {

@@ -54,6 +54,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
             if(index < 5){
                 newValue[index + 1] = '';
             } else {
+                console.log(newValue);
                 onVerify(newValue.join(''));
             }
             setValue(newValue);
@@ -85,6 +86,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
             // @ts-ignore
             document.getElementById('passwordInput5').focus()
             setValue(last);
+            onVerify(last.join(''));
         }
     }
 
