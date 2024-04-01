@@ -89,7 +89,7 @@ export async function lockPage(email: string) {
 export async function getUserInfo(email: string) {
     const res = await request({
         url: `/api/axm-wallet/account/info`,
-        method: 'post',
+        method: 'get',
         data: { email },
     });
     return res.data;

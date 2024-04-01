@@ -66,19 +66,13 @@ export default function VerifyCode() {
                 history.replace(`/reset-password`)
             } else {
                 const data = await checkVerifyCode({email, verify_code: code})
-                console.log(data);
-                // //0未注册，1已注册
-                // if(data === 0) {
-                //     console.log('aaaa');
-                //      history.replace(`/set-password`)
-                // } else {
-                //     console.log('bbbbb');
-                //     history.replace(`/login-password`)
-                // }
+                //0未注册，1已注册
+                if(data === 0) {
+                     history.replace(`/set-password`)
+                } else {
+                    history.replace(`/login-password`)
+                }
             }
-
-
-            history.replace(`/set-password`)
         } catch (e) {
             setIsError(true)
         } finally {

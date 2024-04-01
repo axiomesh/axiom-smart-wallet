@@ -7,7 +7,7 @@ import {history} from "@@/core/history";
 import { connect } from 'umi';
 
 const PersonInfo = (props: any) => {
-    const {dispatch, userInfo} = props;
+    const {dispatch} = props;
     console.log('userInfo', props)
     const [isHover, setIsHover] = useState(false);
     const [isCopy, setIsCopy] = useState(false);
@@ -29,10 +29,8 @@ const PersonInfo = (props: any) => {
     }
 
     useEffect(() => {
-        // if(!userInfo.id){
-        //     initUserInfo();
-        // }
-    }, [userInfo]);
+        initUserInfo();
+    }, []);
 
     useEffect(() => {
         document.addEventListener('click', handleClickOutside);
@@ -61,17 +59,17 @@ const PersonInfo = (props: any) => {
     return (
         <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseOver={() => { setIsHover(true) }} onMouseLeave={() => {setIsHover(false)}}>
             {/*@ts-ignore*/}
-            <img className={styles.img} src={getImgFromHash(window.testAddress)} alt=""/>
+            <img className={styles.img} src={getImgFromHash(info.address)} alt=""/>
             <div className={styles.information}>
-                <span className={styles.email}>dasdsa211223@gmail.com</span>
+                <span className={styles.email}>{info.email}</span>
                 {/*@ts-ignore*/}
-                <span className={styles.address}>{exchangeAddress(window.testAddress)} <i className={styles.downIcon}></i></span>
+                <span className={styles.address}>{exchangeAddress(info.address)} <i className={styles.downIcon}></i></span>
             </div>
             <div className={styles.white}></div>
             {isHover && <div className={`${styles.logoutModal} hover-content`}>
                 <div className={styles.logoutInfo}>
                     <span className={styles.title}>Address</span>
-                    <span className={styles.info}>0x06b…f2713</span>
+                    <span className={styles.info}>{exchangeAddress(info.address)}</span>
                 </div>
                 <div className={styles.logoutButton} onClick={handleCopy}><i className={`${styles.copy} ${isCopy ? styles.copyClick : ''}`}></i></div>
                 <div className={styles.logoutButton} onClick={() => openModal('Logout', handleConfirm)}><i className={`${styles.logout}`}></i></div>

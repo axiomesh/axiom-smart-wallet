@@ -23,7 +23,7 @@ export const setToken = (token: string) => {
 }
 
 export const getToken = () => {
-    sessionStorage.getItem('Wallet_Token');
+    return sessionStorage.getItem('Wallet_Token');
 }
 
 export const setMail = (mail: string) => {

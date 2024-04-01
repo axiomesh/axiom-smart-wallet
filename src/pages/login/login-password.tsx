@@ -8,8 +8,8 @@ import {
 import { history, useLocation } from 'umi';
 import {useEffect, useState} from "react";
 import Right from './componments/right';
-import {checkLoginPassword, sendVerifyCode} from '@/services/login';
-import {getMail, passWordReg} from "@/utils/help";
+import {checkLoginPassword} from '@/services/login';
+import {getMail, passWordReg, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
 
 export default function LoginPassword() {
@@ -29,11 +29,12 @@ export default function LoginPassword() {
             setErrorText('Please enter a password')
         }
         if(!password || !passWordReg.test(password)) return
-        await checkLoginPassword({
+        const res = await checkLoginPassword({
             email,
             login_password: password,
         })
-        history.push('/home');
+        setToken(res);
+        history.replace('/home');
     }
 
     const handleChangePassWord = (e:any) => {

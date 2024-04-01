@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { history } from 'umi';
+import {getToken} from "@/utils/help";
 
 // 只支持一层简单json格式的对象
 const jsonToUrlEncode = (data:any) =>
@@ -27,6 +28,12 @@ export default async function request(params: any) {
         new_data[key] = data[key]
     }
 
+    const headers = {
+        Authorization: `axiom-wallet ${getToken()}`,
+    }
+
+    console.log(headers)
+
     try {
         const res: any = await axios(
             (method === 'get') && data
@@ -35,6 +42,7 @@ export default async function request(params: any) {
             {
                 data,
                 method,
+                headers,
                 ...last,
             },
         );

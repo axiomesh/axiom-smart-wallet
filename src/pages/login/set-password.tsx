@@ -65,8 +65,7 @@ export default function SetPassword() {
     }
 
     useEffect(() => {
-        console.log('email', email)
-      // if(!email) history.replace('/login')
+      if(!email) history.replace('/login')
     }, [])
     const handleChangePassWord = (e: any) => {
         setPassword(e.target.value);
