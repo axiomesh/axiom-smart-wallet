@@ -12,7 +12,7 @@ const Menu = () => {
     const [selectedItem, setSelectedItem] = useState(0);
 
     const menuItems: MenuItem[] = [
-        { name: 'Assets', icon: 'assetIcon', url: '/' },
+        { name: 'Assets', icon: 'assetIcon', url: '/home' },
         { name: 'Transfer', icon: 'transferIcon', url: '/transfer' }
     ];
 

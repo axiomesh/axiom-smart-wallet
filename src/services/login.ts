@@ -95,5 +95,13 @@ export async function getUserInfo(email: string) {
     return res.data;
 }
 
+export async function getTickerPrice() {
+    const res = await request({
+        url: `/api/ticker/price`,
+        method: 'get',
+    });
+    return res.data;
+}
+
 
 

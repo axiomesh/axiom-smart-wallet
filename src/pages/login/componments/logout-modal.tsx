@@ -8,6 +8,7 @@ import {
 } from '@chakra-ui/react'
 import ButtonPro from '@/components/Button';
 import { history } from 'umi';
+import {clearSessionData} from "@/utils/help";
 interface closeFunc {
     (): void;
 }
