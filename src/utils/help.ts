@@ -36,4 +36,15 @@ export const getMail = () => {
 
 export const passWordReg = /^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$/;
 
+export const clearSessionData = (dispatch: any) => {
+    setMail('');
+    setToken('');
+    dispatch({
+        type: 'global/setUser',
+        payload: {},
+    })
+}
+
+
+
 

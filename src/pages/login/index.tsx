@@ -9,14 +9,15 @@ import {
     useToast
 } from '@chakra-ui/react';
 import { history } from 'umi';
-import {useState} from "react";
+import React, {useEffect, useState} from "react";
 import Right from './componments/right';
 import { sendVerifyCode } from '@/services/login';
-import { setMail } from "@/utils/help";
+import {clearSessionData, setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
-import Prompt from "@/components/Prompt";
+import {connect} from "@@/exports";
 
-export default function HomePage() {
+function HomePage(props: any) {
+    const { dispatch } = props;
     const toast = useToast();
     const [errorText, setErrorText] = useState('');
     const [isCheck, setIsCheck] = useState(false);
@@ -36,6 +37,25 @@ export default function HomePage() {
         setErrorText("");
         return true
     }
+
+    useEffect(() => {
+        clearSessionData(dispatch);
+    }, []);
+
+
+    React.useEffect(() => {
+        // @ts-ignore
+        let unblock =  history.block((tx:any, action:any) => {
+            console.log(tx.action);
+            if (tx.action === 'POP') {
+                return false;
+            } else {
+                unblock();
+                tx.retry()
+            }
+        });
+
+    }, [])
 
     const handleSubmit = async () => {
         if(!validateName(mail)) return
@@ -77,34 +97,32 @@ export default function HomePage() {
         setErrorText('');
     }
   return (
-      <>
-          <Prompt message='11' />
-          <div className={styles.loginPage}>
-              <div className={styles.loginContainer}>
-                  <div className={styles.loginLeft}>
-                      <div className={styles.loginLeftContainer}>
-                          <img src={logo} alt="logo"/>
-                          <div className={styles.title}>Axiomesh Smart Account</div>
-                          <div className={styles.desc} style={{marginTop: 8, marginBottom: 32}}>
-                              Get started with your email address
-                          </div>
-                          <div>
-                              {/*<InputPro placeholder='Enter your email address' style={{height: 56}} />*/}
-                              <FormControl isInvalid={errorText !==''}>
-                                  <InputPro
-                                      placeholder='Enter your email address'
-                                      style={{height: 56}}
-                                      onChange={handleChangeMail}
-                                      onBlur={handleBlur}
-                                  />
-                                  <FormErrorMessage>{errorText}</FormErrorMessage>
-                              </FormControl>
-                              <FormControl mt="40px">
-                                  <Checkbox
-                                      colorScheme='red'
-                                      borderRadius="50%"
-                                      onChange={(e) => {setIsCheck(e.target.checked)}}
-                                  >
+      <div className={styles.loginPage}>
+          <div className={styles.loginContainer}>
+              <div className={styles.loginLeft}>
+                  <div className={styles.loginLeftContainer}>
+                      <img src={logo} alt="logo"/>
+                      <div className={styles.title}>Axiomesh Smart Account</div>
+                      <div className={styles.desc} style={{marginTop: 8, marginBottom: 32}}>
+                          Get started with your email address
+                      </div>
+                      <div>
+                          {/*<InputPro placeholder='Enter your email address' style={{height: 56}} />*/}
+                          <FormControl isInvalid={errorText !==''}>
+                              <InputPro
+                                  placeholder='Enter your email address'
+                                  style={{height: 56}}
+                                  onChange={handleChangeMail}
+                                  onBlur={handleBlur}
+                              />
+                              <FormErrorMessage>{errorText}</FormErrorMessage>
+                          </FormControl>
+                          <FormControl mt="40px">
+                              <Checkbox
+                                  colorScheme='red'
+                                  borderRadius="50%"
+                                  onChange={(e) => {setIsCheck(e.target.checked)}}
+                              >
                                 <span style={{fontSize: 14}}>
                                     I agree with <a
                                     target="_blank"
@@ -113,15 +131,18 @@ export default function HomePage() {
                                     style={{fontStyle: 'italic'}}
                                 >Axiomesh Smart Account User Agreement</a>
                                 </span>
-                                  </Checkbox>
-                              </FormControl>
-                              <ButtonPro mt="24px" loading={loading} onClick={handleSubmit}>Continue</ButtonPro>
-                          </div>
+                              </Checkbox>
+                          </FormControl>
+                          <ButtonPro mt="24px" loading={loading} onClick={handleSubmit}>Continue</ButtonPro>
                       </div>
                   </div>
-                  <Right />
               </div>
+              <Right />
           </div>
-      </>
+      </div>
   );
 }
+
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(HomePage)

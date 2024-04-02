@@ -17,15 +17,19 @@ const PersonInfo = (props: any) => {
     const [ModalComponent, openModal] = useCancelModal();
 
     const initUserInfo = async () => {
-        const res = await getUserInfo(email);
-        if(res.lock_screen_status){
-            history.push('/lock')
+        try{
+            const res = await getUserInfo(email);
+            if(res.lock_screen_status){
+                history.replace('/lock')
+            }
+            setInfo(res);
+            dispatch({
+                type: 'global/setUser',
+                payload: res,
+            })
+        } finally {
+            history.replace('/login')
         }
-        setInfo(res);
-        dispatch({
-            type: 'global/setUser',
-            payload: res,
-        })
     }
 
     useEffect(() => {
