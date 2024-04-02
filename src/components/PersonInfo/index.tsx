@@ -27,7 +27,7 @@ const PersonInfo = (props: any) => {
                 type: 'global/setUser',
                 payload: res,
             })
-        } finally {
+        } catch (e) {
             history.replace('/login')
         }
     }

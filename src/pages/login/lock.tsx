@@ -1,7 +1,7 @@
 import styles from './index.less';
 import ButtonPro from '@/components/Button'
 import { history } from 'umi';
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import Right from './componments/right';
 import {getMail} from "@/utils/help";
 import LogoutModal from './componments/logout-modal';
@@ -21,6 +21,19 @@ export default function LockPage() {
 
     useEffect(() => {
         if(!email) history.replace('/login')
+    }, [])
+
+    useEffect(() => {
+        // @ts-ignore
+        let unblock =  history.block((tx:any) => {
+            if (tx.action === 'POP') {
+                return false;
+            } else {
+                unblock();
+                tx.retry()
+            }
+        });
+
     }, [])
 
   return (
