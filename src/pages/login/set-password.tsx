@@ -7,6 +7,7 @@ import { resetPassword, registerUser } from '@/services/login';
 import InputPro from "@/components/Input";
 import {FormControl, FormErrorMessage, Progress} from "@chakra-ui/react";
 import ButtonPro from "@/components/Button";
+import Toast from "@/hooks/Toast";
 
 interface ParamsItem {
     email: string | any;
@@ -26,6 +27,7 @@ export default function SetPassword() {
     const [rePassword, setRePassword] = useState('');
     const [progress, setProgress] = useState(25);
     const [progressText, setProgressText] = useState('');
+    const {showErrorToast} = Toast();
 
 
     const handleSubmit = async () => {
@@ -43,24 +45,29 @@ export default function SetPassword() {
         }
 
         if(!password || !rePassword || errorText || newErrorText) return
-        if(password === rePassword && passWordReg.test(password)){
-            const params:ParamsItem = {
-                email,
-                login_password: password,
-                enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
+        try{
+            if(password === rePassword && passWordReg.test(password)){
+                const params:ParamsItem = {
+                    email,
+                    login_password: password,
+                    enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
+                }
+
+                if(location.pathname === '/set-password'){
+                    params.address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
+                    await registerUser(params)
+                    history.replace('/home');
+                } else {
+                    params.owner_address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
+                    await resetPassword(params)
+                    history.replace('/login');
+                }
+
+
             }
-
-            if(location.pathname === '/set-password'){
-                params.address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
-                await registerUser(params)
-                history.replace('/home');
-            } else {
-                params.owner_address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
-                await resetPassword({})
-                history.replace('/login');
-            }
-
-
+        } catch (e) {
+            // @ts-ignore
+            showErrorToast(e)
         }
     }
 

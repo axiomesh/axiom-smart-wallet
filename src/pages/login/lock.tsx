@@ -5,13 +5,14 @@ import {useEffect, useState} from "react";
 import Right from './componments/right';
 import {getMail} from "@/utils/help";
 import LogoutModal from './componments/logout-modal';
+import Toast from "@/hooks/Toast";
 
 export default function LockPage() {
     const email: string | any = getMail();
     const [open, setOpen] = useState(false);
 
     const handleSubmit = async () => {
-        history.push('/home');
+        history.push('/lock-password');
     }
 
     const handleClose = () => {

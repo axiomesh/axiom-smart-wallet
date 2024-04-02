@@ -5,6 +5,7 @@ import {getMail, getQueryParam} from '@/utils/help';
 import Right from "./componments/right";
 import {useEffect, useState} from "react";
 import {sendVerifyCode, checkVerifyCode, resendVerifyCode, checkResendVerifyCode} from '@/services/login';
+import Toast from "@/hooks/Toast";
 
 let loadTimer:any = null;
 
@@ -15,8 +16,9 @@ export default function VerifyCode() {
     const [timer, setTimer] = useState('');
     const [isError, setIsError] = useState(false);
     const loaction = useLocation();
+    const {showErrorToast} = Toast();
 
-    const runTimer = (cm = 120) => {
+    const runTimer = (cm:number = 120) => {
         if(cm > 0) {
             if(cm >= 10){
                 setTimer(`${cm}s` )
@@ -38,13 +40,18 @@ export default function VerifyCode() {
 
     const initData = async () => {
         // resendVerifyCode
-        let lastTime = 0;
-        if(loaction.pathname === '/reset-verify-code'){
-            lastTime = await resendVerifyCode(email)
-        } else {
-            lastTime = await sendVerifyCode(email)
+        try{
+            let lastTime = 0;
+            if(loaction.pathname === '/reset-verify-code'){
+                lastTime = await resendVerifyCode(email)
+            } else {
+                lastTime = await sendVerifyCode(email)
+            }
+            runTimer(Number((lastTime / 1000).toFixed(0)))
+        } catch (e){
+            // @ts-ignore
+            showErrorToast(e)
         }
-        runTimer((lastTime / 1000).toFixed(0))
     }
 
     useEffect(() => {
@@ -62,7 +69,7 @@ export default function VerifyCode() {
         try{
             setLoading(true)
             if(loaction.pathname === '/reset-verify-code'){
-                await checkResendVerifyCode(email)
+                await checkResendVerifyCode({email, verify_code: code})
                 history.replace(`/reset-password`)
             } else {
                 const data = await checkVerifyCode({email, verify_code: code})

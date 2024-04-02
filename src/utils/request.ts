@@ -32,8 +32,6 @@ export default async function request(params: any) {
         Authorization: `axiom-wallet ${getToken()}`,
     }
 
-    console.log(headers)
-
     try {
         const res: any = await axios(
             (method === 'get') && data
@@ -52,13 +50,19 @@ export default async function request(params: any) {
                 return res.data;
             }
             if(res.data.code === 10102 || res.data.code === 10103 || res.data.code === 10104){
-                history.replace('/home')
+                history.replace('/login')
+                return
             }
 
-        } else {
             throw new Error(res?.error || res.data.message || 'Error');
+
+        } else {
+            console.log(res);
+            throw new Error(res?.error || res.data.message || 'Error');
+            // Promise.reject(res?.error || res.data.message || 'Error')
         }
     } catch (e: any) {
+        console.log(e);
         const err = e.response ? e.response.data : e;
         const msg = err?.message || e.message || err;
         return Promise.reject(msg);

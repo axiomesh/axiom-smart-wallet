@@ -5,6 +5,7 @@ import {getMail} from '@/utils/help';
 import {useEffect, useState} from "react";
 import {resendVerifyCode, checkResendVerifyCode} from '@/services/login';
 import Page from '@/components/Page'
+import Toast from "@/hooks/Toast";
 
 let loadTimer:any = null;
 export default function SecurityVerifyCode() {
@@ -12,6 +13,7 @@ export default function SecurityVerifyCode() {
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState('');
     const [isError, setIsError] = useState(false);
+    const {showErrorToast} = Toast();
 
     const runTimer = (cm = 120) => {
         if(cm > 0) {
@@ -31,13 +33,18 @@ export default function SecurityVerifyCode() {
 
     const initData = async () => {
         // resendVerifyCode
-        const lastTime = await resendVerifyCode(email);
-        runTimer(lastTime)
+        try {
+            const lastTime = await resendVerifyCode(email);
+            runTimer(Number((lastTime / 1000).toFixed(0)))
+        }catch (e){
+            // @ts-ignore
+            showErrorToast(e)
+        }
+
     }
 
     useEffect(() => {
-        // initData();
-        runTimer()
+        initData();
 
         return () => {
             if(loadTimer){
@@ -53,14 +60,11 @@ export default function SecurityVerifyCode() {
             history.replace(`/security/update-reset-password`)
         } catch (e) {
             setIsError(true)
+            // @ts-ignore
+            showErrorToast(e)
         } finally {
             setLoading(false)
         }
-    }
-
-    const handleResend = () => {
-        if(timer) return
-        initData();
     }
 
   return (

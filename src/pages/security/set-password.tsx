@@ -10,11 +10,13 @@ import {useState} from "react";
 import {checkLoginPassword, sendVerifyCode} from '@/services/login';
 import {getMail, passWordReg} from "@/utils/help";
 import Page from '@/components/Page';
+import Toast from "@/hooks/Toast";
 
 export default function ResetUnlockPassword() {
     const email: string | any = getMail();
     const [errorText, setErrorText] = useState('');
     const [password, setPassword] = useState('');
+    const {showErrorToast} = Toast();
 
     const handleSubmit = async () => {
         if(errorText) return;
@@ -27,12 +29,17 @@ export default function ResetUnlockPassword() {
         }
 
         if(!password || !passWordReg.test(password)) return
-        await checkLoginPassword({
-            email,
-            login_password: password,
-        })
-        sessionStorage.setItem('Old_Password', password)
-        history.push('/security/update-password');
+        try{
+            await checkLoginPassword({
+                email,
+                login_password: password,
+            })
+            sessionStorage.setItem('Old_Password', password)
+            history.push('/security/update-password');
+        } catch (e){
+            // @ts-ignore
+            showErrorToast(e);
+        }
     }
 
     const handleChangePassWord = (e:any) => {

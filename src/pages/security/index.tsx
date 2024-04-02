@@ -1,11 +1,12 @@
 import styles from './index.less'
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import { ReactComponent as Free } from '@/assets/security/free.svg'
 import { ReactComponent as Unlock } from '@/assets/security/unlock.svg'
 import { ReactComponent as Transfer } from '@/assets/security/transfer.svg'
 import { history } from 'umi';
 import {lockPage} from "@/services/login";
 import {getMail} from "@/utils/help";
+import Toast from "@/hooks/Toast";
 
 interface listItem {
     label: string,
@@ -30,10 +31,17 @@ const list: listItem[] = [
 const Security = () => {
     const email: string | any = getMail();
     const [isHover, setIsHover] = useState<number | any>(null);
+    const {showErrorToast} = Toast();
     const handleClickItem = async (i: number) => {
         if(i === 0){
-            await lockPage(email)
-            history.push('/security/reset-unlock-password')
+            try{
+                await lockPage(email)
+                history.push('/security/reset-unlock-password')
+            } catch (e){
+                // @ts-ignore
+                showErrorToast(e)
+            }
+
         }
         if(i === 1) {
             history.push('/reset-transfer')

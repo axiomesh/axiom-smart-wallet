@@ -53,8 +53,8 @@ const useToastHook = (): ToastHook => {
             isClosable: true,
             position: 'top',
             render: () => (
-                <Box {...successProps}>
-                    <img className={styles.image} src={require('@/assets/toast-success.png')} alt=""/>{message}
+                <Box {...successProps} bg='#DD6B20'>
+                    <img className={styles.image} src={require('@/assets/toast-warn.png')} alt=""/>{message}
                 </Box>
             )
         });

@@ -24,7 +24,9 @@ export default function Prompt({ message, when }: PromptProps) {
     // usePrompt(message, when)
     let blocker: Blocker = React.useCallback(
         () => {
-            setIsOpen(true)
+            // if(message){
+                setIsOpen(true)
+            // }
         },
         [message]
     )

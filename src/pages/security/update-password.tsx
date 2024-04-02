@@ -53,30 +53,33 @@ function SecurityUpdatePassword(props: any) {
             const params: ParamsItem = {
                 email,
                 login_password: password,
-                enc_private_key: '', //登录密码对私钥进行对称加密-加密后的密钥
+                enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
             }
-            if(location.pathname === '/security/update-reset-password'){
-                params.owner_address = ''
-                await resetPassword({
-                    email,
-                    login_password: password,
-                    enc_private_key: '', //登录密码对私钥进行对称加密-加密后的密钥
-                })
-            } else {
-                const oldPassword = sessionStorage.getItem('Old_Password');
-                if(!oldPassword){
-                    showErrorToast("Please enter a password");
-                    history.replace('/security/reset-unlock-password');
-                    return;
+            try{
+                if(location.pathname === '/security/update-reset-password'){
+                    params.owner_address = ''
+                    await resetPassword({
+                        email,
+                        login_password: password,
+                        enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
+                    })
+                    history.replace('/login');
+                } else {
+                    const oldPassword = sessionStorage.getItem('Old_Password');
+                    if(!oldPassword){
+                        showErrorToast("Please enter a password");
+                        history.replace('/security/reset-unlock-password');
+                        return;
+                    }
+                    params.old_login_password = oldPassword;
+                    params.old_enc_private_key = userInfo.enc_private_key;
+                    await updatePassword(params);
+                    history.replace('/login');
                 }
-                params.old_login_password = oldPassword;
-                params.old_enc_private_key = userInfo.enc_private_key;
-                await updatePassword(params);
+            } catch (e){
+                // @ts-ignore
+                showErrorToast(e);
             }
-
-            // owner_address
-
-            history.replace('/lock');
         }
     }
     const handleChangePassWord = (e: any) => {
@@ -152,7 +155,7 @@ function SecurityUpdatePassword(props: any) {
                 <div>
                     <div className='page-title'>Reset Unlock Password</div>
                     <div className={styles.desc} style={{marginTop: 20, fontSize: 16}}>Please update your unlock password</div>
-                    <div style={{marginTop: 32}}>
+                    <div style={{marginTop: 32, width: 420}}>
                         <FormControl isInvalid={newErrorText !==''}>
                             <InputPro
                                 type="password"
@@ -169,7 +172,7 @@ function SecurityUpdatePassword(props: any) {
                             <FormErrorMessage>{newErrorText}</FormErrorMessage>
                         </FormControl>
                     </div>
-                    <div style={{marginTop: 32}}>
+                    <div style={{marginTop: 32, width: 420}}>
                         <FormControl isInvalid={errorText !==''}>
                             <InputPro
                                 type="password"

@@ -11,6 +11,7 @@ import Right from './componments/right';
 import {checkLoginPassword} from '@/services/login';
 import {getMail, passWordReg, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
+import Toast from "@/hooks/Toast";
 
 export default function LoginPassword() {
     const location = useLocation();
@@ -18,6 +19,7 @@ export default function LoginPassword() {
     const [errorText, setErrorText] = useState('');
     const [password, setPassword] = useState('');
     const [open, setOpen] = useState(false);
+    const {showErrorToast} = Toast();
 
 
     const handleSubmit = async () => {
@@ -29,12 +31,18 @@ export default function LoginPassword() {
             setErrorText('Please enter a password')
         }
         if(!password || !passWordReg.test(password)) return
-        const res = await checkLoginPassword({
-            email,
-            login_password: password,
-        })
-        setToken(res);
-        history.replace('/home');
+        try{
+            const res = await checkLoginPassword({
+                email,
+                login_password: password,
+            })
+            setToken(res);
+            history.replace('/home');
+        }catch (e){
+            console.log(e);
+            // @ts-ignore
+            showErrorToast(e)
+        }
     }
 
     const handleChangePassWord = (e:any) => {
@@ -62,6 +70,10 @@ export default function LoginPassword() {
         if(!email) history.replace('/login')
     }, [])
 
+    const handleForget = () => {
+        history.push('/reset-verify-code')
+    }
+
     // lock-password
   return (
       <div className={styles.loginPage}>
@@ -87,7 +99,7 @@ export default function LoginPassword() {
                     </div>
 
                     <div style={{fontSize: 14, marginTop: 20}}>
-                        <a target="_blank" href="/privacy" className="a_link">Forget it?</a>
+                        <a onClick={handleForget} className="a_link">Forget it?</a>
                     </div>
                     <ButtonPro mt="20px" onClick={handleSubmit}>Continue</ButtonPro>
                 </div>
