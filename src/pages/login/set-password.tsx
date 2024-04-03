@@ -1,6 +1,6 @@
 import styles from './index.less';
 import { history, useLocation } from 'umi';
-import {getMail, passWordReg} from '@/utils/help';
+import {getMail, passWordReg, setToken} from '@/utils/help';
 import Right from "./componments/right";
 import {useEffect, useState} from "react";
 import { resetPassword, registerUser } from '@/services/login';
@@ -52,15 +52,16 @@ export default function SetPassword() {
                 const params:ParamsItem = {
                     email,
                     login_password: password,
-                    enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
+                    enc_private_key: 'b6477143e17f889263044f6cf463dc37177ac4526c4c39a7a344198457024a2f', //登录密码对私钥进行对称加密-加密后的密钥
                 }
 
                 if(location.pathname === '/set-password'){
-                    params.address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
-                    await registerUser(params)
+                    params.address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013'; //从sdk中获取
+                    const res = await registerUser(params);
+                    setToken(res);
                     history.replace('/home');
                 } else {
-                    params.owner_address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
+                    params.owner_address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013'; //从sdk中获取
                     await resetPassword(params)
                     history.replace('/login');
                 }

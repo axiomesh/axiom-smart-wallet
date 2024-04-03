@@ -18,7 +18,6 @@ interface setFunc {
 const InputPassword = (props:{ type: string, loading: boolean, timer?: string, isError: boolean, onSend:sendFunc, onVerify:verifyFunc, setIsError: setFunc, needTimer?: boolean }) => {
     const { type, loading, timer, isError, onSend, onVerify, setIsError, needTimer} = props;
     const [value, setValue] = useState(["-", "-","-","-","-","-"]);
-    const [isFocus, setIsFocus] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
     // 处理一些键盘特殊按键，清除默认行为
     const handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index:number):void => {
