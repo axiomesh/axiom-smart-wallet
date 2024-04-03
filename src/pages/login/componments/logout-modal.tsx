@@ -8,16 +8,32 @@ import {
 } from '@chakra-ui/react'
 import ButtonPro from '@/components/Button';
 import { history } from 'umi';
-import {clearSessionData} from "@/utils/help";
+import {clearSessionData, getMail} from "@/utils/help";
+import {getTickerPrice, logout} from "@/services/login";
+import {useState} from "react";
+import Toast from "@/hooks/Toast";
 interface closeFunc {
     (): void;
 }
 export default function LogoutModal(props: {isOpen: boolean, onClose: closeFunc}) {
     const {isOpen, onClose} = props;
+    const [loading, setLoading] = useState(false);
+    const email: string | any = getMail();
+    const {showErrorToast} = Toast();
 
-    const handleContinue = () => {
-        onClose();
-        history.replace('/login')
+    const handleContinue = async () => {
+
+        try{
+            setLoading(true)
+            onClose();
+            await logout(email)
+            history.replace('/login')
+        } catch (e) {
+            // @ts-ignore
+            showErrorToast(e)
+        } finally {
+            setLoading(false)
+        }
     }
 
   return (
@@ -37,7 +53,7 @@ export default function LogoutModal(props: {isOpen: boolean, onClose: closeFunc}
               <ModalBody pl="0px" pt="0px" pr="0px" pb="20px" fontSize="14px" lineHeight="16px" color="#4B5563" fontWeight="500">
                   Please note that password-free transfer associated with this account will be disabled after logging out！
               </ModalBody>
-              <ButtonPro onClick={handleContinue}>Continue</ButtonPro>
+              <ButtonPro isLoading={loading} onClick={handleContinue}>Continue</ButtonPro>
           </ModalContent>
       </Modal>
   );

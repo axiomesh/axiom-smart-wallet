@@ -103,5 +103,14 @@ export async function getTickerPrice() {
     return res.data;
 }
 
+export async function logout(email:string) {
+    const res = await request({
+        url: `/api/axm-wallet/account/logout`,
+        method: 'post',
+        data: {email},
+    });
+    return res.data;
+}
+
 
 

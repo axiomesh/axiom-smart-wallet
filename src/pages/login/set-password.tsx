@@ -27,6 +27,7 @@ export default function SetPassword() {
     const [rePassword, setRePassword] = useState('');
     const [progress, setProgress] = useState(25);
     const [progressText, setProgressText] = useState('');
+    const [loading, setLoading] = useState(false)
     const {showErrorToast} = Toast();
 
 
@@ -46,6 +47,7 @@ export default function SetPassword() {
 
         if(!password || !rePassword || errorText || newErrorText) return
         try{
+            setLoading(true)
             if(password === rePassword && passWordReg.test(password)){
                 const params:ParamsItem = {
                     email,
@@ -68,6 +70,8 @@ export default function SetPassword() {
         } catch (e) {
             // @ts-ignore
             showErrorToast(e)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -178,7 +182,7 @@ export default function SetPassword() {
                             </FormControl>
                         </div>
                         <div>
-                            <ButtonPro mt="24px" onClick={handleSubmit}>Continue</ButtonPro>
+                            <ButtonPro mt="24px" isLoading={loading} onClick={handleSubmit}>Continue</ButtonPro>
                         </div>
                     </div>
                 </div>

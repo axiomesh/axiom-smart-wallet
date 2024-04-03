@@ -16,6 +16,7 @@ export default function ResetUnlockPassword() {
     const email: string | any = getMail();
     const [errorText, setErrorText] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const {showErrorToast} = Toast();
 
     const handleSubmit = async () => {
@@ -30,6 +31,7 @@ export default function ResetUnlockPassword() {
 
         if(!password || !passWordReg.test(password)) return
         try{
+            setLoading(true)
             await checkLoginPassword({
                 email,
                 login_password: password,
@@ -39,6 +41,8 @@ export default function ResetUnlockPassword() {
         } catch (e){
             // @ts-ignore
             showErrorToast(e);
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -81,7 +85,7 @@ export default function ResetUnlockPassword() {
               <div style={{fontSize: 14, marginTop: 20}}>
                   <a onClick={handleForget} className="a_link">Forget it?</a>
               </div>
-              <ButtonPro mt="20px" w="320px" onClick={handleSubmit}>Verify</ButtonPro>
+              <ButtonPro isLoading={loading} mt="20px" w="320px" onClick={handleSubmit}>Verify</ButtonPro>
           </div>
       </Page>
   );
