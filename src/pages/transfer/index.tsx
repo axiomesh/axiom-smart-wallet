@@ -10,10 +10,12 @@ import {
 import Select, {components} from 'react-select';
 import useContinueButton from "@/hooks/ContinueButton";
 import React, {useState, useEffect} from "react";
-import { Field, Form, Formik } from 'formik';
 import {token} from "@/utils/tokenList";
 import TransferModal from "@/components/TransferModal";
 import SetPayPasswordModal from "@/components/SetPayPasswordModal";
+import {connect} from "@@/exports";
+import {transaction} from "@/services/transfer"
+import {getMail} from "@/utils/help";
 
 interface token {
     value: string;
@@ -73,25 +75,39 @@ const customStyles = (isFirstSelect: boolean) => ({
 
 });
 
+interface FormProps {
+    chain: any,
+    to: string,
+    value: string,
+    send: any
+}
 
-const Transfer = () => {
-    const [isSetPassword, setIsSetPassword] = useState(true);
+const Transfer = (props: any) => {
+    const { userInfo } = props;
+    const email: string | any = getMail();
+    const [isSetPassword, setIsSetPassword] = useState(userInfo.pay_password_set_status === 0 ? false : true);
     const [buttonText, setButtonText] = useState("Transfer");
     const [tokenList, setTokenList] = useState<token[]>();
     const [isChangeSend, setIsChangeSend] = useState(false);
     const [passwordOpen, setPasswordOpen] = useState(false);
-    const [toError, setToError] = useState<string>("")
+    const [transferOpen, setTransferOpen] = useState(false);
+    const [toErrorsText, setToErrorsText] = useState("");
+    const [form, setForm] = useState<FormProps>({chain: null, to: "", value: "", send: ""});
 
     const {Button} = useContinueButton();
 
+    useEffect(() => {
+        setIsSetPassword(userInfo.pay_password_set_status === 0 ? false : true)
+    }, [userInfo])
+
     const options: any = [
         {
-            value: "Ethereum",
+            value: "1",
             label: "Ethereum",
             icon: <i className={styles.iconEth}></i>
         },
         {
-            value: "Axiomesh",
+            value: "0",
             label: "Axiomesh",
             icon: <i className={styles.iconAxm}></i>
         }
@@ -117,30 +133,52 @@ const Transfer = () => {
 
     const confirmCallback = () => {
         if(isSetPassword) {
-
+            if(toErrorsText !== "") {
+                return;
+            }
+            setTransferOpen(true)
         }else {
             setPasswordOpen(true)
         }
     }
 
-    const validateName = (value) => {
+    const validateName = (e: any) => {
+        const value = e.target.value;
         const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
         const isValid = ethAddressRegex.test(value);
         if(!isValid) {
-            return "Invalid address !"
+            setToErrorsText("Invalid address !")
+        }else {
+            setToErrorsText("")
         }
     }
 
     const handleFromChange = (e: any) => {
-        handleTokenOption(e.value)
+        setForm({...form, chain: e})
+        handleTokenOption(e.label)
     }
 
-    const handleSendChange = () => {
+    const handleSendChange = (e: any) => {
+        setForm({...form, send: e})
         setIsChangeSend(true)
     }
 
-    const handlePasswordClose = () => {
+    const handlePasswordClose = (isSuccess: Boolean) => {
+        isSuccess && setIsSetPassword(true);
         setPasswordOpen(false)
+    }
+
+    const handleSubmit = async () => {
+        console.log(form)
+        const res = await transaction({
+            email,
+            transaction_hash: "0x019462a97f89e6bee7ebfae1a83557eb78586954292e21193dd24a19a4cc1c01",
+            value: form.value,
+            chain_type: form.chain.value,
+            token_name: form.send.value,
+            to_address: form.to,
+        })
+        console.log(res)
     }
 
     return (
@@ -153,118 +191,97 @@ const Transfer = () => {
                 </div>
             </div>
             <div className={styles.transferContent}>
-                <Formik
-                    initialValues={{ from: options[0], to: '1' }}
-                    onSubmit={(values, actions) => {
-                        setTimeout(() => {
-                            alert(JSON.stringify(values, null, 2))
-                            actions.setSubmitting(false)
-                        }, 1000)
-                    }}
-                >
-                    {(props) => (
-                        <Form>
-                            <Field name='from' validate={validateName}>
-                                {({ field, form }) => (
-                                    <FormControl className={styles.formControl}>
-                                        <FormLabel className={styles.formTitle}>From</FormLabel>
-                                        <Select
-                                            isDisabled={!isSetPassword}
-                                            defaultValue={ options [0] }
-                                            options={options}
-                                            styles={customStyles(true)}
-                                            placeholder=""
-                                            components={{ Option: customOption, ValueContainer: customSingleValue }}
-                                            onChange={handleFromChange}
-                                        />
-                                        <FormErrorMessage>{form.errors.name}</FormErrorMessage>
-                                    </FormControl>
-                                )}
-                            </Field>
-                            <div className={styles.formSend}>
-                                <Field name='send'>
-                                    {({ field, form }) => (
-                                        <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}}>
-                                            <FormLabel className={styles.formTitle}>Send</FormLabel>
-                                            <Select
-                                                options={tokenList}
-                                                isDisabled={!isSetPassword}
-                                                styles={customStyles(!isChangeSend)}
-                                                placeholder="Select a token"
-                                                components={{ Option: customOption, ValueContainer: customSingleValue }}
-                                                onChange={handleSendChange}
-                                            />
-                                        </FormControl>
-                                    )}
-                                </Field>
-                                {isChangeSend && <Field name='send'>
-                                    {({ field, form }) => (
-                                        <FormControl className={styles.formControl}>
-                                            <FormLabel className={styles.formTitle}></FormLabel>
-                                            <InputGroup>
-                                                <Input
-                                                    isDisabled={!isSetPassword}
-                                                    fontSize="14px"
-                                                    fontWeight="400"
-                                                    color="gray.700"
-                                                    height="56px"
-                                                    borderRadius="12px"
-                                                    placeholder="e.g. 0x1de3... or destination.eth"
-                                                    _disabled={{
-                                                        color: "#D1D5DB",
-                                                        bg: "gray.200", // 修改禁用状态的背景色
-                                                        cursor: "not-allowed" // 修改禁用状态的鼠标样式
-                                                    }}
-                                                    _placeholder={{
-                                                        color: "#A0AEC0"
-                                                    }}
-                                                />
-                                                <InputRightElement style={{top: "10px", right: "20px"}}>
-                                                    <div className={styles.formMax}>MAX</div>
-                                                </InputRightElement>
-                                            </InputGroup>
-                                            <span className={styles.formGas}>Gas fee: 0.45 AXC</span>
-                                            <span className={styles.formBalance}>Balance:100</span>
-                                        </FormControl>
-                                    )}
-                                </Field>}
-                            </div>
+                <FormControl className={styles.formControl}>
+                    <FormLabel className={styles.formTitle}>From</FormLabel>
+                    <Select
+                        value={form.chain}
+                        isDisabled={!isSetPassword}
+                        defaultValue={ options [0] }
+                        options={options}
+                        styles={customStyles(true)}
+                        placeholder=""
+                        components={{ Option: customOption, ValueContainer: customSingleValue }}
+                        onChange={handleFromChange}
+                    />
+                    {/*<FormErrorMessage>{form.errors.name}</FormErrorMessage>*/}
+                </FormControl>
+                <div className={styles.formSend}>
+                    <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}}>
+                        <FormLabel className={styles.formTitle}>Send</FormLabel>
+                        <Select
+                            value={form.send}
+                            options={tokenList}
+                            isDisabled={!isSetPassword}
+                            styles={customStyles(!isChangeSend)}
+                            placeholder="Select a token"
+                            components={{ Option: customOption, ValueContainer: customSingleValue }}
+                            onChange={handleSendChange}
+                        />
+                    </FormControl>
+                    {isChangeSend &&
+                        <FormControl className={styles.formControl}>
+                            <FormLabel className={styles.formTitle}></FormLabel>
+                            <InputGroup>
+                                <Input
+                                    value={form.value}
+                                    isDisabled={!isSetPassword}
+                                    fontSize="14px"
+                                    fontWeight="400"
+                                    color="gray.700"
+                                    height="56px"
+                                    borderRadius="12px"
+                                    placeholder="e.g. 0x1de3... or destination.eth"
+                                    _disabled={{
+                                        color: "#D1D5DB",
+                                        bg: "gray.200", // 修改禁用状态的背景色
+                                        cursor: "not-allowed" // 修改禁用状态的鼠标样式
+                                    }}
+                                    _placeholder={{
+                                        color: "#A0AEC0"
+                                    }}
+                                    onChange={(e: any) => { setForm({ ...form, value: e.target.value }) }}
+                                />
+                                <InputRightElement style={{top: "10px", right: "20px"}}>
+                                    <div className={styles.formMax}>MAX</div>
+                                </InputRightElement>
+                            </InputGroup>
+                            <span className={styles.formGas}>Gas fee: 0.45 AXC</span>
+                            <span className={styles.formBalance}>Balance:100</span>
+                        </FormControl>}
+                </div>
 
-                            <Field name='to' validate={validateName}>
-                                {({ field, form }) => (
-                                    <FormControl className={styles.formControl} isInvalid={form.errors.to}>
-                                        <FormLabel className={styles.formTitle}>To</FormLabel>
-                                        <Input
-                                            {...field}
-                                            isDisabled={!isSetPassword}
-                                            fontSize="14px"
-                                            fontWeight="400"
-                                            color="gray.700"
-                                            height="56px"
-                                            borderRadius="12px"
-                                            placeholder="e.g. 0x1de3... or destination.eth"
-                                            _disabled={{
-                                                color: "#D1D5DB",
-                                                bg: "gray.200", // 修改禁用状态的背景色
-                                                cursor: "not-allowed" // 修改禁用状态的鼠标样式
-                                            }}
-                                            _placeholder={{
-                                                color: "#A0AEC0"
-                                            }}
-                                        />
-                                        <FormErrorMessage>{form.errors.to}</FormErrorMessage>
-                                    </FormControl>
-                                )}
-                            </Field>
-                        </Form>
-                    )}
-                </Formik>
+                <FormControl className={styles.formControl} isInvalid={toErrorsText !== ""}>
+                    <FormLabel className={styles.formTitle}>To</FormLabel>
+                    <Input
+                        value={form.to}
+                        isDisabled={!isSetPassword}
+                        fontSize="14px"
+                        fontWeight="400"
+                        color="gray.700"
+                        height="56px"
+                        borderRadius="12px"
+                        placeholder="e.g. 0x1de3... or destination.eth"
+                        _disabled={{
+                            color: "#D1D5DB",
+                            bg: "gray.200", // 修改禁用状态的背景色
+                            cursor: "not-allowed" // 修改禁用状态的鼠标样式
+                        }}
+                        _placeholder={{
+                            color: "#A0AEC0"
+                        }}
+                        onBlur={validateName}
+                        onChange={(e: any) => {setForm({...form, to: e.target.value})}}
+                    />
+                    <FormErrorMessage>{toErrorsText}</FormErrorMessage>
+                </FormControl>
                 <Button onClick={confirmCallback} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
             </div>
-            <TransferModal />
+            <TransferModal open={transferOpen} onSubmit={handleSubmit} />
             <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
         </div>
     )
 }
 
-export default Transfer;
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(Transfer)

@@ -1,5 +1,5 @@
 import styles from './index.less';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Modal,
     ModalOverlay,
@@ -11,12 +11,20 @@ import {
 import ModalInputPassword from '@/components/ModalInputPassword';
 
 
-const TransferModal = () => {
-    const [isOpen, setIsOpen] = useState(false);
+const TransferModal = (props: any) => {
+    const [isOpen, setIsOpen] = useState<Boolean>(props.open);
     const [pinValues, setPinValues] = useState<string>("");
+
+    useEffect(() => {
+        setIsOpen(props.open)
+    },[props.open])
 
     const onClose = () => {
         setIsOpen(false);
+    }
+
+    const handleSubmit = (value: string) => {
+        props.onSubmit(value)
     }
 
 
@@ -31,7 +39,7 @@ const TransferModal = () => {
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">
                         <p className={styles.transferTitle}>Transfer password verification</p>
-                        <ModalInputPassword />
+                        <ModalInputPassword onSubmit={handleSubmit} />
                         <p className={styles.transferForget}>Forget it?</p>
                         <div className={styles.transferDetail}>
                             <h1>DETAILS</h1>

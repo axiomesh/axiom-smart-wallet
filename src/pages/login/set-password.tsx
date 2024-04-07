@@ -50,11 +50,11 @@ export default function SetPassword() {
                 const params:ParamsItem = {
                     email,
                     login_password: password,
-                    enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
+                    enc_private_key: 'b5e69a4576e3d91c58287427e29449752dbd7fd343b480475df42af25de277a2', //登录密码对私钥进行对称加密-加密后的密钥
                 }
 
                 if(location.pathname === '/set-password'){
-                    params.address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
+                    params.address = '0xBeb42FF5434FB0E3AEEed47ACc44a75f51CC2A16'; //从sdk中获取
                     await registerUser(params)
                     history.replace('/home');
                 } else {
