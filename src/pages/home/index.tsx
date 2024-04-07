@@ -1,17 +1,34 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Menu, Flex, MenuButton, MenuList, MenuItem, Button, Image, Box, Divider,
     Tabs, TabList,  Tab, Tooltip,
 } from '@chakra-ui/react'
 import styles from './index.less';
-import { currencyList } from './config';
+import {currencyList, selectCurrencyList} from './config';
 import { SelectDownIcon } from '@/components/Icons';
 import TokenList from './componment/tokenList';
-import {getImgFromHash, toThousands} from "@/utils/help";
+import {changePrice, getImgFromHash, toThousands} from "@/utils/help";
+import {getTickerPrice} from "@/services/login";
 
+interface Item {
+    label: string
+    icon: string | any
+    value?: string
+    price?: string | number | any
+    symbol?: string
+}
+
+interface CurrentItem {
+    label: string
+    icon: string | any
+    value?: string | any
+}
 const Home = () => {
     const [activeKey, setActiveKey] = useState('all');
     const activeList = currencyList.filter(item => item.value === activeKey)[0];
     const [activeType, setActiveType] = useState(0);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [priceList, setPriceList] = useState<Array<Item>>([]);
+    const [selectList, setSelectList] = useState<Array<Item>>([]);
     const handleActiveClick = (value: string) => {
         setActiveKey(value)
     }
@@ -20,6 +37,34 @@ const Home = () => {
         if(key) return;
         setActiveType(key);
     }
+
+    const initTicketData = async() => {
+        try{
+            setLoading(true)
+            const res = await getTickerPrice();
+            setPriceList(res)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        initTicketData()
+    }, []);
+
+    useEffect(() => {
+        if(priceList && priceList.length){
+            const list = selectCurrencyList[activeKey];
+            const newList = [...list].map(item => {
+                const priceDataItem: Item = priceList.filter(li => li.symbol?.toLowerCase() === item.symbol.toLowerCase())[0];
+                console.log('item', item)
+                console.log('priceDataItem', priceDataItem)
+                return  {...item, price: changePrice(priceDataItem.price)}
+            })
+
+            setSelectList(newList)
+        }
+    }, [priceList, activeKey]);
 
     return (
         <div className={styles.homePage}>
@@ -49,7 +94,7 @@ const Home = () => {
                     </MenuButton>
 
                     <MenuList borderRadius="20px" p='24px' w="280px">
-                        {currencyList.map(item => <MenuItem
+                        {currencyList.map((item: CurrentItem) => <MenuItem
                             onClick={() => handleActiveClick(item.value)}
                             bg={activeKey === item.value ? 'gray.100' : ''}
                             _hover={{bg: activeKey === item.value ? '' : 'gray.100'}}
@@ -96,7 +141,7 @@ const Home = () => {
                         </TabList>
                     </Tabs>
                     <Box>
-                        <TokenList activeKey={activeKey} />
+                        <TokenList list={selectList} loading={loading}/>
                     </Box>
                 </Box>
                 <Box>

@@ -19,6 +19,7 @@ export default function LoginPassword() {
     const [errorText, setErrorText] = useState('');
     const [password, setPassword] = useState('');
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
     const {showErrorToast} = Toast();
 
 
@@ -32,16 +33,18 @@ export default function LoginPassword() {
         }
         if(!password || !passWordReg.test(password)) return
         try{
+            setLoading(true)
             const res = await checkLoginPassword({
                 email,
                 login_password: password,
             })
             setToken(res);
             history.replace('/home');
-        }catch (e){
-            console.log(e);
+        } catch (e){
             // @ts-ignore
             showErrorToast(e)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -101,7 +104,7 @@ export default function LoginPassword() {
                     <div style={{fontSize: 14, marginTop: 20}}>
                         <a onClick={handleForget} className="a_link">Forget it?</a>
                     </div>
-                    <ButtonPro mt="20px" onClick={handleSubmit}>Continue</ButtonPro>
+                    <ButtonPro mt="20px" isLoading={loading} onClick={handleSubmit}>Continue</ButtonPro>
                 </div>
             </div>
             <Right />

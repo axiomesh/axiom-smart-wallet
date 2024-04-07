@@ -95,5 +95,22 @@ export async function getUserInfo(email: string) {
     return res.data;
 }
 
+export async function getTickerPrice() {
+    const res = await request({
+        url: `/api/ticker/price`,
+        method: 'get',
+    });
+    return res.data;
+}
+
+export async function logout(email:string) {
+    const res = await request({
+        url: `/api/axm-wallet/account/logout`,
+        method: 'post',
+        data: {email},
+    });
+    return res.data;
+}
+
 
 

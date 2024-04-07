@@ -17,6 +17,7 @@ interface Item {
     label: string,
     icon: string | any,
     value?: string,
+    symbol?: string
 }
 
 interface selectItem{
@@ -28,54 +29,70 @@ interface selectItem{
 export const selectCurrencyList: selectItem | any = {
     eth: [{
         label: 'wAXC',
-        icon: waxc
+        icon: waxc,
+        symbol: 'wAXCUSD',
     },{
         label: 'ETH',
         icon: eth,
+        symbol: 'ETHUSD',
     },{
         label: 'USDC',
-        icon: usdc
+        icon: usdc,
+        symbol: 'USDCUSD',
     },{
         label: 'USDT',
-        icon: usdt
+        icon: usdt,
+        symbol: 'USDTUSD',
     }],
     axc: [{
         label: 'AXC',
-        icon: axc
+        icon: axc,
+        symbol: 'AXCUSD',
     },{
         label: 'WETH',
         icon: weth,
+        symbol: 'WETHUSD',
     },{
         label: 'wUSDC',
         icon: wusdc,
+        symbol: 'wUSDCUSD',
     },{
         label: 'wUSDT',
-        icon: wusdt
+        icon: wusdt,
+        symbol: 'wUSDTUSD',
     }],
     all: [{
         label: 'AXC',
         icon: axc,
+        symbol: 'AXCUSD',
     },{
         label: 'wAXC',
         icon: allWaxc,
+        symbol: 'wAXCUSD',
     },{
         label: 'wETH',
-        icon: allWeth
+        icon: allWeth,
+        symbol: 'wETHUSD',
     },{
         label: 'ETH',
         icon: eth,
+        symbol: 'ETHUSD',
     },{
         label: 'wUSDC',
         icon: allWusdc,
+        symbol: 'wUSDCUSD',
     },{
         label: 'USDC',
         icon: allUsdc,
+        symbol: 'USDCUSD',
     },{
         label: 'wUSDT',
         icon: allWusdt,
+        symbol: 'wUSDTUSD',
     },{
         label: 'USDT',
         icon: allUsdt,
+        symbol: 'USDTUSD',
     }]
 }
 

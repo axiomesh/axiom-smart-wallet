@@ -133,7 +133,7 @@ function HomePage(props: any) {
                                 </span>
                               </Checkbox>
                           </FormControl>
-                          <ButtonPro mt="24px" loading={loading} onClick={handleSubmit}>Continue</ButtonPro>
+                          <ButtonPro mt="24px" isLoading={loading} onClick={handleSubmit}>Continue</ButtonPro>
                       </div>
                   </div>
               </div>

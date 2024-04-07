@@ -33,6 +33,7 @@ function SecurityUpdatePassword(props: any) {
     const [rePassword, setRePassword] = useState('');
     const [progress, setProgress] = useState(25);
     const [progressText, setProgressText] = useState('');
+    const [loading, setLoading] = useState(false);
 
 
     const handleSubmit = async () => {
@@ -56,6 +57,7 @@ function SecurityUpdatePassword(props: any) {
                 enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
             }
             try{
+                setLoading(true)
                 if(location.pathname === '/security/update-reset-password'){
                     params.owner_address = ''
                     await resetPassword({
@@ -79,6 +81,8 @@ function SecurityUpdatePassword(props: any) {
             } catch (e){
                 // @ts-ignore
                 showErrorToast(e);
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -185,7 +189,7 @@ function SecurityUpdatePassword(props: any) {
                         </FormControl>
                     </div>
                     <div>
-                        <ButtonPro mt="24px" w="320px" onClick={handleSubmit}>Continue</ButtonPro>
+                        <ButtonPro mt="24px" w="320px" isLoading={loading} onClick={handleSubmit}>Continue</ButtonPro>
                     </div>
                 </div>
             </Page>

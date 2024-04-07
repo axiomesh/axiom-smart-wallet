@@ -5,8 +5,13 @@ export default defineConfig({
   title: 'AxiomWallet',
   jsMinifier: 'terser',
   proxy: {
-    '/api': {
+    '/api/axm-wallet': {
       target: 'http://172.16.13.133:8580/',
+      changeOrigin: true,
+    },
+    // /api/ticker
+    '/api/ticker': {
+      target: 'http://10.2.66.162:23510/',
       changeOrigin: true,
     },
   },

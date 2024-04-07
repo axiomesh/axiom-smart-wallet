@@ -1,6 +1,6 @@
 import styles from './index.less';
 import { history, useLocation } from 'umi';
-import {getMail, passWordReg} from '@/utils/help';
+import {getMail, passWordReg, setToken} from '@/utils/help';
 import Right from "./componments/right";
 import {useEffect, useState} from "react";
 import { resetPassword, registerUser } from '@/services/login';
@@ -27,6 +27,7 @@ export default function SetPassword() {
     const [rePassword, setRePassword] = useState('');
     const [progress, setProgress] = useState(25);
     const [progressText, setProgressText] = useState('');
+    const [loading, setLoading] = useState(false)
     const {showErrorToast} = Toast();
 
 
@@ -46,19 +47,21 @@ export default function SetPassword() {
 
         if(!password || !rePassword || errorText || newErrorText) return
         try{
+            setLoading(true)
             if(password === rePassword && passWordReg.test(password)){
                 const params:ParamsItem = {
                     email,
                     login_password: password,
-                    enc_private_key: 'b5e69a4576e3d91c58287427e29449752dbd7fd343b480475df42af25de277a2', //登录密码对私钥进行对称加密-加密后的密钥
+                    enc_private_key: 'b6477143e17f889263044f6cf463dc37177ac4526c4c39a7a344198457024a2f', //登录密码对私钥进行对称加密-加密后的密钥
                 }
 
                 if(location.pathname === '/set-password'){
-                    params.address = '0xBeb42FF5434FB0E3AEEed47ACc44a75f51CC2A16'; //从sdk中获取
-                    await registerUser(params)
+                    params.address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013'; //从sdk中获取
+                    const res = await registerUser(params);
+                    setToken(res);
                     history.replace('/home');
                 } else {
-                    params.owner_address = '0xa269e23aDb8Cd5F4D943A03294Be5D24682f1e40'; //从sdk中获取
+                    params.owner_address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013'; //从sdk中获取
                     await resetPassword(params)
                     history.replace('/login');
                 }
@@ -68,6 +71,8 @@ export default function SetPassword() {
         } catch (e) {
             // @ts-ignore
             showErrorToast(e)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -178,7 +183,7 @@ export default function SetPassword() {
                             </FormControl>
                         </div>
                         <div>
-                            <ButtonPro mt="24px" onClick={handleSubmit}>Continue</ButtonPro>
+                            <ButtonPro mt="24px" isLoading={loading} onClick={handleSubmit}>Continue</ButtonPro>
                         </div>
                     </div>
                 </div>

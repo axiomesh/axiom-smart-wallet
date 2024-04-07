@@ -4,20 +4,20 @@ import { Flex,  Image, Box } from '@chakra-ui/react'
 import { toThousands } from '@/utils/help';
 
 type Props = {
-    activeKey: string;
+    list: Array<any>;
+    loading: boolean;
 };
 
 interface Item {
     label: string,
     icon: string | any,
     value?: string,
+    price?: string
 }
 function Loading (props: any) {
     return <div className='loader' {...props}></div>
 }
-const TokenList = ({activeKey}: Props) => {
-    const [loading, setLoading] = useState(true);
-    const list = selectCurrencyList[activeKey];
+const TokenList = ({list, loading}: Props) => {
     return (
         <div>
             <Box w="100%">
@@ -43,10 +43,10 @@ const TokenList = ({activeKey}: Props) => {
                         <Box flex='1'>
                             <Flex w="100%" justify='space-between' color="gray.700" fontWeight="500" fontSize="16px" lineHeight="19px">
                                 <Box>{item.label}</Box>
-                                <Box>{loading ?  <Loading style={{marginRight: 10}} /> : toThousands(500)}</Box>
+                                <Box>{loading ?  <Loading style={{marginRight: 10}} /> : item.price}</Box>
                             </Flex>
                             <Flex w="100%" justify='space-between' color="gray.500" fontSize="12px" lineHeight="14.5px">
-                                <Box>{loading ?  <Loading style={{marginLeft: 10, marginTop: 5}} /> : toThousands(1, true)}</Box>
+                                <Box>{loading ?  <Loading style={{marginLeft: 10, marginTop: 5}} /> : item.price}</Box>
                                 <Box>{loading ?  <Loading style={{marginRight: 10, marginTop: 5}} /> : toThousands(500, true)}</Box>
                             </Flex>
                         </Box>

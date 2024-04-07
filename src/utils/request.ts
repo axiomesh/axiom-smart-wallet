@@ -57,7 +57,6 @@ export default async function request(params: any) {
             throw new Error(res?.error || res.data.message || 'Error');
 
         } else {
-            console.log(res);
             throw new Error(res?.error || res.data.message || 'Error');
             // Promise.reject(res?.error || res.data.message || 'Error')
         }
