@@ -8,7 +8,6 @@ import { connect } from 'umi';
 
 const PersonInfo = (props: any) => {
     const {dispatch} = props;
-    console.log('userInfo', props)
     const [isHover, setIsHover] = useState(false);
     const [isCopy, setIsCopy] = useState(false);
     const [info, setInfo] = useState({});
@@ -22,11 +21,14 @@ const PersonInfo = (props: any) => {
             if(res.lock_screen_status){
                 history.replace('/lock')
             }
-            setInfo(res);
-            dispatch({
-                type: 'global/setUser',
-                payload: res,
-            })
+            if(res){
+                setInfo(res);
+                dispatch({
+                    type: 'global/setUser',
+                    payload: res,
+                })
+            }
+
         } catch (e) {
             history.replace('/login')
         }

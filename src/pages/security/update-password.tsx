@@ -10,6 +10,9 @@ import Prompt from "@/components/Prompt";
 import Page from '@/components/Page'
 import {connect, useLocation} from "@@/exports";
 import Toast from "@/hooks/Toast";
+import {sha256} from "js-sha256";
+// @ts-ignore
+import { AxiomAccount } from 'axiom-smart-account-test'
 
 // /security/update-password更新密码
 // /security/update-reset-password 重置密码
@@ -21,6 +24,7 @@ interface ParamsItem {
     login_password: string;
     enc_private_key: string;
     owner_address?: string;
+    salt?: string | number;
 }
 function SecurityUpdatePassword(props: any) {
     const { userInfo } = props;
@@ -34,6 +38,7 @@ function SecurityUpdatePassword(props: any) {
     const [progress, setProgress] = useState(25);
     const [progressText, setProgressText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('Are you sure to cancel password reset?')
 
 
     const handleSubmit = async () => {
@@ -51,32 +56,44 @@ function SecurityUpdatePassword(props: any) {
         }
         if(!password || !passWordReg.test(password) || !rePassword || !passWordReg.test(rePassword)) return;
         if(password === rePassword && passWordReg.test(password)){
-            const params: ParamsItem = {
-                email,
-                login_password: password,
-                enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
-            }
             try{
                 setLoading(true)
+                const encryptPassword = sha256(password);
+                // @ts-ignore
+                let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, window.salt, window.accountSalt);
+                const private_key = axiomAccount.getEncryptedPrivateKey().toString();
+                const params: ParamsItem = {
+                    email,
+                    login_password: encryptPassword,
+                    enc_private_key: private_key, //登录密码对私钥进行对称加密-加密后的密钥
+                }
                 if(location.pathname === '/security/update-reset-password'){
-                    params.owner_address = ''
-                    await resetPassword({
-                        email,
-                        login_password: password,
-                        enc_private_key: '5da8a6fa34eb34f36e3a4891165b6abbd892ebfe778776bf56e6384c240f0786', //登录密码对私钥进行对称加密-加密后的密钥
-                    })
-                    history.replace('/login');
+                    params.owner_address = userInfo.address;
+                    // @ts-ignore
+                    params.salt = window.salt;
+                    await resetPassword(params)
+                    setMessage('');
+                    setTimeout(() => {
+                        history.replace('/login');
+                    }, 10)
                 } else {
                     const oldPassword = sessionStorage.getItem('Old_Password');
                     if(!oldPassword){
                         showErrorToast("Please enter a password");
-                        history.replace('/security/reset-unlock-password');
+                        setMessage('');
+
+                        setTimeout(() => {
+                            history.replace('/security/reset-unlock-password');
+                        }, 10)
                         return;
                     }
                     params.old_login_password = oldPassword;
                     params.old_enc_private_key = userInfo.enc_private_key;
                     await updatePassword(params);
-                    history.replace('/login');
+                    setMessage('');
+                    setTimeout(() => {
+                        history.replace('/login');
+                    }, 10)
                 }
             } catch (e){
                 // @ts-ignore
@@ -125,6 +142,10 @@ function SecurityUpdatePassword(props: any) {
             setProgressText('Password is too short !')
         }
 
+        if(rePassword){
+            setErrorText("");
+        }
+
     }
 
     const handleChangeRePassWord = () => {
@@ -145,7 +166,13 @@ function SecurityUpdatePassword(props: any) {
     const handleBlurPassWord = (e:any) => {
         if(e.target.value === ""){
             setNewErrorText('Please enter a new password')
-        } else {
+        } else if(rePassword !== ''){
+            if(e.target.value !== rePassword){
+                setErrorText('Password do not match')
+            } else {
+                setErrorText('');
+            }
+        }else {
             setNewErrorText('');
         }
     }
@@ -154,7 +181,7 @@ function SecurityUpdatePassword(props: any) {
 
     return (
         <>
-            <Prompt message='Are you sure to cancel password reset?' />
+            <Prompt message={message} />
             <Page needBack>
                 <div>
                     <div className='page-title'>Reset Unlock Password</div>

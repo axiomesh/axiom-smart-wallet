@@ -13,7 +13,7 @@ import React, {useState, useEffect} from "react";
 import {token} from "@/utils/tokenList";
 import TransferModal from "@/components/TransferModal";
 import SetPayPasswordModal from "@/components/SetPayPasswordModal";
-import {connect} from "@@/exports";
+import {connect} from "umi";
 import {transaction} from "@/services/transfer"
 import {getMail} from "@/utils/help";
 import {ERC20_ABI} from "axiom-smart-account-test";

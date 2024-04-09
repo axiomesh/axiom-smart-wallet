@@ -12,6 +12,7 @@ import {checkLoginPassword} from '@/services/login';
 import {getMail, passWordReg, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
 import Toast from "@/hooks/Toast";
+import {sha256} from "js-sha256";
 import {getUserInfo} from "@/services/login";
 import {AxiomAccount,ERC20_ABI} from "axiom-smart-account-test";
 
@@ -38,7 +39,8 @@ export default function LoginPassword() {
             setLoading(true)
             const res = await checkLoginPassword({
                 email,
-                login_password: password,
+                login_password: sha256(password),
+                // login_password: password,
             })
             setToken(res);
             const userRes = await getUserInfo(email);

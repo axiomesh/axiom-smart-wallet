@@ -18,23 +18,28 @@ export const toThousands = (num = 0, needSymbol = false) => {
     return `${needSymbol ? window.symbol : ''}${(Number(strList[0])).toLocaleString('en-us')}`;
 }
 
-export const changePrice = (num = 0) => {
+export const changePrice = (num = 0, needSymbol = true) => {
     const str = num ? String(num) : '0';
     const strList = str.split('.')
+    // @ts-ignore
+    if(num === 0) return `${needSymbol ? window.symbol : ''}0`;
     if(num > 100){
         if(strList.length > 1) {
             // @ts-ignore
-            return `${window.symbol}${(num.toFixed(2)).toLocaleString('en-us')}`
+            return `${needSymbol ? window.symbol : ''}${(num.toFixed(2)).toLocaleString('en-us')}`
         }
         // @ts-ignore
-        // return `${needSymbol ? window.symbol : ''}${((num.toFixed()).toLocaleString('en-us')}`;
+        return `${needSymbol ? window.symbol : ''}${(num.toFixed(2)).toLocaleString('en-us')}`;
     } else {
-        if(strList.length > 1 && strList[1].length > 8){
+        if(strList.length > 1){
             // @ts-ignore
-            return `${window.symbol}${(num.toFixed(8)).toLocaleString('en-us')}`
+            if(strList[1].length > 8) return `${needSymbol ? window.symbol : ''}${(num.toFixed(8)).toLocaleString('en-us')}`
+            // @ts-ignore
+           return `${needSymbol ? window.symbol : ''}${(Number(strList[0])).toLocaleString('en-us')}.${strList[1]}`
+
         } else {
             // @ts-ignore
-            return `${window.symbol}${(Number(strList[0])).toLocaleString('en-us')}.${strList[1]}`
+            return `${needSymbol ? window.symbol : ''}${(Number(strList[0])).toLocaleString('en-us')}`
         }
     }
 
@@ -65,6 +70,33 @@ export const clearSessionData = (dispatch: any) => {
         type: 'global/setUser',
         payload: {},
     })
+}
+
+export function formatUnits(value: bigint, decimals: number) {
+    let display = value.toString()
+
+    const negative = display.startsWith('-')
+    if (negative) display = display.slice(1)
+
+    display = display.padStart(decimals, '0')
+
+    let [integer, fraction] = [
+        display.slice(0, display.length - decimals),
+        display.slice(display.length - decimals),
+    ]
+    fraction = fraction.replace(/(0+)$/, '')
+    return `${negative ? '-' : ''}${integer || '0'}${
+        fraction ? `.${fraction}` : ''
+    }`
+}
+
+export const etherUnits = {
+    gwei: 9,
+    wei: 18,
+}
+
+export function formatEther(wei: bigint, unit: 'wei' | 'gwei' = 'wei') {
+    return formatUnits(wei, etherUnits[unit])
 }
 
 
