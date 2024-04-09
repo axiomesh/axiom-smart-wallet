@@ -11,6 +11,7 @@ import {checkLoginPassword, sendVerifyCode} from '@/services/login';
 import {getMail, passWordReg} from "@/utils/help";
 import Page from '@/components/Page';
 import Toast from "@/hooks/Toast";
+import {sha256} from "js-sha256";
 
 export default function ResetUnlockPassword() {
     const email: string | any = getMail();
@@ -34,9 +35,9 @@ export default function ResetUnlockPassword() {
             setLoading(true)
             await checkLoginPassword({
                 email,
-                login_password: password,
+                login_password: sha256(password),
             })
-            sessionStorage.setItem('Old_Password', password)
+            sessionStorage.setItem('Old_Password', sha256(password))
             history.push('/security/update-password');
         } catch (e){
             // @ts-ignore

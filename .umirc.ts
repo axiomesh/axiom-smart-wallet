@@ -20,6 +20,7 @@ export default defineConfig({
   lessLoader: {
     javascriptEnabled: true,
   },
+  headScripts: [{src: 'env.js', defer: true, async: true}],
   plugins: ['@umijs/plugins/dist/dva'],
   dva: {},
   hash: true,

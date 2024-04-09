@@ -18,6 +18,8 @@ interface Item {
     icon: string | any,
     value?: string,
     symbol?: string
+    contract?:string
+    type?: string
 }
 
 interface selectItem{
@@ -30,69 +32,97 @@ export const selectCurrencyList: selectItem | any = {
     eth: [{
         label: 'wAXC',
         icon: waxc,
+        type: 'eth',
         symbol: 'wAXCUSD',
+        contract: window.WAXC_CONTRACT
     },{
         label: 'ETH',
         icon: eth,
+        type: 'eth',
         symbol: 'ETHUSD',
     },{
         label: 'USDC',
         icon: usdc,
+        type: 'eth',
         symbol: 'USDCUSD',
+        contract: window.USDC_CONTRACT
     },{
         label: 'USDT',
         icon: usdt,
+        type: 'eth',
         symbol: 'USDTUSD',
+        contract: window.USDT_CONTRACT
     }],
     axc: [{
         label: 'AXC',
         icon: axc,
+        type: 'axc',
         symbol: 'AXCUSD',
     },{
         label: 'WETH',
         icon: weth,
+        type: 'axc',
         symbol: 'WETHUSD',
+        contract: window.WETH_CONTRACT
     },{
         label: 'wUSDC',
         icon: wusdc,
+        type: 'axc',
         symbol: 'wUSDCUSD',
+        contract: window.WUSDC_CONTRACT
     },{
         label: 'wUSDT',
         icon: wusdt,
+        type: 'axc',
         symbol: 'wUSDTUSD',
+        contract: window.WUSDT_CONTRACT
     }],
     all: [{
         label: 'AXC',
         icon: axc,
+        type: 'axc',
         symbol: 'AXCUSD',
     },{
         label: 'wAXC',
         icon: allWaxc,
+        type: 'eth',
         symbol: 'wAXCUSD',
+        contract: window.WAXC_CONTRACT
     },{
         label: 'wETH',
         icon: allWeth,
+        type: 'axc',
         symbol: 'wETHUSD',
+        contract: window.WETH_CONTRACT
     },{
         label: 'ETH',
         icon: eth,
+        type: 'eth',
         symbol: 'ETHUSD',
     },{
         label: 'wUSDC',
         icon: allWusdc,
+        type: 'axc',
         symbol: 'wUSDCUSD',
+        contract: window.WUSDC_CONTRACT
     },{
         label: 'USDC',
         icon: allUsdc,
+        type: 'eth',
         symbol: 'USDCUSD',
+        contract: window.USDC_CONTRACT
     },{
         label: 'wUSDT',
         icon: allWusdt,
+        type: 'axc',
         symbol: 'wUSDTUSD',
+        contract: window.WUSDT_CONTRACT
     },{
         label: 'USDT',
         icon: allUsdt,
+        type: 'eth',
         symbol: 'USDTUSD',
+        contract: window.USDT_CONTRACT
     }]
 }
 

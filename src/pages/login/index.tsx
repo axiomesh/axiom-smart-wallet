@@ -8,13 +8,12 @@ import {
     Checkbox,
     useToast
 } from '@chakra-ui/react';
-import { history } from 'umi';
+import { history, connect } from 'umi';
 import React, {useEffect, useState} from "react";
 import Right from './componments/right';
 import { sendVerifyCode } from '@/services/login';
 import {clearSessionData, setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
-import {connect} from "@@/exports";
 
 function HomePage(props: any) {
     const { dispatch } = props;

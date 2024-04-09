@@ -8,6 +8,10 @@ import InputPro from "@/components/Input";
 import {FormControl, FormErrorMessage, Progress} from "@chakra-ui/react";
 import ButtonPro from "@/components/Button";
 import Toast from "@/hooks/Toast";
+// @ts-ignore
+import { AxiomAccount } from 'axiom-smart-account-test'
+import { sha256 } from 'js-sha256'
+
 
 interface ParamsItem {
     email: string | any;
@@ -15,6 +19,7 @@ interface ParamsItem {
     login_password: string;
     enc_private_key: string;
     owner_address?: string;
+    salt?: string | number;
 }
 // 设置登陆密码需要调用sdk
 // 老用户的重置密码， 新用户设置密码共用这个页面
@@ -49,19 +54,29 @@ export default function SetPassword() {
         try{
             setLoading(true)
             if(password === rePassword && passWordReg.test(password)){
+                const encryptPassword = sha256(password);
+                // @ts-ignore
+                let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, window.salt, window.accountSalt);
+                const private_key = axiomAccount.getEncryptedPrivateKey().toString();
+                const address = axiomAccount.getAddress()
+                // const secretKey = await deriveAES256GCMSecretKey(password, window.sault);
+                // const encryptPassword = encrypt(secretKey)
+
                 const params:ParamsItem = {
                     email,
-                    login_password: password,
-                    enc_private_key: 'b6477143e17f889263044f6cf463dc37177ac4526c4c39a7a344198457024a2f', //登录密码对私钥进行对称加密-加密后的密钥
+                    login_password: encryptPassword,
+                    enc_private_key: private_key, //登录密码对私钥进行对称加密-加密后的密钥
                 }
 
                 if(location.pathname === '/set-password'){
-                    params.address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013'; //从sdk中获取
+                    params.address = address; //从sdk中获取
                     const res = await registerUser(params);
                     setToken(res);
                     history.replace('/home');
                 } else {
-                    params.owner_address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013'; //从sdk中获取
+                    params.owner_address = address; //从sdk中获取
+                    // @ts-ignore
+                    params.salt=window.salt;
                     await resetPassword(params)
                     history.replace('/login');
                 }
@@ -118,6 +133,10 @@ export default function SetPassword() {
             setProgressText('Password is too short !')
         }
 
+        if(rePassword){
+            setErrorText("");
+        }
+
     }
 
     const handleChangeRePassWord = () => {
@@ -138,7 +157,13 @@ export default function SetPassword() {
     const handleBlurPassWord = (e:any) => {
         if(e.target.value === ""){
             setNewErrorText('Please enter a new password')
-        } else {
+        } else if(rePassword !== ''){
+            if(e.target.value !== rePassword){
+                setErrorText('Password do not match')
+            } else {
+                setErrorText('');
+            }
+        }else {
             setNewErrorText('');
         }
     }

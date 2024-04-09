@@ -24,27 +24,36 @@ export default function Prompt({ message, when }: PromptProps) {
     // usePrompt(message, when)
     let blocker: Blocker = React.useCallback(
         () => {
-            setIsOpen(true)
+            if(message){
+                setIsOpen(true)
+            }
         },
         [message]
     )
 
     React.useEffect(() => {
+        console.log(message)
         let unblock = history.block((tx) => {
-            let autoUnblockingTx = {
-                ...tx,
-                retry() {
-                    unblock()
-                    tx.retry()
-                },
-            }
-            setUnlockFn(autoUnblockingTx)
+            if(!message){
+                unblock()
+                tx.retry()
+            } else {
+                let autoUnblockingTx = {
+                    ...tx,
+                    retry() {
+                        unblock()
+                        tx.retry()
+                    },
+                }
 
-            blocker(autoUnblockingTx)
+                setUnlockFn(autoUnblockingTx)
+
+                blocker(autoUnblockingTx)
+            }
         })
 
         return unblock
-    }, [navigator, blocker, when])
+    }, [navigator, blocker, when, message])
     const handleContinue = () => {
         setIsOpen(false);
         // @ts-ignore
