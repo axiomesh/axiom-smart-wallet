@@ -18,20 +18,20 @@ export async function checkVerifyCode(email: string | null,  verify_code: string
     return res.data;
 }
 
-export async function setNewPassword(email: string | null, old_enc_private_key: string | null, enc_private_key: string | null, owner_address: string | null, salt: string | null) {
+export async function setNewPassword(email: string | null, old_enc_private_key: string | null, enc_private_key: string | null, owner_address: string | null, salt: string | null, transfer_salt: string | null) {
     const res = await request({
         url: `/api/axm-wallet/transfer/reset-private-key`,
         method: 'post',
-        data: { email, old_enc_private_key, enc_private_key, owner_address, salt },
+        data: { email, old_enc_private_key, enc_private_key, owner_address, salt, transfer_salt },
     });
     return res.data;
 }
 
-export async function setFirstPassword(email: string | null, old_enc_private_key: string | null, enc_private_key: string | null) {
+export async function setFirstPassword(email: string | null, old_enc_private_key: string | null, enc_private_key: string | null, transfer_salt: any) {
     const res = await request({
         url: `/api/axm-wallet/transfer/update-private-key`,
         method: 'post',
-        data: { email, old_enc_private_key, enc_private_key },
+        data: { email, old_enc_private_key, enc_private_key, transfer_salt },
     });
     return res.data;
 }

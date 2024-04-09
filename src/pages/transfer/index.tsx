@@ -16,6 +16,8 @@ import SetPayPasswordModal from "@/components/SetPayPasswordModal";
 import {connect} from "@@/exports";
 import {transaction} from "@/services/transfer"
 import {getMail} from "@/utils/help";
+import {ERC20_ABI} from "axiom-smart-account-test";
+import {ethers} from "ethers";
 
 interface token {
     value: string;
@@ -82,6 +84,19 @@ interface FormProps {
     send: any
 }
 
+const options: any = [
+    {
+        value: 1,
+        label: "Ethereum",
+        icon: <i className={styles.iconEth}></i>
+    },
+    {
+        value: 0,
+        label: "Axiomesh",
+        icon: <i className={styles.iconAxm}></i>
+    }
+];
+
 const Transfer = (props: any) => {
     const { userInfo } = props;
     const email: string | any = getMail();
@@ -92,7 +107,9 @@ const Transfer = (props: any) => {
     const [passwordOpen, setPasswordOpen] = useState(false);
     const [transferOpen, setTransferOpen] = useState(false);
     const [toErrorsText, setToErrorsText] = useState("");
-    const [form, setForm] = useState<FormProps>({chain: null, to: "", value: "", send: ""});
+    const [sendError, setSendError] = useState("");
+    const [valueError, setValueError] = useState("");
+    const [form, setForm] = useState<FormProps>({chain: options[1], to: "", value: "", send: ""});
 
     const {Button} = useContinueButton();
 
@@ -100,25 +117,14 @@ const Transfer = (props: any) => {
         setIsSetPassword(userInfo.pay_password_set_status === 0 ? false : true)
     }, [userInfo])
 
-    const options: any = [
-        {
-            value: "1",
-            label: "Ethereum",
-            icon: <i className={styles.iconEth}></i>
-        },
-        {
-            value: "0",
-            label: "Axiomesh",
-            icon: <i className={styles.iconAxm}></i>
-        }
-    ];
     const handleTokenOption = (network: string) => {
         let arr = [];
-        token.map((item: {name: string, network: string}, index: number) => {
+        token.map((item: {name: string, network: string, decimals: number}, index: number) => {
             if(item.network === network) {
                 arr.push({
                     value: item.name,
                     label: item.name,
+                    decimals: item.decimals,
                     icon: <img src={require(`@/assets/token/${item.name}.png`)} />
                 })
             }
@@ -134,6 +140,14 @@ const Transfer = (props: any) => {
     const confirmCallback = () => {
         if(isSetPassword) {
             if(toErrorsText !== "") {
+                return;
+            }
+            if(!form.send){
+                setSendError("Please Select a token");
+                return;
+            }
+            if(!form.value){
+                setValueError("Invalid balance");
                 return;
             }
             setTransferOpen(true)
@@ -160,6 +174,7 @@ const Transfer = (props: any) => {
 
     const handleSendChange = (e: any) => {
         setForm({...form, send: e})
+        setSendError("")
         setIsChangeSend(true)
     }
 
@@ -168,17 +183,24 @@ const Transfer = (props: any) => {
         setPasswordOpen(false)
     }
 
-    const handleSubmit = async () => {
-        console.log(form)
-        const res = await transaction({
+    const handleSubmit = async (password: string) => {
+        console.log(window.axiom.getAddress())
+        console.log(window.axiom.getEncryptedPrivateKey())
+        const value = ethers.utils.parseUnits(form.value, form.send.decimals);
+        const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
+        const res = await window.axiom.sendUserOperation(form.to, form.value, callData, {})
+        console.log(res)
+        const ev = await res.wait();
+        console.log(ev)
+        const transactionRes = await transaction({
             email,
-            transaction_hash: "0x019462a97f89e6bee7ebfae1a83557eb78586954292e21193dd24a19a4cc1c01",
+            transaction_hash: ev.transactionHash,
             value: form.value,
-            chain_type: form.chain.value,
+            chain_type: Number(form.chain.value),
             token_name: form.send.value,
             to_address: form.to,
         })
-        console.log(res)
+        console.log(transactionRes)
     }
 
     return (
@@ -196,7 +218,7 @@ const Transfer = (props: any) => {
                     <Select
                         value={form.chain}
                         isDisabled={!isSetPassword}
-                        defaultValue={ options [0] }
+                        defaultValue={ options [1] }
                         options={options}
                         styles={customStyles(true)}
                         placeholder=""
@@ -206,7 +228,7 @@ const Transfer = (props: any) => {
                     {/*<FormErrorMessage>{form.errors.name}</FormErrorMessage>*/}
                 </FormControl>
                 <div className={styles.formSend}>
-                    <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}}>
+                    <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}} isInvalid={sendError !== ""}>
                         <FormLabel className={styles.formTitle}>Send</FormLabel>
                         <Select
                             value={form.send}
@@ -217,9 +239,10 @@ const Transfer = (props: any) => {
                             components={{ Option: customOption, ValueContainer: customSingleValue }}
                             onChange={handleSendChange}
                         />
+                        <FormErrorMessage>{sendError}</FormErrorMessage>
                     </FormControl>
                     {isChangeSend &&
-                        <FormControl className={styles.formControl}>
+                        <FormControl className={styles.formControl} isInvalid={valueError !== ""}>
                             <FormLabel className={styles.formTitle}></FormLabel>
                             <InputGroup>
                                 <Input
@@ -230,7 +253,6 @@ const Transfer = (props: any) => {
                                     color="gray.700"
                                     height="56px"
                                     borderRadius="12px"
-                                    placeholder="e.g. 0x1de3... or destination.eth"
                                     _disabled={{
                                         color: "#D1D5DB",
                                         bg: "gray.200", // 修改禁用状态的背景色
@@ -245,8 +267,13 @@ const Transfer = (props: any) => {
                                     <div className={styles.formMax}>MAX</div>
                                 </InputRightElement>
                             </InputGroup>
-                            <span className={styles.formGas}>Gas fee: 0.45 AXC</span>
-                            <span className={styles.formBalance}>Balance:100</span>
+                            {valueError === "" &&
+                                <div>
+                                    <span className={styles.formGas}>Gas fee: 0.45 AXC</span>
+                                    <span className={styles.formBalance}>Balance:100</span>
+                                </div>
+                            }
+                            <FormErrorMessage style={{position: "absolute"}}>{valueError}</FormErrorMessage>
                         </FormControl>}
                 </div>
 
@@ -276,7 +303,7 @@ const Transfer = (props: any) => {
                 </FormControl>
                 <Button onClick={confirmCallback} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
             </div>
-            <TransferModal open={transferOpen} onSubmit={handleSubmit} />
+            <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} />
             <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
         </div>
     )
