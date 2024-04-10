@@ -59,7 +59,8 @@ const PersonInfo = (props: any) => {
     }
 
     const handleConfirm = () => {
-
+        sessionStorage.setItem('Wallet_Token','');
+        history.replace('/login')
     }
 
     return (

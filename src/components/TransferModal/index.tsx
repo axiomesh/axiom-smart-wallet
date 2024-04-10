@@ -13,14 +13,13 @@ import ModalInputPassword from '@/components/ModalInputPassword';
 
 const TransferModal = (props: any) => {
     const [isOpen, setIsOpen] = useState<Boolean>(props.open);
-    const [pinValues, setPinValues] = useState<string>("");
 
     useEffect(() => {
         setIsOpen(props.open)
     },[props.open])
 
     const onClose = () => {
-        setIsOpen(false);
+        props.onClose()
     }
 
     const handleSubmit = (value: string) => {
@@ -35,7 +34,7 @@ const TransferModal = (props: any) => {
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
                         Transfer
-                        <i className={styles.transferClose}></i>
+                        <i className={styles.transferClose} onClick={onClose}></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">
                         <p className={styles.transferTitle}>Transfer password verification</p>

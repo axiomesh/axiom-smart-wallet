@@ -6,11 +6,16 @@ import ContinueButton from "@/hooks/ContinueButton";
 import Back from "@/components/Back";
 import { sendVerifyCode, checkVerifyCode, setNewPassword } from "@/services/transfer"
 import {history} from "@@/core/history";
+const CryptoJS = require("crypto-js")
+import {getMail} from "@/utils/help";
+import {connect} from "@@/exports";
+import {generateRandomBytes} from "@/utils/utils";
 
-const ResetTransfer = () => {
+const ResetTransfer = (props: any) => {
     const [isLock, setIsLock] = useState(true);
-    const [step, setStep] = useState(2);
-
+    const [step, setStep] = useState(0);
+    const email = getMail();
+    const { userInfo } = props;
     const { Button } = ContinueButton();
 
     const handleBack = () => {
@@ -18,19 +23,21 @@ const ResetTransfer = () => {
     }
 
     const handleSendEmail = () => {
-        sendVerifyCode("").then((res: any) => {
-
+        sendVerifyCode(email).then((res: any) => {
+            setStep(1);
         })
     }
 
     const handleVerify = (code: string) => {
-        checkVerifyCode("", code).then((res: any) => {
-
+        checkVerifyCode(email, code).then((res: any) => {
+            setStep(2);
         })
     }
 
     const handleSubmit = (value: string) => {
-        setNewPassword("","","", "").then((res: any) =>{
+        const salt = generateRandomBytes(16).join("");
+        const transferSalt = generateRandomBytes(16).join("");
+        setNewPassword(email,userInfo.enc_private_key,value, "0xb14252d0C4e2d3B39c49dEb4DA5631C9dD575c22", salt, transferSalt).then((res: any) =>{
 
         })
     }
@@ -55,4 +62,6 @@ const ResetTransfer = () => {
     )
 }
 
-export  default ResetTransfer;
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(ResetTransfer)

@@ -13,6 +13,8 @@ import {getMail, passWordReg, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
+import {getUserInfo} from "@/services/login";
+import {AxiomAccount,ERC20_ABI} from "axiom-smart-account-test";
 
 export default function LoginPassword() {
     const location = useLocation();
@@ -41,6 +43,10 @@ export default function LoginPassword() {
                 // login_password: password,
             })
             setToken(res);
+            const userRes = await getUserInfo(email);
+            if(userRes.transfer_salt) {
+                window.axiom = await AxiomAccount.fromPassword(Number(userRes.enc_private_key), userRes.transfer_salt, window.accountSalt)
+            }
             history.replace('/home');
         } catch (e){
             // @ts-ignore

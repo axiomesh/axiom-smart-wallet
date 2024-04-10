@@ -13,14 +13,14 @@ import {
 } from '@chakra-ui/react';
 import Input from '@/components/Input';
 import useContinueButton from '@/hooks/ContinueButton';
-import ModalInputPassword from "@/components/ModalInputPassword";
 import TransferPassword from "@/components/TransferPassword";
 import { setFirstPassword } from '@/services/transfer';
 import Toast from "@/hooks/Toast";
 import {passWordReg, setToken, getMail} from "@/utils/help";
 import {checkLoginPassword} from "@/services/login";
-import {history} from "@@/core/history";
 import {connect} from "@@/exports";
+const {crypto} = require("crypto-js")
+import {generateRandomBytes} from "@/utils/utils";
 
 interface Props {
     isOpen: boolean;
@@ -46,7 +46,8 @@ const SetPayPasswordModal = (props: Props) => {
     }
 
     const handleSubmit = async (e: string) => {
-        await setFirstPassword(email, userInfo.enc_private_key, e);
+        const salt = generateRandomBytes(16).join("");
+        await setFirstPassword(email, userInfo.enc_private_key, e, salt);
         showSuccessToast("Password set successfully!");
         props.onClose(true);
     }
