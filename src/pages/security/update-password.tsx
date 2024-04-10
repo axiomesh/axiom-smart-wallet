@@ -74,7 +74,7 @@ function SecurityUpdatePassword(props: any) {
                     await resetPassword(params)
                     setMessage('');
                     setTimeout(() => {
-                        history.replace('/login');
+                        history.replace('/lock');
                     }, 10)
                 } else {
                     const oldPassword = sessionStorage.getItem('Old_Password');
@@ -92,7 +92,7 @@ function SecurityUpdatePassword(props: any) {
                     await updatePassword(params);
                     setMessage('');
                     setTimeout(() => {
-                        history.replace('/login');
+                        history.replace('/lock');
                     }, 10)
                 }
             } catch (e){

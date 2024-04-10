@@ -139,7 +139,7 @@ const Home = (props:any) => {
 
             setTotal(changePrice(totalValue, true))
 
-            setSelectList(newList)
+            setSelectList(newList.sort((a, b) => b.totalValue - a.totalValue))
         }
     }, [priceList, activeKey]);
 

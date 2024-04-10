@@ -8,7 +8,7 @@ import {
 import { history, useLocation } from 'umi';
 import {useEffect, useState} from "react";
 import Right from './componments/right';
-import {checkLoginPassword} from '@/services/login';
+import {checkLoginPassword, sendVerifyCode} from '@/services/login';
 import {getMail, passWordReg, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
 import Toast from "@/hooks/Toast";
