@@ -60,7 +60,8 @@ function SecurityUpdatePassword(props: any) {
                 setLoading(true)
                 const encryptPassword = sha256(password);
                 // @ts-ignore
-                let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, window.salt, window.accountSalt);
+                let axiomAccount = await AxiomAccount.fromEncryptedKey(userInfo.enc_private_key, userInfo.transfer_salt, window.accountSalt);
+                window.axiom = axiomAccount;
                 const private_key = axiomAccount.getEncryptedPrivateKey().toString();
                 const params: ParamsItem = {
                     email,

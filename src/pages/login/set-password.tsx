@@ -57,6 +57,7 @@ export default function SetPassword() {
                 const encryptPassword = sha256(password);
                 // @ts-ignore
                 let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, window.salt, window.accountSalt);
+                window.axiom = axiomAccount;
                 const private_key = axiomAccount.getEncryptedPrivateKey().toString();
                 const address = axiomAccount.getAddress()
                 // const secretKey = await deriveAES256GCMSecretKey(password, window.sault);
