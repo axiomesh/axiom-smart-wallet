@@ -40,7 +40,7 @@ export async function setFirstPassword(email: string | null, old_enc_private_key
 export async function getHistoryList(data: any) {
     const res = await request({
         url: `/api/axm-wallet/transfer/transaction-history`,
-        method: 'post',
+        method: 'get',
         data,
     });
     return res.data;

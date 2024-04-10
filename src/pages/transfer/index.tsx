@@ -13,7 +13,7 @@ import React, {useState, useEffect} from "react";
 import {token} from "@/utils/tokenList";
 import TransferModal from "@/components/TransferModal";
 import SetPayPasswordModal from "@/components/SetPayPasswordModal";
-import {connect} from "umi";
+import {connect, history} from "umi";
 import {transaction} from "@/services/transfer"
 import {getMail} from "@/utils/help";
 
@@ -185,7 +185,7 @@ const Transfer = (props: any) => {
         <div className={styles.transfer}>
             <div className={styles.transferTitle}>
                 <h1>Transfer</h1>
-                <div className={styles.transferHistory}>
+                <div className={styles.transferHistory} onClick={() => history.push('/transfer-history')}>
                     <img src={require('@/assets/transfer/history.png')} alt=""/>
                     <span>History</span>
                 </div>

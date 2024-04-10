@@ -3,15 +3,11 @@ window.symbol = '$';
 // @ts-ignore
 window.salt= '0';
 window.accountSalt= '0'
-
-window.SIGNER_KEY=0xb6477143e17f889263044f6cf463dc37177ac4526c4c39a7a344198457024a2f
-
-window.BUNDLER_URL='http://172.16.13.132:4337'
 // AXM RPC
 window.RPC_URL='http://172.16.13.132:28881';
 // ETH RPC
-// window.ETH_RPC = "https://eth-mainnet.g.alchemy.com/v2/VxfZRYJpe70DW2HhfXzcmG7kQXbiHoGW"
-window.ETH_RPC='https://bsc-dataseed.binance.org/';
+window.ETH_RPC = "https://eth-mainnet.g.alchemy.com/v2/VxfZRYJpe70DW2HhfXzcmG7kQXbiHoGW"
+// window.ETH_RPC='https://bsc-dataseed.binance.org/';
 
 // 代币合约
 window.WETH_CONTRACT = "0x82C6D3ed4cD33d8EC1E51d0B5Cc1d822Eaa0c3dC"
@@ -24,14 +20,6 @@ window.WAXC_CONTRACT = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
 // 代币转换
 window.AXC_SYMBOL = 18;
 window.ETH_SYMBOL = 18;
-
-
-
-
-window.ENTRY_POINT='0x0000000000000000000000000000000000001008'
-window.ACCOUNT_FACTORY='0x0000000000000000000000000000000000001009'
-window.PAYMASTER='0x000000000000000000000000000000000000100b'
-window.DAI='0x44422e866dE0FA251d58348Af5d8005D89a3498a'
-
-window.PAYMASTER_URL='http://127.0.0.1:4337'
+window.ETH_BROWSER = 'https://eth.blockscout.com';
+window.AXM_BROWSER = 'https://scan.taurus.axiomesh.io';
 

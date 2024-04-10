@@ -28,16 +28,7 @@ const TransferHistory = () => {
     const email: string | any = getMail();
     const [loading, setLoading] = useState(false);
     const skeletonList = [{}, {}, {}, {}, {}];
-    const [list, setList] = useState<Array<ListItem>>([{
-        "to_address": "DCRFRDFERFRFRFRFSCSFVR",
-        "chain_type": 1,
-        "token_name": "WETH",
-        "value": 19000000000000000,
-        "transaction_status": 0,
-        "transaction_time": 111,
-        "transaction_hash":"111322",
-        "url": ''
-    }]);
+    const [list, setList] = useState<Array<ListItem>>([]);
     const [current, setCurrent] = useState(1);
     const [total, setTotal] = useState(0);
 
@@ -53,7 +44,7 @@ const TransferHistory = () => {
         </Tooltip>
     ];
 
-    const initData = async (cur: number) => {
+    const initData = async (cur = 1) => {
         const params = { page: cur, size: 10, email};
         try{
             setLoading(true)
@@ -68,20 +59,23 @@ const TransferHistory = () => {
     }
 
     useEffect(() => {
+        initData();
     },[])
 
     const getIcon = (tokenName: string) => {
         const allList = [...selectCurrencyList.eth, ...selectCurrencyList.axc];
-        const filterList = allList.filter(item => item.label === tokenName);
+        const filterList = allList.filter(item => item.label.toLowerCase() === tokenName.toLowerCase());
         return filterList[0].icon;
     }
 
     const handleHashClick = (item: ListItem) => {
         // 0: Axiomesh, 1 : Ethereum
         if(item.chain_type === 1){
-
+            // @ts-ignore
+            window.open(`${window.ETH_BROWSER}/tx/${item.transaction_hash}`);
         } else {
-
+            // @ts-ignore
+            window.open(`${window.AXM_BROWSER}/tx/${item.transaction_hash}`);
         }
     }
 

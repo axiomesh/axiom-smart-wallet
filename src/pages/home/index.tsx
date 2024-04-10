@@ -22,6 +22,7 @@ interface Item {
     type: string;
     balance?:string | number | any
     total?: string | number | any
+    totalValue?: string | number | any
 }
 
 interface CurrentItem {
@@ -116,6 +117,10 @@ const Home = (props:any) => {
         }
     }, [userInfo?.address]);
 
+    const sumArrayObjects = (arr:Array<Item>) => {
+        return arr.reduce((accumulator, obj) => accumulator + obj.totalValue, 0);
+    }
+
     useEffect(() => {
         if(priceList && priceList.length){
             const list = selectCurrencyList[activeKey];
@@ -126,8 +131,13 @@ const Home = (props:any) => {
                     balance: changePrice(Number(priceDataItem.balance), false),
                     price: changePrice(Number(priceDataItem.price)),
                     total: changePrice(Number(priceDataItem.total)),
+                    totalValue: Number(priceDataItem.total),
                 }
             })
+
+            const totalValue = sumArrayObjects(newList);
+
+            setTotal(changePrice(totalValue, true))
 
             setSelectList(newList)
         }
@@ -189,7 +199,8 @@ const Home = (props:any) => {
                 <Image boxSize='112px' borderRadius='12px' src={getImgFromHash(userInfo.address)} alt='avatar' mr='8px'/>
                 <Box color="text.50" fontWeight="700">
                     <Box fontSize="18px" lineHeight="28px" mb="6px">TOTAL VALUE</Box>
-                    <Box fontSize='40px' lineHeight="48px">{toThousands(total, true)}</Box>
+                    {loading ? <div className='big-loader' style={{marginLeft: 22}}></div> :
+                        <Box fontSize='40px' lineHeight="48px">{total || '$0'}</Box>}
                 </Box>
             </Flex>
             <Box mb="20px">

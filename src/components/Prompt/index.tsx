@@ -32,7 +32,6 @@ export default function Prompt({ message, when }: PromptProps) {
     )
 
     React.useEffect(() => {
-        console.log(message)
         let unblock = history.block((tx) => {
             if(!message){
                 unblock()
