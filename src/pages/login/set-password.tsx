@@ -11,6 +11,7 @@ import Toast from "@/hooks/Toast";
 // @ts-ignore
 import { AxiomAccount } from 'axiom-smart-account-test'
 import { sha256 } from 'js-sha256'
+import {generateRandomBytes} from "@/utils/utils";
 
 
 interface ParamsItem {
@@ -20,6 +21,7 @@ interface ParamsItem {
     enc_private_key: string;
     owner_address?: string;
     salt?: string | number;
+    user_salt: string;
 }
 // 设置登陆密码需要调用sdk
 // 老用户的重置密码， 新用户设置密码共用这个页面
@@ -55,8 +57,9 @@ export default function SetPassword() {
             setLoading(true)
             if(password === rePassword && passWordReg.test(password)){
                 const encryptPassword = sha256(password);
+                const salt = generateRandomBytes(16).join("");
                 // @ts-ignore
-                let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, window.salt, window.accountSalt);
+                let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, salt, window.accountSalt);
                 window.axiom = axiomAccount;
                 const private_key = axiomAccount.getEncryptedPrivateKey().toString();
                 const address = axiomAccount.getAddress()
@@ -67,6 +70,7 @@ export default function SetPassword() {
                     email,
                     login_password: encryptPassword,
                     enc_private_key: private_key, //登录密码对私钥进行对称加密-加密后的密钥
+                    user_salt: salt
                 }
 
                 if(location.pathname === '/set-password'){
@@ -77,7 +81,6 @@ export default function SetPassword() {
                 } else {
                     params.owner_address = address; //从sdk中获取
                     // @ts-ignore
-                    params.salt=window.salt;
                     await resetPassword(params)
                     history.replace('/login');
                 }

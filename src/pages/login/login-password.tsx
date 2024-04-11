@@ -44,8 +44,8 @@ export default function LoginPassword() {
             })
             setToken(res);
             const userRes = await getUserInfo(email);
-            if(userRes.transfer_salt) {
-                window.axiom = await AxiomAccount.fromEncryptedKey(Number(userRes.enc_private_key), userRes.transfer_salt, window.accountSalt)
+            if(userRes.user_salt) {
+                window.axiom = await AxiomAccount.fromEncryptedKey(Number(userRes.enc_private_key), userRes.user_salt, window.accountSalt)
             }
             history.replace('/home');
         } catch (e){
