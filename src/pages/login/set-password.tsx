@@ -56,10 +56,15 @@ export default function SetPassword() {
         try{
             setLoading(true)
             if(password === rePassword && passWordReg.test(password)){
-                const encryptPassword = sha256(password);
-                const salt = generateRandomBytes(16).join("");
+                console.log(11111)
+                const encryptPassword = sha256(rePassword);
+                console.log(encryptPassword)
+                const salt = generateRandomBytes(16);
+                // const salt = generateRandomBytes(16).join("");
+                console.log(salt)
                 // @ts-ignore
                 let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, salt, window.accountSalt);
+                console.log(axiomAccount)
                 window.axiom = axiomAccount;
                 const private_key = axiomAccount.getEncryptedPrivateKey().toString();
                 const address = axiomAccount.getAddress()
@@ -79,6 +84,8 @@ export default function SetPassword() {
                     setToken(res);
                     history.replace('/home');
                 } else {
+                    // @ts-ignore
+                    params.salt = window.accountSalt;
                     params.owner_address = address; //从sdk中获取
                     // @ts-ignore
                     await resetPassword(params)
@@ -94,6 +101,10 @@ export default function SetPassword() {
             setLoading(false)
         }
     }
+
+    // useEffect(() => {
+    //     initData()
+    // }, []);
 
     useEffect(() => {
       if(!email) history.replace('/login')

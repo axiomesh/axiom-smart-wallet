@@ -26,6 +26,7 @@ interface ParamsItem {
     enc_private_key: string;
     owner_address?: string;
     user_salt?: string | number;
+    salt?: string | number;
 }
 function SecurityUpdatePassword(props: any) {
     const { userInfo } = props;
@@ -60,7 +61,7 @@ function SecurityUpdatePassword(props: any) {
             try{
                 setLoading(true)
                 const encryptPassword = sha256(password);
-                const salt = generateRandomBytes(16).join("");
+                const salt = generateRandomBytes(16);
                 // @ts-ignore
                 let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, salt, window.accountSalt);
                 window.axiom = axiomAccount;
@@ -73,6 +74,8 @@ function SecurityUpdatePassword(props: any) {
                 }
                 if(location.pathname === '/security/update-reset-password'){
                     params.owner_address = userInfo.address;
+                    // @ts-ignore
+                    params.salt = window.accountSalt;
                     // @ts-ignore
                     await resetPassword(params)
                     setMessage('');
