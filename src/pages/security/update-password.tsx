@@ -62,7 +62,7 @@ function SecurityUpdatePassword(props: any) {
                 const encryptPassword = sha256(password);
                 const salt = generateRandomBytes(16).join("");
                 // @ts-ignore
-                let axiomAccount = await AxiomAccount.fromEncryptedKey(userInfo.enc_private_key, salt, window.accountSalt);
+                let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, salt, window.accountSalt);
                 window.axiom = axiomAccount;
                 const private_key = axiomAccount.getEncryptedPrivateKey().toString();
                 const params: ParamsItem = {

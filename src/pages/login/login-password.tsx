@@ -14,7 +14,7 @@ import LogoutModal from "@/pages/login/componments/logout-modal";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 import {getUserInfo} from "@/services/login";
-import {AxiomAccount,ERC20_ABI} from "axiom-smart-account-test";
+import {AxiomAccount} from "axiom-smart-account-test";
 
 export default function LoginPassword() {
     const location = useLocation();
@@ -37,16 +37,13 @@ export default function LoginPassword() {
         if(!password || !passWordReg.test(password)) return
         try{
             setLoading(true)
+            const login_password = sha256(password);
             const res = await checkLoginPassword({
                 email,
-                login_password: sha256(password),
+                login_password,
                 // login_password: password,
             })
             setToken(res);
-            const userRes = await getUserInfo(email);
-            if(userRes.user_salt) {
-                window.axiom = await AxiomAccount.fromEncryptedKey(Number(userRes.enc_private_key), userRes.user_salt, window.accountSalt)
-            }
             history.replace('/home');
         } catch (e){
             // @ts-ignore
@@ -104,6 +101,7 @@ export default function LoginPassword() {
                                 style={{height: 56}}
                                 onChange={handleChangePassWord}
                                 onBlur={handleBlurPassWord}
+                                autoFocus
                             />
                             <FormErrorMessage>{errorText}</FormErrorMessage>
                         </FormControl>
