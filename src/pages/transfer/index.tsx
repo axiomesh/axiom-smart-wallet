@@ -18,6 +18,7 @@ import {transaction} from "@/services/transfer"
 import {getMail} from "@/utils/help";
 import {ERC20_ABI} from "axiom-smart-account-test";
 import {ethers} from "ethers";
+import Toast from "@/hooks/Toast";
 
 interface token {
     value: string;
@@ -110,6 +111,7 @@ const Transfer = (props: any) => {
     const [sendError, setSendError] = useState("");
     const [valueError, setValueError] = useState("");
     const [form, setForm] = useState<FormProps>({chain: options[1], to: "", value: "", send: ""});
+    const {showSuccessToast, showErrorToast} = Toast();
 
     const {Button} = useContinueButton();
 
@@ -184,23 +186,27 @@ const Transfer = (props: any) => {
     }
 
     const handleSubmit = async (password: string) => {
-        console.log(window.axiom.getAddress())
-        console.log(window.axiom.getEncryptedPrivateKey())
         const value = ethers.utils.parseUnits(form.value, form.send.decimals);
         const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
-        const res = await window.axiom.sendUserOperation(form.to, form.value, callData, {})
-        console.log(res)
-        const ev = await res.wait();
-        console.log(ev)
-        const transactionRes = await transaction({
-            email,
-            transaction_hash: ev.transactionHash,
-            value: form.value,
-            chain_type: Number(form.chain.value),
-            token_name: form.send.value,
-            to_address: form.to,
-        })
-        console.log(transactionRes)
+        try {
+            const res = await window.axiom.sendUserOperation(form.to, form.value, callData, {})
+            const ev = await res.wait();
+            await transaction({
+                email,
+                transaction_hash: ev.transactionHash,
+                value: form.value,
+                chain_type: Number(form.chain.value),
+                token_name: form.send.value,
+                to_address: form.to,
+            })
+            showSuccessToast("transaction success")
+            setTimeout(() => {
+                window.location.reload()
+            },3000)
+        }catch (e) {
+            console.log(e)
+            showErrorToast(e);
+        }
     }
 
     return (

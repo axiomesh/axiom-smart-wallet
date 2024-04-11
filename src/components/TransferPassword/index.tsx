@@ -13,6 +13,7 @@ const TransferPassword = (props: Props) => {
 
     const getSecondValue = (e: string) => {
         if(firstValue === e) {
+            setError(false)
             props.onSubmit(e)
         }else {
             setError(true)

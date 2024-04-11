@@ -6,17 +6,21 @@ import ContinueButton from "@/hooks/ContinueButton";
 import Back from "@/components/Back";
 import { sendVerifyCode, checkVerifyCode, setNewPassword } from "@/services/transfer"
 import {history} from "@@/core/history";
-const CryptoJS = require("crypto-js")
 import {getMail} from "@/utils/help";
 import {connect} from "@@/exports";
 import {generateRandomBytes} from "@/utils/utils";
+import { encrypt, deriveAES256GCMSecretKey } from "axiom-smart-account-test";
+import { Wallet } from "ethers";
+import Toast from "@/hooks/Toast";
 
 const ResetTransfer = (props: any) => {
     const [isLock, setIsLock] = useState(true);
     const [step, setStep] = useState(0);
+    const [password, setPassword] = useState('');
     const email = getMail();
     const { userInfo } = props;
     const { Button } = ContinueButton();
+    const {showSuccessToast, showErrorToast} = Toast();
 
     const handleBack = () => {
         history.push('/security')
@@ -34,11 +38,23 @@ const ResetTransfer = (props: any) => {
         })
     }
 
-    const handleSubmit = (value: string) => {
-        const salt = generateRandomBytes(16).join("");
-        const transferSalt = generateRandomBytes(16).join("");
-        setNewPassword(email,userInfo.enc_private_key,value, "0xb14252d0C4e2d3B39c49dEb4DA5631C9dD575c22", salt, transferSalt).then((res: any) =>{
+    const handleCallBack = (value: string) => {
+        setPassword(value)
+    }
 
+    const handleSubmit = async () => {
+        const salt = generateRandomBytes(16);
+        const transferSalt = generateRandomBytes(16);
+        const token = sessionStorage.getItem('token');
+        const secretkey = await deriveAES256GCMSecretKey(token, transferSalt);
+        const wallet = Wallet.createRandom();
+        const privateKey = wallet.privateKey;
+        const encrpty = encrypt(privateKey,secretkey.toString())
+        setNewPassword(email,userInfo.enc_private_key,encrpty, "0x7493D54aF7beB0F75c44BCd3728905491D681fB1", salt, transferSalt).then((res: any) =>{
+            showSuccessToast("Password reset successfully！");
+            setStep(0)
+        }).catch((err: any) => {
+            showErrorToast(err)
         })
     }
 
@@ -55,8 +71,8 @@ const ResetTransfer = (props: any) => {
             </div>}
             {step === 1 && <div style={{marginTop: "20px"}}><InputPassword onVerify={handleVerify} needTimer={false} timer="120"/></div>}
             {step === 2 && <div style={{marginTop: "20px"}}>
-                <TransferPassword onSubmit={handleSubmit} />
-                <div style={{width: "320px",marginTop: "40px"}}><Button>Confirm</Button></div>
+                <TransferPassword onSubmit={handleCallBack} />
+                <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button>Confirm</Button></div>
             </div>}
         </div>
     )

@@ -21,6 +21,8 @@ import {checkLoginPassword} from "@/services/login";
 import {connect} from "@@/exports";
 const {crypto} = require("crypto-js")
 import {generateRandomBytes} from "@/utils/utils";
+import {AxiomAccount} from "axiom-smart-account-test"
+import {sha256} from "js-sha256";
 
 interface Props {
     isOpen: boolean;
@@ -35,7 +37,7 @@ const SetPayPasswordModal = (props: Props) => {
     const [errorTxt, setErrorTxt] = useState('');
     const [password, setPassword] = useState('');
     const {Button}  = useContinueButton();
-    const {showSuccessToast} = Toast();
+    const {showSuccessToast, showErrorToast} = Toast();
 
     useEffect(() => {
         setOpen(props.isOpen)
@@ -46,7 +48,7 @@ const SetPayPasswordModal = (props: Props) => {
     }
 
     const handleSubmit = async (e: string) => {
-        const salt = generateRandomBytes(16).join("");
+        const salt = generateRandomBytes(16);
         await setFirstPassword(email, userInfo.enc_private_key, e, salt);
         showSuccessToast("Password set successfully!");
         props.onClose(true);
@@ -64,7 +66,7 @@ const SetPayPasswordModal = (props: Props) => {
         try{
             const res = await checkLoginPassword({
                 email,
-                login_password: password,
+                login_password: sha256(password),
             })
             setToken(res);
             setIsVerify(true)
