@@ -5,6 +5,8 @@ import {exchangeAddress, getImgFromHash, getMail} from '@/utils/help';
 import {getUserInfo} from "@/services/login";
 import {history} from "@@/core/history";
 import { connect } from 'umi';
+import { AxiomAccount, encrypt, deriveAES256GCMSecretKey } from "axiom-smart-account-test";
+import { Wallet } from "ethers";
 
 const PersonInfo = (props: any) => {
     const {dispatch} = props;
@@ -27,6 +29,17 @@ const PersonInfo = (props: any) => {
                     type: 'global/setUser',
                     payload: res,
                 })
+                const token = sessionStorage.getItem('token');
+                if(res.transfer_salt) {
+                    try {
+                        const axiom = await AxiomAccount.fromEncryptedKey(token, res.transfer_salt, res.enc_private_key);
+                        console.log(axiom.getAddress())
+                        localStorage.setItem("axiom", JSON.stringify(axiom))
+                        window.axiom = axiom
+                    }catch (e) {
+                        console.log(e)
+                    }
+                }
             }
 
         } catch (e) {
