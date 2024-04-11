@@ -13,6 +13,7 @@ import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 // @ts-ignore
 import { AxiomAccount } from 'axiom-smart-account-test'
+import {generateRandomBytes} from "@/utils/utils";
 
 // /security/update-password更新密码
 // /security/update-reset-password 重置密码
@@ -24,7 +25,7 @@ interface ParamsItem {
     login_password: string;
     enc_private_key: string;
     owner_address?: string;
-    salt?: string | number;
+    user_salt?: string | number;
 }
 function SecurityUpdatePassword(props: any) {
     const { userInfo } = props;
@@ -59,19 +60,20 @@ function SecurityUpdatePassword(props: any) {
             try{
                 setLoading(true)
                 const encryptPassword = sha256(password);
+                const salt = generateRandomBytes(16).join("");
                 // @ts-ignore
-                let axiomAccount = await AxiomAccount.fromEncryptedKey(userInfo.enc_private_key, userInfo.transfer_salt, window.accountSalt);
+                let axiomAccount = await AxiomAccount.fromEncryptedKey(userInfo.enc_private_key, salt, window.accountSalt);
                 window.axiom = axiomAccount;
                 const private_key = axiomAccount.getEncryptedPrivateKey().toString();
                 const params: ParamsItem = {
                     email,
                     login_password: encryptPassword,
                     enc_private_key: private_key, //登录密码对私钥进行对称加密-加密后的密钥
+                    user_salt: salt
                 }
                 if(location.pathname === '/security/update-reset-password'){
                     params.owner_address = userInfo.address;
                     // @ts-ignore
-                    params.salt = window.salt;
                     await resetPassword(params)
                     setMessage('');
                     setTimeout(() => {
