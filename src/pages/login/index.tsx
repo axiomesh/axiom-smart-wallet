@@ -113,6 +113,7 @@ function HomePage(props: any) {
                                   style={{height: 56}}
                                   onChange={handleChangeMail}
                                   onBlur={handleBlur}
+                                  autoComplete='off'
                               />
                               <FormErrorMessage>{errorText}</FormErrorMessage>
                           </FormControl>
