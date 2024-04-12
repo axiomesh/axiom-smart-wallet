@@ -54,10 +54,13 @@ const PersonInfo = (props: any) => {
     };
 
     const handleCopy = () => {
-        setIsCopy(true);
-        setTimeout(() => {
-            setIsCopy(false)
-        },3000)
+        navigator.clipboard.writeText(info.address)
+        .then(function() {
+            setIsCopy(true);
+            setTimeout(() => {
+                setIsCopy(false)
+            },3000)
+        })
     }
 
     const handleConfirm = () => {
