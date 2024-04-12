@@ -4,16 +4,19 @@ import InputPassword from "@/components/InputPassword";
 import TransferPassword from "@/components/TransferPassword";
 import ContinueButton from "@/hooks/ContinueButton";
 import Back from "@/components/Back";
-import { sendVerifyCode, checkVerifyCode, setNewPassword } from "@/services/transfer"
+import {sendVerifyCode, checkVerifyCode, setNewPassword, setFirstPassword} from "@/services/transfer"
 import {history} from "@@/core/history";
 import {getMail} from "@/utils/help";
 import {connect} from "@@/exports";
 import {generateRandomBytes} from "@/utils/utils";
-import { encrypt, deriveAES256GCMSecretKey } from "axiom-smart-account-test";
+import { encrypt, deriveAES256GCMSecretKey, decrypt, AxiomAccount, generateSigner } from "axiom-smart-account-test";
 import { Wallet } from "ethers";
 import Toast from "@/hooks/Toast";
+import {sha256} from "js-sha256";
+import {getUserInfo} from "@/services/login";
 
 const ResetTransfer = (props: any) => {
+    const {dispatch} = props;
     const [isLock, setIsLock] = useState(true);
     const [step, setStep] = useState(0);
     const [password, setPassword] = useState('');
@@ -45,17 +48,26 @@ const ResetTransfer = (props: any) => {
     const handleSubmit = async () => {
         const salt = generateRandomBytes(16);
         const transferSalt = generateRandomBytes(16);
-        const token = sessionStorage.getItem('token');
-        const secretkey = await deriveAES256GCMSecretKey(token, transferSalt);
-        const wallet = Wallet.createRandom();
-        const privateKey = wallet.privateKey;
-        const encrpty = encrypt(privateKey,secretkey.toString())
-        setNewPassword(email,userInfo.enc_private_key,encrpty, "0x7493D54aF7beB0F75c44BCd3728905491D681fB1", salt, transferSalt).then((res: any) =>{
-            showSuccessToast("Password reset successfully！");
-            setStep(0)
-        }).catch((err: any) => {
-            showErrorToast(err)
-        })
+        try {
+            const signer = generateSigner();
+            const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
+            const encryptedPrivateKey = encrypt(signer.privateKey, secretKey);
+            setNewPassword(email,userInfo.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
+                const userRes = await getUserInfo(email);
+                if(userRes){
+                    dispatch({
+                        type: 'global/setUser',
+                        payload: res,
+                    })
+                }
+                showSuccessToast("Password reset successfully！");
+                setStep(0)
+            }).catch((err: any) => {
+                showErrorToast(err)
+            })
+        }catch (error) {
+            console.log(error)
+        }
     }
 
     return (

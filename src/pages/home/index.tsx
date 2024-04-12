@@ -67,6 +67,7 @@ const Home = (props:any) => {
         const address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013';
         if(type === 'AXCUSD'){
             const balance = await rpc_provider.getBalance(userInfo.address);
+            console.log(balance)
             // const balance = await rpc_provider.getBalance(address);
             // @ts-ignore
             return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)

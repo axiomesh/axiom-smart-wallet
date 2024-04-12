@@ -82,6 +82,7 @@ export default function SetPassword() {
                     params.address = address; //从sdk中获取
                     const res = await registerUser(params);
                     setToken(res);
+                    sessionStorage.setItem('token', sha256(password));
                     history.replace('/home');
                 } else {
                     // @ts-ignore

@@ -16,14 +16,25 @@ import SetPayPasswordModal from "@/components/SetPayPasswordModal";
 import {connect, history} from "umi";
 import {transaction} from "@/services/transfer"
 import {getMail} from "@/utils/help";
-import {ERC20_ABI} from "axiom-smart-account-test";
-import {ethers} from "ethers";
+import {ERC20_ABI, AxiomAccount} from "axiom-smart-account-test";
+import {ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
+import {sha256} from "js-sha256";
+import TransferResultModal from "@/components/TransferResultModal";
+import {selectCurrencyList} from "@/pages/home/config";
 
 interface token {
     value: string;
     label: string;
+    contract: any;
     icon: JSX.Element;
+}
+
+interface transferProps {
+    send: string,
+    to: string,
+    blockchain: string,
+    value: string
 }
 
 const customOption = ({ innerProps, data }) => (
@@ -107,26 +118,34 @@ const Transfer = (props: any) => {
     const [isChangeSend, setIsChangeSend] = useState(false);
     const [passwordOpen, setPasswordOpen] = useState(false);
     const [transferOpen, setTransferOpen] = useState(false);
+    const [resultOpen, setResultOpen] = useState(false);
     const [toErrorsText, setToErrorsText] = useState("");
     const [sendError, setSendError] = useState("");
     const [valueError, setValueError] = useState("");
+    const [resultStatus, setResultStatus] = useState("");
+    const [resultName, setResultName] = useState("");
     const [form, setForm] = useState<FormProps>({chain: options[1], to: "", value: "", send: ""});
     const {showSuccessToast, showErrorToast} = Toast();
+    const [gasFee, setGasFee] = useState("");
+    const [balance, setBalance] = useState(0);
+    const [transferInfo, setTransferInfo] = useState<transferProps>();
 
     const {Button} = useContinueButton();
 
     useEffect(() => {
-        setIsSetPassword(userInfo.pay_password_set_status === 0 ? false : true)
+        handleTokenOption("Axiomesh")
+        setIsSetPassword(userInfo.pay_password_set_status === 0 ? false : true);
     }, [userInfo])
 
     const handleTokenOption = (network: string) => {
         let arr = [];
-        token.map((item: {name: string, network: string, decimals: number}, index: number) => {
+        token.map((item: {name: string, network: string, decimals: number, contract: string}, index: number) => {
             if(item.network === network) {
                 arr.push({
                     value: item.name,
                     label: item.name,
                     decimals: item.decimals,
+                    contract: item.contract,
                     icon: <img src={require(`@/assets/token/${item.name}.png`)} />
                 })
             }
@@ -137,6 +156,47 @@ const Transfer = (props: any) => {
     useEffect(() => {
         handleTokenOption("Ethereum")
     },[])
+
+    const getSymbol = async (erc20:any, currentProvider:any) => {
+        const symboldata = erc20.interface.encodeFunctionData('decimals');
+        const symbolRes = await currentProvider.call({
+            to: erc20.address,
+            data: symboldata,
+            // value: 0,
+        })
+        return  Math.pow(10, Number(symbolRes === '0x' ? 0 : BigInt(symbolRes).toString()))
+    }
+
+    const initBalance = async (type:string | any) => {
+        // @ts-ignore
+        const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
+        // @ts-ignore
+        const provider = new ethers.providers.JsonRpcProvider(window.ETH_RPC);
+        const address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013';
+        if(type === 'AXC'){
+            const balance = await rpc_provider.getBalance(userInfo.address);
+            // const balance = await rpc_provider.getBalance(address);
+            // @ts-ignore
+            return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
+        } else {
+            const allList = tokenList;
+            const filterData = allList.filter((item: token) => item.value === type)[0];
+            console.log(allList)
+            const currentProvider = filterData.value === 'ETH' ? provider : rpc_provider;
+            // return 0
+            const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI);
+            const calldata = erc20.interface.encodeFunctionData('balanceOf',[userInfo.address]);
+            // const calldata = erc20.interface.encodeFunctionData('balanceOf',[address]);
+
+            const res = await currentProvider.call({
+                to: erc20.address,
+                data: calldata,
+            })
+            const decimals = await getSymbol(erc20, currentProvider)
+            // @ts-ignore
+            return (res === '0x' ? 0 : BigInt(res).toString() / decimals)
+        }
+    }
 
 
     const confirmCallback = () => {
@@ -152,6 +212,12 @@ const Transfer = (props: any) => {
                 setValueError("Invalid balance");
                 return;
             }
+            setTransferInfo({
+                send: form.send.value,
+                to: form.to,
+                blockchain: form.chain.label,
+                value: form.value
+            })
             setTransferOpen(true)
         }else {
             setPasswordOpen(true)
@@ -174,8 +240,9 @@ const Transfer = (props: any) => {
         handleTokenOption(e.label)
     }
 
-    const handleSendChange = (e: any) => {
+    const handleSendChange = async (e: any) => {
         setForm({...form, send: e})
+        setBalance(await initBalance(e.value))
         setSendError("")
         setIsChangeSend(true)
     }
@@ -185,12 +252,51 @@ const Transfer = (props: any) => {
         setPasswordOpen(false)
     }
 
+    const handleValueChange = async (e: any) => {
+        setForm({ ...form, value: e.target.value })
+    }
+
+    const handleMax = () => {
+        setForm({ ...form, value: balance.toString() })
+    }
+
+    const handleToChange = async (e: any) => {
+        setForm({...form, to: e.target.value});
+        const value = ethers.utils.parseUnits(form.value, form.send.decimals);
+        const axiom = await AxiomAccount.voidSmartAccout();
+        const res = await axiom.estimateUserOperationGas(
+            "0x8464135c8F25Da09e49BC8782676a84730C318bC",
+            value,
+            "0x"
+        );
+        console.log(res)
+        setGasFee(ethers.utils.formatEther(res))
+    }
+
     const handleSubmit = async (password: string) => {
         const value = ethers.utils.parseUnits(form.value, form.send.decimals);
-        const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
+        setTransferOpen(false);
+        setResultOpen(true);
+        setResultStatus("loading")
+        const sessionKey = sessionStorage.getItem("sessionKey");
+        const key = sessionStorage.getItem("key");
+        const token = sessionStorage.getItem("token");
         try {
-            const res = await window.axiom.sendUserOperation(form.to, form.value, callData, {})
+            const axiom = sessionKey ? await AxiomAccount.fromEncryptedKey(key, userInfo.transfer_salt, userInfo.enc_private_key) : await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key);
+            if(sessionKey) {
+                const key = sessionStorage.getItem("sessionKey");
+                const signer = new Wallet(key);
+                axiom.updateSigner(signer)
+            }
+            const callData = form.send.value === "AXC" ? "0x" : new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
+            const res = await axiom.sendUserOperation(form.send.contract, 0, callData, {
+                onBuild: (op) => {
+                    op.preVerificationGas = 60000
+                    console.log("Signed UserOperation:", op);
+                }
+            })
             const ev = await res.wait();
+            console.log(ev)
             await transaction({
                 email,
                 transaction_hash: ev.transactionHash,
@@ -199,13 +305,14 @@ const Transfer = (props: any) => {
                 token_name: form.send.value,
                 to_address: form.to,
             })
-            showSuccessToast("transaction success")
+            setResultName(form.send.value)
+            setResultStatus("success")
             setTimeout(() => {
                 window.location.reload()
             },3000)
         }catch (e) {
+            setResultStatus("failed")
             console.log(e)
-            showErrorToast(e);
         }
     }
 
@@ -267,16 +374,16 @@ const Transfer = (props: any) => {
                                     _placeholder={{
                                         color: "#A0AEC0"
                                     }}
-                                    onChange={(e: any) => { setForm({ ...form, value: e.target.value }) }}
+                                    onChange={handleValueChange}
                                 />
                                 <InputRightElement style={{top: "10px", right: "20px"}}>
-                                    <div className={styles.formMax}>MAX</div>
+                                    <div className={styles.formMax} onClick={handleMax}>MAX</div>
                                 </InputRightElement>
                             </InputGroup>
                             {valueError === "" &&
                                 <div>
-                                    <span className={styles.formGas}>Gas fee: 0.45 AXC</span>
-                                    <span className={styles.formBalance}>Balance:100</span>
+                                    {gasFee && <span className={styles.formGas}>Gas fee: {gasFee} AXC</span>}
+                                    <span className={styles.formBalance}>Balance:{balance}</span>
                                 </div>
                             }
                             <FormErrorMessage style={{position: "absolute"}}>{valueError}</FormErrorMessage>
@@ -303,14 +410,15 @@ const Transfer = (props: any) => {
                             color: "#A0AEC0"
                         }}
                         onBlur={validateName}
-                        onChange={(e: any) => {setForm({...form, to: e.target.value})}}
+                        onChange={handleToChange}
                     />
                     <FormErrorMessage>{toErrorsText}</FormErrorMessage>
                 </FormControl>
                 <Button onClick={confirmCallback} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
             </div>
-            <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} />
+            <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} info={transferInfo} />
             <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
+            <TransferResultModal isOpen={resultOpen} onClose={() => {setResultOpen(false)}} status={resultStatus} name={resultName} />
         </div>
     )
 }

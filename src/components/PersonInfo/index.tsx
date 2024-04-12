@@ -29,17 +29,6 @@ const PersonInfo = (props: any) => {
                     type: 'global/setUser',
                     payload: res,
                 })
-                const token = sessionStorage.getItem('token');
-                if(res.transfer_salt) {
-                    try {
-                        const axiom = await AxiomAccount.fromEncryptedKey(token, res.transfer_salt, res.enc_private_key);
-                        console.log(axiom.getAddress())
-                        localStorage.setItem("axiom", JSON.stringify(axiom))
-                        window.axiom = axiom
-                    }catch (e) {
-                        console.log(e)
-                    }
-                }
             }
 
         } catch (e) {
@@ -73,6 +62,7 @@ const PersonInfo = (props: any) => {
 
     const handleConfirm = () => {
         sessionStorage.setItem('Wallet_Token','');
+        sessionStorage.setItem('sessionKey','');
         history.replace('/login')
     }
 

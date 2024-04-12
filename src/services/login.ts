@@ -97,7 +97,7 @@ export async function getUserInfo(email: string) {
 
 export async function getTickerPrice() {
     const res = await request({
-        url: `/api/ticker/price`,
+        url: `http://94.74.111.72/price-aggregator/api/ticker/price`,
         method: 'get',
     });
     return res.data;

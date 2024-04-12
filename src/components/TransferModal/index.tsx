@@ -9,10 +9,30 @@ import {
     ModalBody,
 } from '@chakra-ui/react';
 import ModalInputPassword from '@/components/ModalInputPassword';
-
+import useContinueButton from "@/hooks/ContinueButton";
+interface transferProps {
+    send: string,
+    to: string,
+    blockchain: string,
+    value: string
+}
 
 const TransferModal = (props: any) => {
     const [isOpen, setIsOpen] = useState<Boolean>(props.open);
+    const [isFree, setIsFree] = useState<Boolean>(false);
+    const [info, setInfo] = useState<transferProps>();
+    const {Button} = useContinueButton();
+
+    useEffect(() => {
+        const sessionKey = sessionStorage.getItem('sessionKey')
+        if(sessionKey){
+            setIsFree(true)
+        }
+    },[])
+
+    useEffect(() => {
+        setInfo(props.info)
+    },[props.info])
 
     useEffect(() => {
         setIsOpen(props.open)
@@ -37,31 +57,32 @@ const TransferModal = (props: any) => {
                         <i className={styles.transferClose} onClick={onClose}></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">
-                        <p className={styles.transferTitle}>Transfer password verification</p>
-                        <ModalInputPassword onSubmit={handleSubmit} />
-                        <p className={styles.transferForget}>Forget it?</p>
+                        {!isFree && <><p className={styles.transferTitle}>Transfer password verification</p>
+                        <ModalInputPassword onSubmit={handleSubmit}/>
+                        <p className={styles.transferForget}>Forget it?</p></>}
                         <div className={styles.transferDetail}>
                             <h1>DETAILS</h1>
                             <div className={styles.transferSend}>
                                 <div className={styles.transferSendItem}>
                                     <span className={styles.transferSendItemTitle}>Send</span>
-                                    <div className={styles.transferSendItemContent}><img src={require("@/assets/token/wAXC.png")} alt=""/><span>100AXC</span></div>
+                                    <div className={styles.transferSendItemContent}><img src={require("@/assets/token/wAXC.png")} alt=""/><span>{info?.value}{info?.send}</span></div>
                                 </div>
                                 <div className={styles.transferSendItem} style={{alignItems: "start"}}>
                                     <span className={styles.transferSendItemTitle}>To</span>
-                                    <div className={styles.transferSendItemContent}><span className={styles.transferSendItemText}>0x25b74f0Fd6daE31b0c5Fed3cC1A1aA6826061cb7</span></div>
+                                    <div className={styles.transferSendItemContent}><span className={styles.transferSendItemText}>{info?.to}</span></div>
                                 </div>
                             </div>
                             <div className={styles.transferSend} style={{borderBottom: 0, marginTop: "20px"}}>
                                 <div className={styles.transferSendItem}>
                                     <span className={styles.transferSendItemTitle}>Blockchain</span>
-                                    <div className={styles.transferSendItemContent}><img src={require("@/assets/token/ETH.png")} alt=""/><span>Ethereum</span></div>
+                                    <div className={styles.transferSendItemContent}><img src={info?.blockchain === "Axiomesh" ? require("@/assets/token/AXC.png") : require("@/assets/token/ETH.png")} alt=""/><span>{info?.blockchain}</span></div>
                                 </div>
                                 <div className={styles.transferSendItem} style={{alignItems: "start"}}>
                                     <span className={styles.transferSendItemTitle}>Gas fee</span>
                                     <div className={`${styles.transferSendItemContent} ${styles.transferSendItemPrice}`}><span className={styles.transferSendItemText}>0.000001 ETH</span><span className={styles.transferSendItemNum}>$20.02</span></div>
                                 </div>
                             </div>
+                            {isFree && <div><Button onClick={() => handleSubmit("")}>Confirm</Button></div>}
                         </div>
                     </ModalBody>
                     <ModalFooter>

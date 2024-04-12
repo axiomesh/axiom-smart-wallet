@@ -17,11 +17,11 @@ import TransferPassword from "@/components/TransferPassword";
 import { setFirstPassword } from '@/services/transfer';
 import Toast from "@/hooks/Toast";
 import {passWordReg, setToken, getMail} from "@/utils/help";
-import {checkLoginPassword} from "@/services/login";
+import {checkLoginPassword, getUserInfo} from "@/services/login";
 import {connect} from "@@/exports";
 const {crypto} = require("crypto-js")
 import {generateRandomBytes} from "@/utils/utils";
-import {AxiomAccount} from "axiom-smart-account-test"
+import {AxiomAccount, deriveAES256GCMSecretKey, decrypt, encrypt} from "axiom-smart-account-test"
 import {sha256} from "js-sha256";
 
 interface Props {
@@ -31,7 +31,7 @@ interface Props {
 
 const SetPayPasswordModal = (props: Props) => {
     const email: string | any = getMail();
-    const { userInfo } = props;
+    const { userInfo, dispatch } = props;
     const [open, setOpen] = useState<Boolean>(props.isOpen);
     const [isVerify, setIsVerify] = useState(false);
     const [errorTxt, setErrorTxt] = useState('');
@@ -48,10 +48,26 @@ const SetPayPasswordModal = (props: Props) => {
     }
 
     const handleSubmit = async (e: string) => {
+        const token = sessionStorage.getItem("token");
         const salt = generateRandomBytes(16);
-        await setFirstPassword(email, userInfo.enc_private_key, e, salt);
-        showSuccessToast("Password set successfully!");
-        props.onClose(true);
+        try {
+            const secretKey = await deriveAES256GCMSecretKey(token, userInfo.user_salt);
+            const decryptKey = decrypt(userInfo.enc_private_key, secretKey.toString());
+            const paySecretKey = await deriveAES256GCMSecretKey(sha256(e), salt);
+            const encryptKey = encrypt(decryptKey, paySecretKey.toString());
+            await setFirstPassword(email, userInfo.enc_private_key, encryptKey, salt);
+            const userRes = await getUserInfo(email);
+            if(userRes){
+                dispatch({
+                    type: 'global/setUser',
+                    payload: userRes,
+                })
+            }
+            showSuccessToast("Password set successfully!");
+            props.onClose(true);
+        }catch (error) {
+            console.log(error)
+        }
     }
 
     const handleVerify = async () => {
