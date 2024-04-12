@@ -9,7 +9,7 @@ import {FormControl, FormErrorMessage, Progress} from "@chakra-ui/react";
 import ButtonPro from "@/components/Button";
 import Toast from "@/hooks/Toast";
 // @ts-ignore
-import { AxiomAccount } from 'axiom-smart-account-test'
+import { AxiomAccount, generateSigner } from 'axiom-smart-account-test'
 import { sha256 } from 'js-sha256'
 import {generateRandomBytes} from "@/utils/utils";
 
@@ -56,15 +56,11 @@ export default function SetPassword() {
         try{
             setLoading(true)
             if(password === rePassword && passWordReg.test(password)){
-                console.log(11111)
                 const encryptPassword = sha256(rePassword);
-                console.log(encryptPassword)
                 const salt = generateRandomBytes(16);
                 // const salt = generateRandomBytes(16).join("");
-                console.log(salt)
                 // @ts-ignore
                 let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, salt, window.accountSalt);
-                console.log(axiomAccount)
                 window.axiom = axiomAccount;
                 const private_key = axiomAccount.getEncryptedPrivateKey().toString();
                 const address = axiomAccount.getAddress()
@@ -84,9 +80,11 @@ export default function SetPassword() {
                     setToken(res);
                     history.replace('/home');
                 } else {
+                    const signer = generateSigner();
+                    console.log(signer)
                     // @ts-ignore
                     params.salt = window.accountSalt;
-                    params.owner_address = address; //从sdk中获取
+                    params.owner_address = signer.address; //从sdk中获取
                     // @ts-ignore
                     await resetPassword(params)
                     history.replace('/login');

@@ -12,7 +12,7 @@ import {connect, useLocation} from "@@/exports";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 // @ts-ignore
-import { AxiomAccount } from 'axiom-smart-account-test'
+import { AxiomAccount, generateSigner } from 'axiom-smart-account-test'
 import {generateRandomBytes} from "@/utils/utils";
 
 // /security/update-password更新密码
@@ -73,7 +73,8 @@ function SecurityUpdatePassword(props: any) {
                     user_salt: salt
                 }
                 if(location.pathname === '/security/update-reset-password'){
-                    params.owner_address = userInfo.address;
+                    const signer = generateSigner()
+                    params.owner_address = signer.address;
                     // @ts-ignore
                     params.salt = window.accountSalt;
                     // @ts-ignore
