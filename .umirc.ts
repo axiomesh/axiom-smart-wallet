@@ -11,7 +11,7 @@ export default defineConfig({
     },
     // /api/ticker
     '/api/ticker': {
-      target: 'http://10.2.66.162:23510/',
+      target: 'http://94.74.111.72/price-aggregator/api/ticker',
       changeOrigin: true,
     },
   },
