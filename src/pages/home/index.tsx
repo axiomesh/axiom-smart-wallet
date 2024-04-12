@@ -123,16 +123,16 @@ const Home = (props:any) => {
     }
 
     useEffect(() => {
-        if(priceList && priceList.length){
+        // if(priceList && priceList.length){
             const list = selectCurrencyList[activeKey];
             const newList = [...list].map(item => {
                 const priceDataItem: Item = priceList.filter(li => li.symbol?.toLowerCase() === item.symbol.toLowerCase())[0];
                 return  {
                     ...item,
-                    balance: changePrice(Number(priceDataItem.balance), false),
-                    price: changePrice(Number(priceDataItem.price)),
-                    total: changePrice(Number(priceDataItem.total)),
-                    totalValue: Number(priceDataItem.total),
+                    balance: changePrice(Number(priceDataItem?.balance || 0), false),
+                    price: changePrice(Number(priceDataItem?.price || 0)),
+                    total: changePrice(Number(priceDataItem?.total || 0)),
+                    totalValue: Number(priceDataItem?.total || 0),
                 }
             })
 
@@ -141,7 +141,7 @@ const Home = (props:any) => {
             setTotal(changePrice(totalValue, true))
 
             setSelectList(newList.sort((a, b) => b.totalValue - a.totalValue))
-        }
+        // }
     }, [priceList, activeKey]);
 
     return (

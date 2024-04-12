@@ -23,4 +23,3 @@ window.AXC_SYMBOL = 18;
 window.ETH_SYMBOL = 18;
 window.ETH_BROWSER = 'https://eth.blockscout.com';
 window.AXM_BROWSER = 'https://scan.taurus.axiomesh.io';
-
