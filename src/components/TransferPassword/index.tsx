@@ -9,14 +9,14 @@ interface Props {
 
 const TransferPassword = (props: Props) => {
     const [firstValue, setFirstValue] = useState<string>('');
-    const [error, setError] = useState<Boolean>(false);
+    const [error, setError] = useState<string>("");
 
     const getSecondValue = (e: string) => {
         if(firstValue === e) {
-            setError(false)
+            setError("")
             props.onSubmit(e)
         }else {
-            setError(true)
+            setError("Passwords do not match")
         }
     }
 

@@ -23,10 +23,20 @@ const list: listItem[] = [
 
 const Contact = () => {
     const [isHover, setIsHover] = useState<number>(null);
+    const [isCopy, setIsCopy] = useState<boolean>(false);
+    const axiomEmail = "support@axiomesh.io";
 
     const toUrl = (item: listItem) => {
         if(item.label === "discord") {
             window.open("https://discord.com/invite/jsa3chGSzU");
+        }else if(item.label === "email") {
+            navigator.clipboard.writeText(axiomEmail)
+                .then(function() {
+                    setIsCopy(true);
+                    setTimeout(() => {
+                        setIsCopy(false)
+                    },3000)
+                })
         }
     }
 
@@ -40,8 +50,10 @@ const Contact = () => {
                             {index === isHover ? <div className={styles.securityListItemHover}></div> : null}
                             {item.label === "email" ? <Email fill={index === isHover ? "#ECC94B" : "#171923"}/> : <Discord stroke={index === isHover ? "#ECC94B" : "#171923"}/>}
                             <span>{item.tip}</span>
-                            {item.label === "email" && <div className={styles.securityListItemCopy}><span>support@axiomesh.io</span><Copy
-                                fill={index === isHover ? "#ECC94B" : "#718096"}/></div>}
+                            {item.label === "email" && <div className={styles.securityListItemCopy}>
+                                <span>{axiomEmail}</span>
+                                {isCopy ? <img src={require("@/assets/security/copy-success.png")} alt="" /> : <Copy fill={index === isHover ? "#ECC94B" : "#718096"}/>}
+                            </div>}
                         </div>
                     ))
                 }

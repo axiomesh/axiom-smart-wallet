@@ -10,15 +10,16 @@ import {
 
 interface Props {
     onSubmit: (password: string) => void;
-    isError: boolean;
+    isError: any;
 }
 
 const ModalInputPassword = (props: Props) => {
     const [pinValues, setPinValues] = useState<string[]>(["", "", "", "", "", ""]);
-    const [error, setError] = useState(props.isError)
+    const [error, setError] = useState("")
 
     useEffect(() => {
-        setError(props.isError)
+        if(props.isError)
+            setError(props.isError)
     }, [props.isError])
 
     const handlePinChange = (index: number, value: string) => {
@@ -34,7 +35,7 @@ const ModalInputPassword = (props: Props) => {
 
     return (
         <div className={styles.PinInput}>
-            <FormControl isInvalid={error}>
+            <FormControl isInvalid={error !== ""}>
                 <PinInput mask placeholder="-" focusBorderColor="#718096">
                     {pinValues.map((value: string, index:number) => (
                         <PinInputField
@@ -52,7 +53,7 @@ const ModalInputPassword = (props: Props) => {
                         />
                     ))}
                 </PinInput>
-                <FormErrorMessage>Passwords do not match</FormErrorMessage>
+                <FormErrorMessage>{error}</FormErrorMessage>
             </FormControl>
         </div>
     )

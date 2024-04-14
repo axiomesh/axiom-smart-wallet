@@ -14,14 +14,13 @@ import {token} from "@/utils/tokenList";
 import TransferModal from "@/components/TransferModal";
 import SetPayPasswordModal from "@/components/SetPayPasswordModal";
 import {connect, history} from "umi";
-import {transaction} from "@/services/transfer"
+import {transaction, passwordTimes, wrongPassword} from "@/services/transfer"
 import {getMail} from "@/utils/help";
 import {ERC20_ABI, AxiomAccount} from "axiom-smart-account-test";
 import {ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 import TransferResultModal from "@/components/TransferResultModal";
-import {selectCurrencyList} from "@/pages/home/config";
 
 interface token {
     value: string;
@@ -112,7 +111,7 @@ const options: any = [
 const Transfer = (props: any) => {
     const { userInfo } = props;
     const email: string | any = getMail();
-    const [isSetPassword, setIsSetPassword] = useState(userInfo.pay_password_set_status === 0 ? false : true);
+    const [isSetPassword, setIsSetPassword] = useState(false);
     const [buttonText, setButtonText] = useState("Transfer");
     const [tokenList, setTokenList] = useState<token[]>();
     const [isChangeSend, setIsChangeSend] = useState(false);
@@ -127,13 +126,13 @@ const Transfer = (props: any) => {
     const [form, setForm] = useState<FormProps>({chain: options[1], to: "", value: "", send: ""});
     const {showSuccessToast, showErrorToast} = Toast();
     const [gasFee, setGasFee] = useState("");
+    const [passwordError, setPasswordError] = useState("");
     const [balance, setBalance] = useState(0);
     const [transferInfo, setTransferInfo] = useState<transferProps>();
 
     const {Button} = useContinueButton();
 
     useEffect(() => {
-        handleTokenOption("Axiomesh")
         setIsSetPassword(userInfo.pay_password_set_status === 0 ? false : true);
     }, [userInfo])
 
@@ -154,7 +153,7 @@ const Transfer = (props: any) => {
     }
 
     useEffect(() => {
-        handleTokenOption("Ethereum")
+        handleTokenOption("Axiomesh")
     },[])
 
     const getSymbol = async (erc20:any, currentProvider:any) => {
@@ -275,20 +274,38 @@ const Transfer = (props: any) => {
 
     const handleSubmit = async (password: string) => {
         const value = ethers.utils.parseUnits(form.value, form.send.decimals);
+        const sessionKey = sessionStorage.getItem("sessionKey");
+        const key = sessionStorage.getItem("key");
+        let axiom: any;
+        try {
+            axiom = sessionKey ? await AxiomAccount.fromEncryptedKey(key, userInfo.transfer_salt, userInfo.enc_private_key) : await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key);
+        }catch (e: any) {
+            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
+            if(string.search(expr) > 0 || string.search(expr2) > 0) {
+                await wrongPassword({email});
+                const times = await passwordTimes({email})
+                console.log(times)
+                if(times > 0) {
+                    setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                }else {
+                    setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow !")
+                }
+            }
+            return;
+        }
         setTransferOpen(false);
         setResultOpen(true);
         setResultStatus("loading")
-        const sessionKey = sessionStorage.getItem("sessionKey");
-        const key = sessionStorage.getItem("key");
-        const token = sessionStorage.getItem("token");
         try {
-            const axiom = sessionKey ? await AxiomAccount.fromEncryptedKey(key, userInfo.transfer_salt, userInfo.enc_private_key) : await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key);
+            console.log(axiom.getAddress())
             if(sessionKey) {
                 const key = sessionStorage.getItem("sessionKey");
                 const signer = new Wallet(key);
                 axiom.updateSigner(signer)
             }
+            console.log(form.send)
             const callData = form.send.value === "AXC" ? "0x" : new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
+            console.log(callData)
             const res = await axiom.sendUserOperation(form.send.contract, 0, callData, {
                 onBuild: (op) => {
                     op.preVerificationGas = 60000
@@ -416,7 +433,7 @@ const Transfer = (props: any) => {
                 </FormControl>
                 <Button onClick={confirmCallback} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
             </div>
-            <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} info={transferInfo} />
+            <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} info={transferInfo} errorMsg={passwordError} />
             <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
             <TransferResultModal isOpen={resultOpen} onClose={() => {setResultOpen(false)}} status={resultStatus} name={resultName} />
         </div>

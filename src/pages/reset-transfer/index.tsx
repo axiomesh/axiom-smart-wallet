@@ -1,5 +1,5 @@
 import styles from "./index.less"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InputPassword from "@/components/InputPassword";
 import TransferPassword from "@/components/TransferPassword";
 import ContinueButton from "@/hooks/ContinueButton";
@@ -13,17 +13,43 @@ import { encrypt, deriveAES256GCMSecretKey, decrypt, AxiomAccount, generateSigne
 import { Wallet } from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
-import {getUserInfo} from "@/services/login";
+import {getUserInfo, resendVerifyCode} from "@/services/login";
+import Prompt from "@/components/Prompt";
 
+let loadTimer:any = null;
 const ResetTransfer = (props: any) => {
     const {dispatch} = props;
-    const [isLock, setIsLock] = useState(true);
+    const [isLock, setIsLock] = useState(false);
     const [step, setStep] = useState(0);
     const [password, setPassword] = useState('');
+    const [message, setMessage] = useState('');
+    const [timer, setTimer] = useState('');
     const email = getMail();
     const { userInfo } = props;
     const { Button } = ContinueButton();
     const {showSuccessToast, showErrorToast} = Toast();
+
+    useEffect(() => {
+        if(userInfo && userInfo.pay_password_set_status === 2) {
+            setIsLock(true)
+        }
+    },[userInfo])
+
+    const runTimer = (cm = 120) => {
+        if(cm > 0) {
+            if(cm >= 10){
+                setTimer(`${cm} s` )
+            } else {
+                setTimer(`0${cm} s` )
+            }
+            loadTimer = setTimeout(() => {
+                cm -=1;
+                runTimer(cm)
+            }, 1000)
+        } else {
+            setTimer('');
+        }
+    }
 
     const handleBack = () => {
         history.push('/security')
@@ -31,12 +57,14 @@ const ResetTransfer = (props: any) => {
 
     const handleSendEmail = () => {
         sendVerifyCode(email).then((res: any) => {
+            runTimer(Number((res / 1000).toFixed(0)))
             setStep(1);
         })
     }
 
     const handleVerify = (code: string) => {
         checkVerifyCode(email, code).then((res: any) => {
+            setMessage("Are you sure to cancel password reset?")
             setStep(2);
         })
     }
@@ -48,10 +76,12 @@ const ResetTransfer = (props: any) => {
     const handleSubmit = async () => {
         const salt = generateRandomBytes(16);
         const transferSalt = generateRandomBytes(16);
+        console.log(sha256(password), transferSalt)
+        console.log(generateSigner().privateKey)
         try {
             const signer = generateSigner();
             const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
-            const encryptedPrivateKey = encrypt(signer.privateKey, secretKey);
+            const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
             setNewPassword(email,userInfo.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
                 const userRes = await getUserInfo(email);
                 if(userRes){
@@ -61,6 +91,7 @@ const ResetTransfer = (props: any) => {
                     })
                 }
                 showSuccessToast("Password reset successfully！");
+                setMessage("")
                 setStep(0)
             }).catch((err: any) => {
                 showErrorToast(err)
@@ -72,6 +103,7 @@ const ResetTransfer = (props: any) => {
 
     return (
         <div className={styles.reset}>
+            <Prompt message={message} />
             <Back onClick={handleBack} />
             {
                 isLock && <div className={styles.resetToast}><img src={require("@/assets/reset/toast.png")} alt=""/><span>The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.</span></div>
@@ -81,7 +113,7 @@ const ResetTransfer = (props: any) => {
             {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>
                 <span>Send a verify email</span>
             </div>}
-            {step === 1 && <div style={{marginTop: "20px"}}><InputPassword onVerify={handleVerify} needTimer={false} timer="120"/></div>}
+            {step === 1 && <div style={{marginTop: "20px"}}><InputPassword onSend={handleSendEmail} onVerify={handleVerify} needTimer={false} timer={timer}/></div>}
             {step === 2 && <div style={{marginTop: "20px"}}>
                 <TransferPassword onSubmit={handleCallBack} />
                 <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button>Confirm</Button></div>

@@ -54,3 +54,21 @@ export async function transaction(data: any) {
     });
     return res.data;
 }
+
+export async function passwordTimes(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/transfer/remnant-times`,
+        method: 'get',
+        data,
+    });
+    return res.data;
+}
+
+export async function wrongPassword(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/transfer/wrong-password`,
+        method: 'post',
+        data,
+    });
+    return res.data;
+}

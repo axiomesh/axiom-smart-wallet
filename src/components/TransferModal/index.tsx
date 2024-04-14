@@ -10,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 import ModalInputPassword from '@/components/ModalInputPassword';
 import useContinueButton from "@/hooks/ContinueButton";
+import {history} from "umi";
 interface transferProps {
     send: string,
     to: string,
@@ -21,6 +22,7 @@ const TransferModal = (props: any) => {
     const [isOpen, setIsOpen] = useState<Boolean>(props.open);
     const [isFree, setIsFree] = useState<Boolean>(false);
     const [info, setInfo] = useState<transferProps>();
+    const [error, setError] = useState<string>('');
     const {Button} = useContinueButton();
 
     useEffect(() => {
@@ -29,6 +31,10 @@ const TransferModal = (props: any) => {
             setIsFree(true)
         }
     },[])
+
+    useEffect(() => {
+        setError(props.errorMsg)
+    }, [props.errorMsg])
 
     useEffect(() => {
         setInfo(props.info)
@@ -46,6 +52,10 @@ const TransferModal = (props: any) => {
         props.onSubmit(value)
     }
 
+    const handleToReset = () => {
+        history.push('/reset-transfer')
+    }
+
 
     return (
         <>
@@ -58,8 +68,8 @@ const TransferModal = (props: any) => {
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">
                         {!isFree && <><p className={styles.transferTitle}>Transfer password verification</p>
-                        <ModalInputPassword onSubmit={handleSubmit}/>
-                        <p className={styles.transferForget}>Forget it?</p></>}
+                        <ModalInputPassword onSubmit={handleSubmit} isError={error}/>
+                        <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p></>}
                         <div className={styles.transferDetail}>
                             <h1>DETAILS</h1>
                             <div className={styles.transferSend}>
