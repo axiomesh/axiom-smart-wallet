@@ -72,3 +72,12 @@ export async function wrongPassword(data: any) {
     });
     return res.data;
 }
+
+export async function transferLockTime(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/transfer/time-left`,
+        method: 'get',
+        data,
+    });
+    return res.data;
+}

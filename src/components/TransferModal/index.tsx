@@ -26,8 +26,9 @@ const TransferModal = (props: any) => {
     const {Button} = useContinueButton();
 
     useEffect(() => {
-        const sessionKey = sessionStorage.getItem('sessionKey')
-        if(sessionKey){
+        const sessionKey = sessionStorage.getItem('sessionKey');
+        const freeLimit = sessionStorage.getItem('freeLimit');
+        if(sessionKey || freeLimit){
             setIsFree(true)
         }
     },[])

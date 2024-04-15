@@ -16,7 +16,7 @@ import SetPayPasswordModal from "@/components/SetPayPasswordModal";
 import {connect, history} from "umi";
 import {transaction, passwordTimes, wrongPassword} from "@/services/transfer"
 import {getMail} from "@/utils/help";
-import {ERC20_ABI, AxiomAccount} from "axiom-smart-account-test";
+import {ERC20_ABI, AxiomAccount, generateSigner} from "axiom-smart-account-test";
 import {ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
@@ -133,6 +133,7 @@ const Transfer = (props: any) => {
     const {Button} = useContinueButton();
 
     useEffect(() => {
+        if(userInfo.pay_password_set_status)
         setIsSetPassword(userInfo.pay_password_set_status === 0 ? false : true);
     }, [userInfo])
 
@@ -276,9 +277,10 @@ const Transfer = (props: any) => {
         const value = ethers.utils.parseUnits(form.value, form.send.decimals);
         const sessionKey = sessionStorage.getItem("sessionKey");
         const key = sessionStorage.getItem("key");
+        const freeLimit = sessionStorage.getItem("freeLimit");
         let axiom: any;
         try {
-            axiom = sessionKey ? await AxiomAccount.fromEncryptedKey(key, userInfo.transfer_salt, userInfo.enc_private_key) : await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key);
+            axiom = (sessionKey || freeLimit) ? await AxiomAccount.fromEncryptedKey(key, userInfo.transfer_salt, userInfo.enc_private_key) : await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key);
         }catch (e: any) {
             const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
             if(string.search(expr) > 0 || string.search(expr2) > 0) {
@@ -293,27 +295,97 @@ const Transfer = (props: any) => {
             }
             return;
         }
+        let currentDate = new Date();
+        currentDate.setHours(23, 59, 59, 999)
+        const validAfter = Math.round(Date.now() / 1000);
+        const validUntil = currentDate.getTime();
+        const sessionSigner = generateSigner();
         setTransferOpen(false);
         setResultOpen(true);
         setResultStatus("loading")
         try {
-            console.log(axiom.getAddress())
+            let ev: any;
             if(sessionKey) {
                 const key = sessionStorage.getItem("sessionKey");
                 const signer = new Wallet(key);
                 axiom.updateSigner(signer)
             }
-            console.log(form.send)
-            const callData = form.send.value === "AXC" ? "0x" : new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
-            console.log(callData)
-            const res = await axiom.sendUserOperation(form.send.contract, 0, callData, {
-                onBuild: (op) => {
-                    op.preVerificationGas = 60000
-                    console.log("Signed UserOperation:", op);
+            if(form.send.value === "AXC") {
+                if(!sessionKey && freeLimit) {
+                    const session = await axiom.setSession(
+                        sessionSigner,
+                        value,
+                        validAfter,
+                        validUntil,
+                        "",
+                        "",
+                        {}
+                    );
+                    console.log(session);
+                    const signer = new Wallet(sessionSigner.privateKey);
+                    axiom.updateSigner(signer)
+                    sessionStorage.setItem("sessionKey", sessionSigner.privateKey);
                 }
-            })
-            const ev = await res.wait();
-            console.log(ev)
+                console.log(value, "value")
+                const callData = "0x"
+                const res = await axiom.sendUserOperation(form.to, value, callData, "", "", {
+                    onBuild: (op) => {
+                        console.log("Signed UserOperation:", op);
+                    }
+                })
+                ev = await res.wait();
+                console.log(ev)
+            }else {
+                if(!sessionKey && freeLimit) {
+                    await axiom.setSession(
+                        sessionSigner,
+                        value,
+                        validAfter,
+                        validUntil,
+                        window.PAYMASTER,
+                        form.send.contract,
+                        {}
+                    );
+                    const signer = new Wallet(sessionSigner.privateKey);
+                    axiom.updateSigner(signer)
+                    sessionStorage.setItem("sessionKey", sessionSigner.privateKey);
+                }
+                // @ts-ignore
+                const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
+                // @ts-ignore
+                const erc20 = new ethers.Contract(window.PAYMASTER, ERC20_ABI);
+                // @ts-ignore
+                const calldata = erc20.interface.encodeFunctionData('allowance',[userInfo.address, window.PAYMASTER]);
+                const res = await rpc_provider.call({
+                    to: form.send.contract,
+                    data: calldata,
+                })
+                const allow = parseInt(res, 16);
+                if(allow === 0) {
+                    const to = [form.send.contract, form.send.contract];
+                    const erc20 = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
+                    const calldata = [
+                        erc20.interface.encodeFunctionData("approve", [window.PAYMASTER, ethers.constants.MaxUint256]),
+                        erc20.interface.encodeFunctionData("transfer", [form.to, value]),
+                    ];
+                    const res = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
+                        onBuild: (op) => {
+                            console.log("Signed UserOperation:", op);
+                        },
+                    });
+                    ev = await res.wait();
+                    console.log(ev)
+                }else {
+                    const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
+                    const res = await axiom.sendUserOperation(form.send.contract, value, callData, window.PAYMASTER, form.send.contract, {
+                        onBuild: (op) => {
+                            console.log("Signed UserOperation:", op);
+                        }
+                    })
+                    ev = await res.wait();
+                }
+            }
+
             await transaction({
                 email,
                 transaction_hash: ev.transactionHash,
@@ -324,9 +396,9 @@ const Transfer = (props: any) => {
             })
             setResultName(form.send.value)
             setResultStatus("success")
-            setTimeout(() => {
-                window.location.reload()
-            },3000)
+            // setTimeout(() => {
+            //     window.location.reload()
+            // },3000)
         }catch (e) {
             setResultStatus("failed")
             console.log(e)

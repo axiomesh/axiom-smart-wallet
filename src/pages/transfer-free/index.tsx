@@ -33,7 +33,9 @@ const TransferFree = (props: any) => {
     const [maxNumber, setMaxNumber] = useState(5000);
     const [value, setValue] = useState<string>("");
     const [sessionKey, setSessionKey] = useState<string>("");
+    const [freeLimit, setFreeLimit] = useState<string>("");
     const {showSuccessToast} = Toast();
+    const [info, setInfo] = useState<any>({})
 
     const { Button } = ContinueButton();
 
@@ -42,32 +44,34 @@ const TransferFree = (props: any) => {
             setSessionKey(sessionStorage.getItem("sessionKey"))
             setIsSwitch(true)
         }
+        if(sessionStorage.getItem("freeLimit")) {
+            setFreeLimit(sessionStorage.getItem("freeLimit"))
+            setIsSwitch(true)
+            setValue(sessionStorage.getItem("freeLimit"))
+        }
     },[])
+
+    useEffect(() => {
+        setInfo(userInfo)
+    }, [userInfo])
 
     const handleChange = (e: any) => {
         setIsSwitch(e.target.checked)
+        if(!e.target.checked) {
+            setSessionKey("");
+            setFreeLimit("");
+            setValue("");
+            sessionStorage.setItem("sessionKey", "");
+            sessionStorage.setItem("freeLimit", "");
+        }
     }
 
     const handleSubmit = async (e: any) => {
-        const validAfter = Math.round(Date.now() / 1000);
-        const validUntil = Math.round(Date.now() / 1000) + 60 * 60 * 24;
-        const sessionSigner = generateSigner();
+        showSuccessToast("Password-free transfer has been activated");
         try {
-            const axiom = await AxiomAccount.fromEncryptedKey(sha256(e), userInfo.transfer_salt, userInfo.enc_private_key);
-            await axiom.setSession(
-                sessionSigner,
-                value,
-                validAfter,
-                validUntil,
-                {
-                    onBuild: (op) => {
-                        op.preVerificationGas = 60000;
-                        console.log("Signed UserOperation:", op);
-                    },
-                }
-            );
+            await AxiomAccount.fromEncryptedKey(sha256(e), info.transfer_salt, info.enc_private_key);
             sessionStorage.setItem("key", sha256(e))
-            sessionStorage.setItem("sessionKey", sessionSigner.privateKey)
+            sessionStorage.setItem("freeLimit", value)
             showSuccessToast("Password-free transfer has been activated");
             setIsOpen(false)
         }catch (err) {
@@ -112,9 +116,10 @@ const TransferFree = (props: any) => {
                     </div>
                     <div className={styles.freeSettingCenter}>
                         <span className={styles.freeSettingCenterTitle}>Daily transfer limit</span>
-                        <FormControl isInvalid={errorMessage !==''}>
+                        <FormControl isInvalid={errorMessage !== ''}>
                             <InputGroup width="420px">
-                                <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px" style={{border: errorMessage !=='' && "1px solid #E53E3E"}}>
+                                <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px"
+                                                style={{border: errorMessage !== '' && "1px solid #E53E3E"}}>
                                     <span className={styles.freeSettingCenterBefore}>HK$</span>
                                 </InputLeftAddon>
                                 <Input
@@ -133,17 +138,22 @@ const TransferFree = (props: any) => {
                                         border: "1px solid #E53E3E"
                                     }}
                                     onBlur={handleBlur}
-                                    onChange={(e: any) => {setValue(e.target.value)}}
+                                    onChange={(e: any) => {
+                                        setValue(e.target.value)
+                                    }}
                                 />
                                 <InputRightElement style={{top: "8px", right: "20px"}}>
-                                    <div className={styles.freeSettingCenterMax} onClick={() => {setValue("5000")}}>MAX</div>
+                                    <div className={styles.freeSettingCenterMax} onClick={() => {
+                                        setValue("5000")
+                                    }}>MAX
+                                    </div>
                                 </InputRightElement>
                             </InputGroup>
                             <FormErrorMessage style={{marginLeft: "16px"}}>{errorMessage}</FormErrorMessage>
                         </FormControl>
                     </div>
                     <div className={styles.freeSettingBottom}>
-                        <Button onClick={handleConfirm}>{sessionKey ? "Update" : "Confirm"}</Button>
+                        <Button onClick={handleConfirm}>{(sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>
                     </div>
                 </div>}
                 <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} />

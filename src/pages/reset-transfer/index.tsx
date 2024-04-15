@@ -4,16 +4,15 @@ import InputPassword from "@/components/InputPassword";
 import TransferPassword from "@/components/TransferPassword";
 import ContinueButton from "@/hooks/ContinueButton";
 import Back from "@/components/Back";
-import {sendVerifyCode, checkVerifyCode, setNewPassword, setFirstPassword} from "@/services/transfer"
+import {sendVerifyCode, checkVerifyCode, setNewPassword, transferLockTime} from "@/services/transfer"
 import {history} from "@@/core/history";
 import {getMail} from "@/utils/help";
 import {connect} from "@@/exports";
 import {generateRandomBytes} from "@/utils/utils";
-import { encrypt, deriveAES256GCMSecretKey, decrypt, AxiomAccount, generateSigner } from "axiom-smart-account-test";
-import { Wallet } from "ethers";
+import { encrypt, deriveAES256GCMSecretKey, generateSigner } from "axiom-smart-account-test";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
-import {getUserInfo, resendVerifyCode} from "@/services/login";
+import {getUserInfo} from "@/services/login";
 import Prompt from "@/components/Prompt";
 
 let loadTimer:any = null;
@@ -28,6 +27,12 @@ const ResetTransfer = (props: any) => {
     const { userInfo } = props;
     const { Button } = ContinueButton();
     const {showSuccessToast, showErrorToast} = Toast();
+
+    useEffect(() => {
+        transferLockTime({email}).then((res: any) => {
+
+        })
+    })
 
     useEffect(() => {
         if(userInfo && userInfo.pay_password_set_status === 2) {
@@ -76,8 +81,6 @@ const ResetTransfer = (props: any) => {
     const handleSubmit = async () => {
         const salt = generateRandomBytes(16);
         const transferSalt = generateRandomBytes(16);
-        console.log(sha256(password), transferSalt)
-        console.log(generateSigner().privateKey)
         try {
             const signer = generateSigner();
             const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
