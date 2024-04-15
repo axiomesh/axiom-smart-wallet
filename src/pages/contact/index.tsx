@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { ReactComponent as Email } from '@/assets/security/email.svg'
 import { ReactComponent as Discord } from '@/assets/security/discord.svg'
 import { ReactComponent as Copy } from '@/assets/security/copy.svg'
+import handleClipboard from "@/utils/clipboard"
 
 
 interface listItem {
@@ -26,17 +27,15 @@ const Contact = () => {
     const [isCopy, setIsCopy] = useState<boolean>(false);
     const axiomEmail = "support@axiomesh.io";
 
-    const toUrl = (item: listItem) => {
+    const toUrl = (item: listItem,e: any) => {
         if(item.label === "discord") {
             window.open("https://discord.com/invite/jsa3chGSzU");
         }else if(item.label === "email") {
-            navigator.clipboard.writeText(axiomEmail)
-                .then(function() {
-                    setIsCopy(true);
-                    setTimeout(() => {
-                        setIsCopy(false)
-                    },3000)
-                })
+            handleClipboard(axiomEmail, e)
+            setIsCopy(true);
+            setTimeout(() => {
+                setIsCopy(false)
+            },3000)
         }
     }
 
@@ -46,7 +45,7 @@ const Contact = () => {
             <div className={styles.securityList}>
                 {
                     list.map((item: listItem, index: number) => (
-                        <div onClick={() => {toUrl(item)}} className={`${styles.securityListItem} ${item.label === "discord" ? styles.securityListDiscord: null}`} onMouseEnter={() => {setIsHover(index)}} onMouseLeave={() => {setIsHover(null)}}>
+                        <div onClick={(e) => {toUrl(item,e)}} className={`${styles.securityListItem} ${item.label === "discord" ? styles.securityListDiscord: null}`} onMouseEnter={() => {setIsHover(index)}} onMouseLeave={() => {setIsHover(null)}}>
                             {index === isHover ? <div className={styles.securityListItemHover}></div> : null}
                             {item.label === "email" ? <Email fill={index === isHover ? "#ECC94B" : "#171923"}/> : <Discord stroke={index === isHover ? "#ECC94B" : "#171923"}/>}
                             <span>{item.tip}</span>

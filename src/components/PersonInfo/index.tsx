@@ -7,6 +7,7 @@ import {history} from "@@/core/history";
 import { connect } from 'umi';
 import { AxiomAccount, encrypt, deriveAES256GCMSecretKey } from "axiom-smart-account-test";
 import { Wallet } from "ethers";
+import handleClipboard from "@/utils/clipboard"
 
 const PersonInfo = (props: any) => {
     const {dispatch} = props;
@@ -53,14 +54,12 @@ const PersonInfo = (props: any) => {
         }
     };
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(info.address)
-        .then(function() {
-            setIsCopy(true);
-            setTimeout(() => {
-                setIsCopy(false)
-            },3000)
-        })
+    const handleCopy = (e: any) => {
+        handleClipboard(info.address, e)
+        setIsCopy(true);
+        setTimeout(() => {
+            setIsCopy(false)
+        },3000)
     }
 
     const handleConfirm = () => {
