@@ -33,7 +33,7 @@ interface CurrentItem {
 }
 const Home = (props:any) => {
     const { userInfo } = props;
-    const [activeKey, setActiveKey] = useState('all');
+    const [activeKey, setActiveKey] = useState('axc');
     const activeList = currencyList.filter(item => item.value === activeKey)[0];
     const [activeType, setActiveType] = useState(0);
     const [loading, setLoading] = useState<boolean>(false);

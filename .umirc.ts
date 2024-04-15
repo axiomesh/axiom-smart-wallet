@@ -9,9 +9,8 @@ export default defineConfig({
       target: 'http://172.16.13.133:8580/',
       changeOrigin: true,
     },
-    // /api/ticker
     '/api/ticker': {
-      target: 'http://94.74.111.72/price-aggregator/api/ticker',
+      target: 'http://94.74.111.72/price-aggregator',
       changeOrigin: true,
     },
   },

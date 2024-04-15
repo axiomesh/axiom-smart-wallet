@@ -6,8 +6,8 @@ window.accountSalt= '0'
 // AXM RPC
 window.RPC_URL='http://172.16.13.132:28881';
 // ETH RPC
-window.ETH_RPC='http://172.16.13.132:28881';
-// window.ETH_RPC = "https://eth-mainnet.g.alchemy.com/v2/VxfZRYJpe70DW2HhfXzcmG7kQXbiHoGW"
+// window.ETH_RPC='http://172.16.13.132:28881';
+window.ETH_RPC = "https://eth-mainnet.g.alchemy.com/v2/VxfZRYJpe70DW2HhfXzcmG7kQXbiHoGW"
 // window.ETH_RPC='https://bsc-dataseed.binance.org/';
 
 // 代币合约
@@ -23,3 +23,4 @@ window.AXC_SYMBOL = 18;
 window.ETH_SYMBOL = 18;
 window.ETH_BROWSER = 'https://eth.blockscout.com';
 window.AXM_BROWSER = 'https://scan.taurus.axiomesh.io';
+window.socketUrl = 'ws://172.16.13.133:8580'

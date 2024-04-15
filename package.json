@@ -26,6 +26,7 @@
     "rc-pagination": "^4.0.4",
     "react-copy-to-clipboard": "^5.1.0",
     "react-select": "^5.8.0",
+    "react-use-websocket": "3.0",
     "umi": "^4.1.2"
   },
   "devDependencies": {
