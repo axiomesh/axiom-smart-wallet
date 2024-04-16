@@ -1,5 +1,5 @@
 import styles from './index.less'
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { ReactComponent as Free } from '@/assets/security/free.svg'
 import { ReactComponent as Unlock } from '@/assets/security/unlock.svg'
 import { ReactComponent as Transfer } from '@/assets/security/transfer.svg'
@@ -7,13 +7,14 @@ import { history } from 'umi';
 import {lockPage} from "@/services/login";
 import {getMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
+import {connect} from "@@/exports";
 
 interface listItem {
     label: string,
     tip: string
 }
 
-const list: listItem[] = [
+const primitiveList: listItem[] = [
     {
         label: "unlock",
         tip: "Reset Unlock Password"
@@ -28,10 +29,27 @@ const list: listItem[] = [
     }
 ]
 
-const Security = () => {
+const Security = (props: any) => {
     const email: string | any = getMail();
     const [isHover, setIsHover] = useState<number | any>(null);
+    const [list, setList] = useState<listItem[]>([]);
     const {showErrorToast} = Toast();
+    const { userInfo } = props;
+
+    useEffect(() => {
+        if(userInfo.pay_password_set_status === 0) {
+            let arr = [];
+            primitiveList.map((item: listItem, index: number) => {
+                if(index === 0){
+                    arr.push(item)
+                }
+            })
+            setList(arr)
+        }else {
+            setList(primitiveList)
+        }
+    }, [userInfo])
+
     const handleClickItem = async (i: number) => {
         if(i === 0){
             try{
@@ -70,4 +88,6 @@ const Security = () => {
     )
 }
 
-export default Security;
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(Security)

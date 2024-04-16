@@ -4,7 +4,7 @@ import InputPassword from "@/components/InputPassword";
 import TransferPassword from "@/components/TransferPassword";
 import ContinueButton from "@/hooks/ContinueButton";
 import Back from "@/components/Back";
-import {sendVerifyCode, checkVerifyCode, setNewPassword, transferLockTime} from "@/services/transfer"
+import {sendVerifyCode, checkVerifyCode, setNewPassword, transferLockTime, passwordTimes} from "@/services/transfer"
 import {history} from "@@/core/history";
 import {getMail} from "@/utils/help";
 import {connect} from "@@/exports";
@@ -23,21 +23,26 @@ const ResetTransfer = (props: any) => {
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
     const [timer, setTimer] = useState('');
+    const [info, setInfo] = useState<any>({});
     const email = getMail();
     const { userInfo } = props;
     const { Button } = ContinueButton();
     const {showSuccessToast, showErrorToast} = Toast();
+    const [toastMsg, setToastMsg] = useState('Your account will be locked for 24 hours after resetting your password, and transactions cannot be sent normally.');
 
     useEffect(() => {
-        transferLockTime({email}).then((res: any) => {
-
-        })
-    })
-
-    useEffect(() => {
-        if(userInfo && userInfo.pay_password_set_status === 2) {
-            setIsLock(true)
+        async function times() {
+            const times = await passwordTimes({email});
+            if(times === 0) {
+                setToastMsg("The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.")
+            }
         }
+    }, [])
+
+    useEffect(() => {
+        setInfo(userInfo)
+        if(userInfo && userInfo.pay_password_set_status === 2)
+            setIsLock(true)
     },[userInfo])
 
     const runTimer = (cm = 120) => {
@@ -71,6 +76,8 @@ const ResetTransfer = (props: any) => {
         checkVerifyCode(email, code).then((res: any) => {
             setMessage("Are you sure to cancel password reset?")
             setStep(2);
+        }).catch((error: any) => {
+            showErrorToast(error)
         })
     }
 
@@ -85,14 +92,15 @@ const ResetTransfer = (props: any) => {
             const signer = generateSigner();
             const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
             const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
-            setNewPassword(email,userInfo.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
+            setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
                 const userRes = await getUserInfo(email);
                 if(userRes){
                     dispatch({
                         type: 'global/setUser',
-                        payload: res,
+                        payload: userRes,
                     })
                 }
+                setInfo(userRes);
                 showSuccessToast("Password reset successfully！");
                 setMessage("")
                 setStep(0)
@@ -108,9 +116,7 @@ const ResetTransfer = (props: any) => {
         <div className={styles.reset}>
             <Prompt message={message} />
             <Back onClick={handleBack} />
-            {
-                isLock && <div className={styles.resetToast}><img src={require("@/assets/reset/toast.png")} alt=""/><span>The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.</span></div>
-            }
+            <div className={styles.resetToast}><img src={require("@/assets/reset/toast.png")} alt=""/><span>{toastMsg}</span></div>
             <h1>Reset Transfer Password</h1>
             <p className={styles.resetTip}>Please complete the email verification code first .</p>
             {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>

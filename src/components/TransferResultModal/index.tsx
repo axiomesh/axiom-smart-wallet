@@ -17,6 +17,7 @@ const TransferResultModal = (props: any) => {
     const {Button} = useContinueButton();
 
     useEffect(() => {
+        setTime(3)
         setIsOpen(props.isOpen)
     },[props.isOpen])
 
@@ -31,7 +32,6 @@ const TransferResultModal = (props: any) => {
             let i = 3
             function countDown() {
                 setTime(i)
-                // 60 秒倒计时结束
                 if (i === 0){
                     clearInterval(t);
                     onClose();

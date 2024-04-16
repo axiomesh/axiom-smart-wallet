@@ -20,22 +20,27 @@ import { AxiomAccount, generateSigner } from "axiom-smart-account-test";
 import { sha256 } from "js-sha256";
 import {connect} from "@@/exports";
 import Toast from "@/hooks/Toast";
+import {passwordTimes, transferLockTime, wrongPassword} from "@/services/transfer";
+import {getMail} from "@/utils/help";
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
 })
 
 const TransferFree = (props: any) => {
+    const email: string | any = getMail();
     const { userInfo } = props;
     const [isSwitch, setIsSwitch] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [maxNumber, setMaxNumber] = useState(5000);
     const [value, setValue] = useState<string>("");
+    const [msg, setMsg] = useState<string>("");
     const [sessionKey, setSessionKey] = useState<string>("");
     const [freeLimit, setFreeLimit] = useState<string>("");
-    const {showSuccessToast} = Toast();
-    const [info, setInfo] = useState<any>({})
+    const {showSuccessToast, showErrorToast} = Toast();
+    const [info, setInfo] = useState<any>({});
+    const [isLock, setIsLock] = useState(false);
 
     const { Button } = ContinueButton();
 
@@ -49,7 +54,15 @@ const TransferFree = (props: any) => {
             setIsSwitch(true)
             setValue(sessionStorage.getItem("freeLimit"))
         }
+        handleLockTimes()
     },[])
+
+    const handleLockTimes = async () => {
+        const times = await transferLockTime({email});
+        if(times > 0) {
+            setIsLock(true)
+        }
+    };
 
     useEffect(() => {
         setInfo(userInfo)
@@ -67,19 +80,33 @@ const TransferFree = (props: any) => {
     }
 
     const handleSubmit = async (e: any) => {
-        showSuccessToast("Password-free transfer has been activated");
         try {
             await AxiomAccount.fromEncryptedKey(sha256(e), info.transfer_salt, info.enc_private_key);
-            sessionStorage.setItem("key", sha256(e))
-            sessionStorage.setItem("freeLimit", value)
+            sessionStorage.setItem("key", sha256(e));
+            sessionStorage.setItem("freeLimit", value);
+            setFreeLimit(value)
             showSuccessToast("Password-free transfer has been activated");
             setIsOpen(false)
-        }catch (err) {
-            console.log(err)
+        }catch (e) {
+            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
+            if(string.search(expr) > 0 || string.search(expr2) > 0) {
+                await wrongPassword({email});
+                const times = await passwordTimes({email})
+                if(times > 0) {
+                    setMsg(`Invalid password ，only ${times} attempts are allowed today!`)
+                }else {
+                    setMsg("Invalid password ，your account is currently locked. Please try again tomorrow !")
+                }
+            }
+            return;
         }
     }
 
     const handleConfirm = () => {
+        if(isLock) {
+            showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
+            return;
+        }
         setIsOpen(true)
     }
 
@@ -156,7 +183,7 @@ const TransferFree = (props: any) => {
                         <Button onClick={handleConfirm}>{(sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>
                     </div>
                 </div>}
-                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} />
+                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} errorMsg={msg} />
             </div>
         </ChakraProvider>
     )

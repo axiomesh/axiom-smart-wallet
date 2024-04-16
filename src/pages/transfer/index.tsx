@@ -14,13 +14,15 @@ import {token} from "@/utils/tokenList";
 import TransferModal from "@/components/TransferModal";
 import SetPayPasswordModal from "@/components/SetPayPasswordModal";
 import {connect, history} from "umi";
-import {transaction, passwordTimes, wrongPassword} from "@/services/transfer"
+import {transaction, passwordTimes, wrongPassword, transferLockTime} from "@/services/transfer";
+import {getTickerPrice} from "@/services/login";
 import {getMail} from "@/utils/help";
 import {ERC20_ABI, AxiomAccount, generateSigner} from "axiom-smart-account-test";
 import {ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 import TransferResultModal from "@/components/TransferResultModal";
+import {msToTime} from "@/utils/utils";
 
 interface token {
     value: string;
@@ -30,10 +32,11 @@ interface token {
 }
 
 interface transferProps {
-    send: string,
-    to: string,
-    blockchain: string,
-    value: string
+    send: string;
+    to: string;
+    blockchain: string;
+    value: string;
+    gas: string;
 }
 
 const customOption = ({ innerProps, data }) => (
@@ -89,10 +92,10 @@ const customStyles = (isFirstSelect: boolean) => ({
 });
 
 interface FormProps {
-    chain: any,
-    to: string,
-    value: string,
-    send: any
+    chain: any;
+    to: string;
+    value: string;
+    send: any;
 }
 
 const options: any = [
@@ -129,8 +132,11 @@ const Transfer = (props: any) => {
     const [passwordError, setPasswordError] = useState("");
     const [balance, setBalance] = useState(0);
     const [transferInfo, setTransferInfo] = useState<transferProps>();
+    const [lockTimes, setLockTimes] = useState('');
 
     const {Button} = useContinueButton();
+
+    let timer = null;
 
     useEffect(() => {
         if(userInfo.pay_password_set_status)
@@ -139,13 +145,14 @@ const Transfer = (props: any) => {
 
     const handleTokenOption = (network: string) => {
         let arr = [];
-        token.map((item: {name: string, network: string, decimals: number, contract: string}, index: number) => {
+        token.map((item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
             if(item.network === network) {
                 arr.push({
                     value: item.name,
                     label: item.name,
                     decimals: item.decimals,
                     contract: item.contract,
+                    symbol: item.symbol,
                     icon: <img src={require(`@/assets/token/${item.name}.png`)} />
                 })
             }
@@ -153,9 +160,66 @@ const Transfer = (props: any) => {
         setTokenList(arr)
     }
 
+
+    const countdown = (milliseconds) => {
+        timer = setInterval(() => {
+            milliseconds -= 1000;
+            if (milliseconds < 0) {
+                clearInterval(timer);
+                setLockTimes("");
+            } else {
+                setLockTimes(msToTime(milliseconds))
+            }
+        }, 1000)
+    }
+
+    const handleLockTimes = async () => {
+        const times = await transferLockTime({email});
+        if(times > 0) {
+            countdown(times)
+        }
+    };
+
     useEffect(() => {
+        handleLockTimes()
         handleTokenOption("Axiomesh")
+        return () => {
+            clearInterval(timer)
+        };
     },[])
+
+    useEffect(() => {
+        if(form.value) {
+            getGas(form.value).then((res: any) => {
+                setGasFee(res);
+            })
+        }
+    },[form.value])
+
+    const getGas = async (amount: string) => {
+        const signer = generateSigner();
+        const value = ethers.utils.parseUnits(amount, form.send.decimals);
+        const axiom = await AxiomAccount.voidSmartAccout();
+        let calldata = "0x";
+        let targetAddress = signer.address;
+        let payMaster = "";
+        let erc20Address = "";
+        if(form.send.value !== "AXC") {
+            const erc20 = new ethers.Contract(form.send.contract, ERC20_ABI);
+            calldata = erc20.interface.encodeFunctionData('transfer',[signer.address, value]);
+            targetAddress = form.send.contract;
+            payMaster = window.PAYMASTER;
+            erc20Address = form.send.contract;
+        }
+        const res = await axiom.estimateUserOperationGas(
+            targetAddress,
+            value,
+            calldata,
+            payMaster,
+            erc20Address
+        );
+        return ethers.utils.formatEther(res);
+    }
 
     const getSymbol = async (erc20:any, currentProvider:any) => {
         const symboldata = erc20.interface.encodeFunctionData('decimals');
@@ -199,8 +263,17 @@ const Transfer = (props: any) => {
     }
 
 
-    const confirmCallback = () => {
+    const confirmCallback = async () => {
+        if(lockTimes)
+            return;
         if(isSetPassword) {
+            try {
+                ethers.utils.getAddress(form.to);
+                setToErrorsText("");
+            }catch (e: any) {
+                setToErrorsText("Invalid address !");
+                return;
+            }
             if(toErrorsText !== "") {
                 return;
             }
@@ -212,11 +285,22 @@ const Transfer = (props: any) => {
                 setValueError("Invalid balance");
                 return;
             }
+            const gas = await getGas(form.value);
+            const priceList = await getTickerPrice();
+            let price: number;
+            priceList.map((item: any) => {
+                if(item.symbol === form.send.symbol) {
+                    price = item.price * gas;
+                }
+            })
+            console.log(price)
             setTransferInfo({
                 send: form.send.value,
                 to: form.to,
                 blockchain: form.chain.label,
-                value: form.value
+                value: form.value,
+                gas: gas,
+                gasPrice: price,
             })
             setTransferOpen(true)
         }else {
@@ -256,21 +340,14 @@ const Transfer = (props: any) => {
         setForm({ ...form, value: e.target.value })
     }
 
-    const handleMax = () => {
-        setForm({ ...form, value: balance.toString() })
+    const handleMax = async () => {
+        const gas = await getGas(balance.toString());
+        const max = balance - gas;
+        setForm({ ...form, value: max.toString() })
     }
 
     const handleToChange = async (e: any) => {
         setForm({...form, to: e.target.value});
-        const value = ethers.utils.parseUnits(form.value, form.send.decimals);
-        const axiom = await AxiomAccount.voidSmartAccout();
-        const res = await axiom.estimateUserOperationGas(
-            "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-            value,
-            "0x"
-        );
-        console.log(res)
-        setGasFee(ethers.utils.formatEther(res))
     }
 
     const handleSubmit = async (password: string) => {
@@ -321,12 +398,10 @@ const Transfer = (props: any) => {
                         "",
                         {}
                     );
-                    console.log(session);
                     const signer = new Wallet(sessionSigner.privateKey);
                     axiom.updateSigner(signer)
                     sessionStorage.setItem("sessionKey", sessionSigner.privateKey);
                 }
-                console.log(value, "value")
                 const callData = "0x"
                 const res = await axiom.sendUserOperation(form.to, value, callData, "", "", {
                     onBuild: (op) => {
@@ -334,7 +409,6 @@ const Transfer = (props: any) => {
                     }
                 })
                 ev = await res.wait();
-                console.log(ev)
             }else {
                 if(!sessionKey && freeLimit) {
                     await axiom.setSession(
@@ -396,9 +470,9 @@ const Transfer = (props: any) => {
             })
             setResultName(form.send.value)
             setResultStatus("success")
-            // setTimeout(() => {
-            //     window.location.reload()
-            // },3000)
+            setTimeout(() => {
+                window.location.reload()
+            },3000)
         }catch (e) {
             setResultStatus("failed")
             console.log(e)
@@ -406,109 +480,112 @@ const Transfer = (props: any) => {
     }
 
     return (
-        <div className={styles.transfer}>
-            <div className={styles.transferTitle}>
-                <h1>Transfer</h1>
-                <div className={styles.transferHistory} onClick={() => history.push('/transfer-history')}>
-                    <img src={require('@/assets/transfer/history.png')} alt=""/>
-                    <span>History</span>
+        <>
+            {lockTimes && <div className={styles.toast}><img src={require("@/assets/reset/toast.png")} alt=""/><span>Your account has been frozen for 24 hours and transactions cannot be sent normally. {lockTimes}</span></div>}
+            <div className={styles.transfer}>
+                <div className={styles.transferTitle}>
+                    <h1>Transfer</h1>
+                    <div className={styles.transferHistory} onClick={() => history.push('/transfer-history')}>
+                        <img src={require('@/assets/transfer/history.png')} alt=""/>
+                        <span>History</span>
+                    </div>
                 </div>
-            </div>
-            <div className={styles.transferContent}>
-                <FormControl className={styles.formControl}>
-                    <FormLabel className={styles.formTitle}>From</FormLabel>
-                    <Select
-                        value={form.chain}
-                        isDisabled={!isSetPassword}
-                        defaultValue={ options [1] }
-                        options={options}
-                        styles={customStyles(true)}
-                        placeholder=""
-                        components={{ Option: customOption, ValueContainer: customSingleValue }}
-                        onChange={handleFromChange}
-                    />
-                    {/*<FormErrorMessage>{form.errors.name}</FormErrorMessage>*/}
-                </FormControl>
-                <div className={styles.formSend}>
-                    <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}} isInvalid={sendError !== ""}>
-                        <FormLabel className={styles.formTitle}>Send</FormLabel>
+                <div className={styles.transferContent}>
+                    <FormControl className={styles.formControl}>
+                        <FormLabel className={styles.formTitle}>From</FormLabel>
                         <Select
-                            value={form.send}
-                            options={tokenList}
+                            value={form.chain}
                             isDisabled={!isSetPassword}
-                            styles={customStyles(!isChangeSend)}
-                            placeholder="Select a token"
+                            defaultValue={ options [1] }
+                            options={options}
+                            styles={customStyles(true)}
+                            placeholder=""
                             components={{ Option: customOption, ValueContainer: customSingleValue }}
-                            onChange={handleSendChange}
+                            onChange={handleFromChange}
                         />
-                        <FormErrorMessage>{sendError}</FormErrorMessage>
+                        {/*<FormErrorMessage>{form.errors.name}</FormErrorMessage>*/}
                     </FormControl>
-                    {isChangeSend &&
-                        <FormControl className={styles.formControl} isInvalid={valueError !== ""}>
-                            <FormLabel className={styles.formTitle}></FormLabel>
-                            <InputGroup>
-                                <Input
-                                    value={form.value}
-                                    isDisabled={!isSetPassword}
-                                    fontSize="14px"
-                                    fontWeight="400"
-                                    color="gray.700"
-                                    height="56px"
-                                    borderRadius="12px"
-                                    _disabled={{
-                                        color: "#D1D5DB",
-                                        bg: "gray.200", // 修改禁用状态的背景色
-                                        cursor: "not-allowed" // 修改禁用状态的鼠标样式
-                                    }}
-                                    _placeholder={{
-                                        color: "#A0AEC0"
-                                    }}
-                                    onChange={handleValueChange}
-                                />
-                                <InputRightElement style={{top: "10px", right: "20px"}}>
-                                    <div className={styles.formMax} onClick={handleMax}>MAX</div>
-                                </InputRightElement>
-                            </InputGroup>
-                            {valueError === "" &&
-                                <div>
-                                    {gasFee && <span className={styles.formGas}>Gas fee: {gasFee} AXC</span>}
-                                    <span className={styles.formBalance}>Balance:{balance}</span>
-                                </div>
-                            }
-                            <FormErrorMessage style={{position: "absolute"}}>{valueError}</FormErrorMessage>
-                        </FormControl>}
-                </div>
+                    <div className={styles.formSend}>
+                        <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}} isInvalid={sendError !== ""}>
+                            <FormLabel className={styles.formTitle}>Send</FormLabel>
+                            <Select
+                                value={form.send}
+                                options={tokenList}
+                                isDisabled={!isSetPassword}
+                                styles={customStyles(!isChangeSend)}
+                                placeholder="Select a token"
+                                components={{ Option: customOption, ValueContainer: customSingleValue }}
+                                onChange={handleSendChange}
+                            />
+                            <FormErrorMessage>{sendError}</FormErrorMessage>
+                        </FormControl>
+                        {isChangeSend &&
+                            <FormControl className={styles.formControl} isInvalid={valueError !== ""}>
+                                <FormLabel className={styles.formTitle}></FormLabel>
+                                <InputGroup>
+                                    <Input
+                                        value={form.value}
+                                        isDisabled={!isSetPassword}
+                                        fontSize="14px"
+                                        fontWeight="400"
+                                        color="gray.700"
+                                        height="56px"
+                                        borderRadius="12px"
+                                        _disabled={{
+                                            color: "#D1D5DB",
+                                            bg: "gray.200", // 修改禁用状态的背景色
+                                            cursor: "not-allowed" // 修改禁用状态的鼠标样式
+                                        }}
+                                        _placeholder={{
+                                            color: "#A0AEC0"
+                                        }}
+                                        onChange={handleValueChange}
+                                    />
+                                    <InputRightElement style={{top: "10px", right: "20px"}}>
+                                        <div className={styles.formMax} onClick={handleMax}>MAX</div>
+                                    </InputRightElement>
+                                </InputGroup>
+                                {valueError === "" &&
+                                    <div>
+                                        {gasFee && <span className={styles.formGas}>Gas fee: {gasFee} {form.send.value}</span>}
+                                        <span className={styles.formBalance}>Balance:{balance}</span>
+                                    </div>
+                                }
+                                <FormErrorMessage style={{position: "absolute"}}>{valueError}</FormErrorMessage>
+                            </FormControl>}
+                    </div>
 
-                <FormControl className={styles.formControl} isInvalid={toErrorsText !== ""}>
-                    <FormLabel className={styles.formTitle}>To</FormLabel>
-                    <Input
-                        value={form.to}
-                        isDisabled={!isSetPassword}
-                        fontSize="14px"
-                        fontWeight="400"
-                        color="gray.700"
-                        height="56px"
-                        borderRadius="12px"
-                        placeholder="e.g. 0x1de3... or destination.eth"
-                        _disabled={{
-                            color: "#D1D5DB",
-                            bg: "gray.200", // 修改禁用状态的背景色
-                            cursor: "not-allowed" // 修改禁用状态的鼠标样式
-                        }}
-                        _placeholder={{
-                            color: "#A0AEC0"
-                        }}
-                        onBlur={validateName}
-                        onChange={handleToChange}
-                    />
-                    <FormErrorMessage>{toErrorsText}</FormErrorMessage>
-                </FormControl>
-                <Button onClick={confirmCallback} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
+                    <FormControl className={styles.formControl} isInvalid={toErrorsText !== ""}>
+                        <FormLabel className={styles.formTitle}>To</FormLabel>
+                        <Input
+                            value={form.to}
+                            isDisabled={!isSetPassword}
+                            fontSize="14px"
+                            fontWeight="400"
+                            color="gray.700"
+                            height="56px"
+                            borderRadius="12px"
+                            placeholder="e.g. 0x1de3... or destination.eth"
+                            _disabled={{
+                                color: "#D1D5DB",
+                                bg: "gray.200", // 修改禁用状态的背景色
+                                cursor: "not-allowed" // 修改禁用状态的鼠标样式
+                            }}
+                            _placeholder={{
+                                color: "#A0AEC0"
+                            }}
+                            onBlur={validateName}
+                            onChange={handleToChange}
+                        />
+                        <FormErrorMessage>{toErrorsText}</FormErrorMessage>
+                    </FormControl>
+                    <Button onClick={confirmCallback} disabled={lockTimes !== "" ? true : false} onMouseEnter={() => {!isSetPassword && setButtonText('Set transfer password first')}} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
+                </div>
+                <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} info={transferInfo} errorMsg={passwordError} />
+                <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
+                <TransferResultModal isOpen={resultOpen} onClose={() => {setResultOpen(false);window.location.reload();}} status={resultStatus} name={resultName} />
             </div>
-            <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} info={transferInfo} errorMsg={passwordError} />
-            <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
-            <TransferResultModal isOpen={resultOpen} onClose={() => {setResultOpen(false)}} status={resultStatus} name={resultName} />
-        </div>
+        </>
     )
 }
 

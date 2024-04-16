@@ -18,8 +18,7 @@ const ModalInputPassword = (props: Props) => {
     const [error, setError] = useState("")
 
     useEffect(() => {
-        if(props.isError)
-            setError(props.isError)
+        setError(props.isError)
     }, [props.isError])
 
     const handlePinChange = (index: number, value: string) => {

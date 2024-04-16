@@ -39,6 +39,15 @@ const Contact = () => {
         }
     }
 
+    const handleCopy = (e: any) => {
+        e.stopPropagation();
+        handleClipboard(axiomEmail, e)
+        setIsCopy(true);
+        setTimeout(() => {
+            setIsCopy(false)
+        },3000)
+    }
+
     return (
         <div className={styles.security}>
             <h1 className={styles.securityTitle}>Contact</h1>
@@ -49,7 +58,7 @@ const Contact = () => {
                             {index === isHover ? <div className={styles.securityListItemHover}></div> : null}
                             {item.label === "email" ? <Email fill={index === isHover ? "#ECC94B" : "#171923"}/> : <Discord stroke={index === isHover ? "#ECC94B" : "#171923"}/>}
                             <span>{item.tip}</span>
-                            {item.label === "email" && <div className={styles.securityListItemCopy}>
+                            {item.label === "email" && <div className={styles.securityListItemCopy} onClick={handleCopy}>
                                 <span>{axiomEmail}</span>
                                 {isCopy ? <img src={require("@/assets/security/copy-success.png")} alt="" /> : <Copy fill={index === isHover ? "#ECC94B" : "#718096"}/>}
                             </div>}
