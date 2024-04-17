@@ -88,7 +88,7 @@ export default function SetPassword() {
                     params.owner_address = signer.address; //从sdk中获取
                     // @ts-ignore
                     await resetPassword(params)
-                    history.replace('/login');
+                    history.replace('/lock');
                 }
 
 
