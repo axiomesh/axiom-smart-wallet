@@ -14,29 +14,29 @@ export default function Layout() {
         if(!email) history.replace('/login')
     }, [])
 
-    useEffect(() => {
-        // @ts-ignore
-        const socket_js = new window.SockJS(window.socketUrl)
-        // @ts-ignore
-        let stompClient = window.Stomp.over(socket_js)
-        if(stompClient){
-            stompClient.connect({}, function(frame: any) {
-                stompClient.subscribe(`/topic/logout/${email}`, async function(message: any) {
-                    if(message.body === 'logout'){
-                        refreshToken()
-                    }
-                });
-            });
-        }
-
-        return () => {
-            if (stompClient !== null && socket_js.readyState) {
-                stompClient.disconnect(); // 关闭连接
-                stompClient = null;
-            }
-        }
-
-    }, []);
+    // useEffect(() => {
+    //     // @ts-ignore
+    //     const socket_js = new window.SockJS(window.socketUrl)
+    //     // @ts-ignore
+    //     let stompClient = window.Stomp.over(socket_js)
+    //     if(stompClient){
+    //         stompClient.connect({}, function(frame: any) {
+    //             stompClient.subscribe(`/topic/logout/${email}`, async function(message: any) {
+    //                 if(message.body === 'logout'){
+    //                     refreshToken()
+    //                 }
+    //             });
+    //         });
+    //     }
+    //
+    //     return () => {
+    //         if (stompClient !== null && socket_js.readyState) {
+    //             stompClient.disconnect(); // 关闭连接
+    //             stompClient = null;
+    //         }
+    //     }
+    //
+    // }, []);
 
   return (
     <div className={styles.layout}>
