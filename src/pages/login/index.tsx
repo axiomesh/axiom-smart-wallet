@@ -45,7 +45,6 @@ function HomePage(props: any) {
     React.useEffect(() => {
         // @ts-ignore
         let unblock =  history.block((tx:any, action:any) => {
-            console.log(tx.action);
             if (tx.action === 'POP') {
                 return false;
             } else {

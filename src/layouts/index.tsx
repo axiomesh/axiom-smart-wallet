@@ -4,7 +4,7 @@ import Logo from '@/components/Logo';
 import Menu from '@/components/Menu'
 import PersonInfo from "@/components/PersonInfo";
 import Settings from "@/components/Settings";
-import {getMail} from "@/utils/help";
+import {getMail, getToken} from "@/utils/help";
 import {useEffect} from "react";
 import {refreshToken} from "@/services/login";
 
@@ -16,14 +16,26 @@ export default function Layout() {
 
     useEffect(() => {
         // @ts-ignore
-        const stompClient = window.Stomp.over(new window.SockJS(window.socketUrl))
-        stompClient.connect({}, function(frame: any) {
-            stompClient.subscribe(`/topic/logout/${email}`, function(message: any) {
-                if(message.body === 'logout'){
-                    refreshToken()
-                }
+        const socket_js = new window.SockJS(window.socketUrl)
+        // @ts-ignore
+        let stompClient = window.Stomp.over(socket_js)
+        if(stompClient){
+            stompClient.connect({}, function(frame: any) {
+                stompClient.subscribe(`/topic/logout/${email}`, async function(message: any) {
+                    if(message.body === 'logout'){
+                        refreshToken()
+                    }
+                });
             });
-        });
+        }
+
+        return () => {
+            if (stompClient !== null && socket_js.readyState) {
+                stompClient.disconnect(); // 关闭连接
+                stompClient = null;
+            }
+        }
+
     }, []);
 
   return (
