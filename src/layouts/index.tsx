@@ -19,9 +19,6 @@ export default function Layout() {
         const stompClient = window.Stomp.over(new window.SockJS(window.socketUrl))
         stompClient.connect({}, function(frame: any) {
             stompClient.subscribe(`/topic/logout/${email}`, function(message: any) {
-                // stompClient.subscribe('/topic/logout', function(message) {
-                console.log('message', message);
-                console.log('12345');
                 if(message.body === 'logout'){
                     refreshToken()
                 }

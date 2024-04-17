@@ -24,4 +24,4 @@ window.AXC_SYMBOL = 18;
 window.ETH_SYMBOL = 18;
 window.ETH_BROWSER = 'https://eth.blockscout.com';
 window.AXM_BROWSER = 'https://scan.taurus.axiomesh.io';
-window.socketUrl = 'http://172.16.13.133:8581/websocket'
+window.socketUrl = 'http://172.16.13.133:8580/websocket'

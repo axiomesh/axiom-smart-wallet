@@ -13,10 +13,10 @@ export default defineConfig({
       target: 'http://94.74.111.72/price-aggregator',
       changeOrigin: true,
     },
-    '/websocket': {
-      target: 'http://172.16.13.133:8581',
-      changeOrigin: true,
-    },
+    // '/websocket': {
+    //   target: 'http://172.16.13.133:8581',
+    //   changeOrigin: true,
+    // },
   },
   base: baseUrl,
   publicPath: baseUrl,
