@@ -6,26 +6,28 @@ import PersonInfo from "@/components/PersonInfo";
 import Settings from "@/components/Settings";
 import {getMail} from "@/utils/help";
 import {useEffect} from "react";
-// import useWebSocket, { ReadyState } from 'react-use-websocket';
-// import {refreshToken} from "@/services/login";
+import {refreshToken} from "@/services/login";
 
 export default function Layout() {
     const email: string | any = getMail();
     useEffect(() => {
         if(!email) history.replace('/login')
     }, [])
-    // const { sendMessage, lastMessage, readyState } = useWebSocket(`${window.socketUrl}/api/axm-wallet/account/tokenSocket`);
-    //
-    // useEffect(() => {
-    //     console.log('lastMessage', lastMessage)
-    //     if (lastMessage !== null && lastMessage === 'TokenExpired') {
-    //         refreshToken()
-    //     }
-    // }, [lastMessage]);
 
-    // useEffect(() => {
-    //    const  ws = new WebSocket(`${window.socketUrl}/api/axm-wallet/account/tokenSocket`)
-    // }, []);
+    useEffect(() => {
+        // @ts-ignore
+        const stompClient = window.Stomp.over(new window.SockJS(window.socketUrl))
+        stompClient.connect({}, function(frame: any) {
+            stompClient.subscribe(`/topic/logout/${email}`, function(message: any) {
+                // stompClient.subscribe('/topic/logout', function(message) {
+                console.log('message', message);
+                console.log('12345');
+                if(message.body === 'logout'){
+                    refreshToken()
+                }
+            });
+        });
+    }, []);
 
   return (
     <div className={styles.layout}>

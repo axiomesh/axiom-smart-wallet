@@ -6,11 +6,15 @@ export default defineConfig({
   jsMinifier: 'terser',
   proxy: {
     '/api/axm-wallet': {
-      target: 'http://172.16.13.133:8580/',
+      target: 'http://172.16.13.133:8581',
       changeOrigin: true,
     },
     '/api/ticker': {
       target: 'http://94.74.111.72/price-aggregator',
+      changeOrigin: true,
+    },
+    '/websocket': {
+      target: 'http://172.16.13.133:8581',
       changeOrigin: true,
     },
   },
@@ -19,7 +23,11 @@ export default defineConfig({
   lessLoader: {
     javascriptEnabled: true,
   },
-  headScripts: [{src: 'env.js', defer: true, async: true}],
+  headScripts: [
+      {src: 'env.js', defer: true, async: true},
+      {src: 'https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js', defer: true, async: true},
+      {src: 'https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js', defer: true, async: true}
+  ],
   plugins: ['@umijs/plugins/dist/dva'],
   dva: {},
   hash: true,

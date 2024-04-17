@@ -116,9 +116,9 @@ export async function logout(email:string) {
 export async function refreshToken() {
     const res = await request({
         url: `/api/axm-wallet/account/logout`,
-        method: 'get',
+        method: 'post',
     });
-    return res.data;
+    return res?.data;
 }
 
 

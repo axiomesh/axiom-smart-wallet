@@ -64,16 +64,12 @@ const Home = (props:any) => {
         const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
         // @ts-ignore
         const provider = new ethers.providers.JsonRpcProvider(window.ETH_RPC);
-        const address = '0xc7F999b83Af6DF9e67d0a37Ee7e900bF38b3D013';
         if(type === 'AXCUSD'){
             const balance = await rpc_provider.getBalance(userInfo.address);
-            console.log(balance)
-            // const balance = await rpc_provider.getBalance(address);
             // @ts-ignore
             return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
         } else if(type === 'ETHUSD'){
             let balance = await provider.getBalance(userInfo.address);
-            // let balance = await provider.getBalance(address);
             // @ts-ignore
             return balance.toBigInt().toString() / Math.pow(10,window.ETH_SYMBOL)
         } else {
@@ -83,7 +79,6 @@ const Home = (props:any) => {
             // return 0
             const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI);
             const calldata = erc20.interface.encodeFunctionData('balanceOf',[userInfo.address]);
-            // const calldata = erc20.interface.encodeFunctionData('balanceOf',[address]);
 
             const res = await currentProvider.call({
                 to: erc20.address,
