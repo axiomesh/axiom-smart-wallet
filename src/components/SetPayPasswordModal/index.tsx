@@ -16,8 +16,8 @@ import useContinueButton from '@/hooks/ContinueButton';
 import TransferPassword from "@/components/TransferPassword";
 import { setFirstPassword } from '@/services/transfer';
 import Toast from "@/hooks/Toast";
-import {passWordReg, setToken, getMail} from "@/utils/help";
-import {checkLoginPassword, getUserInfo} from "@/services/login";
+import {passWordReg, getMail} from "@/utils/help";
+import {checkPassword, getUserInfo} from "@/services/login";
 import {connect} from "@@/exports";
 const {crypto} = require("crypto-js")
 import {generateRandomBytes} from "@/utils/utils";
@@ -27,6 +27,8 @@ import {sha256} from "js-sha256";
 interface Props {
     isOpen: boolean;
     onClose: (isSuccess: Boolean | null) => void;
+    userInfo: any;
+    dispatch: any;
 }
 
 const SetPayPasswordModal = (props: Props) => {
@@ -80,11 +82,10 @@ const SetPayPasswordModal = (props: Props) => {
         }
         if(!password || !passWordReg.test(password)) return
         try{
-            const res = await checkLoginPassword({
+            await checkPassword({
                 email,
                 login_password: sha256(password),
             })
-            setToken(res);
             setIsVerify(true)
         }catch (e){
             console.log(e);

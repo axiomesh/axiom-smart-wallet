@@ -76,6 +76,16 @@ export async function checkLoginPassword(data: any) {
     return res.data;
 }
 
+// /api/axm-wallet/account/pwd/check
+export async function checkPassword(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/pwd/check`,
+        method: 'post',
+        data,
+    });
+    return res.data;
+}
+
 
 export async function lockPage(email: string) {
     const res = await request({

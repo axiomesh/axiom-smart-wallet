@@ -7,7 +7,7 @@ import {
 } from '@chakra-ui/react';
 import { history } from 'umi';
 import {useState} from "react";
-import {checkLoginPassword, sendVerifyCode} from '@/services/login';
+import {checkPassword} from '@/services/login';
 import {getMail, passWordReg} from "@/utils/help";
 import Page from '@/components/Page';
 import Toast from "@/hooks/Toast";
@@ -33,7 +33,7 @@ export default function ResetUnlockPassword() {
         if(!password || !passWordReg.test(password)) return
         try{
             setLoading(true)
-            await checkLoginPassword({
+            await checkPassword({
                 email,
                 login_password: sha256(password),
             })
