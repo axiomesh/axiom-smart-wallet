@@ -66,6 +66,10 @@ export const passWordReg = /^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$/;
 export const clearSessionData = (dispatch: any) => {
     setMail('');
     setToken('');
+    sessionStorage.setItem('sessionKey','');
+    sessionStorage.setItem("freeLimit", "");
+    sessionStorage.setItem("key", "");
+    sessionStorage.setItem("token", "");
     dispatch({
         type: 'global/setUser',
         payload: {},

@@ -12,10 +12,12 @@ import ModalInputPassword from '@/components/ModalInputPassword';
 import useContinueButton from "@/hooks/ContinueButton";
 import {history} from "umi";
 interface transferProps {
-    send: string,
-    to: string,
-    blockchain: string,
-    value: string
+    send: string;
+    to: string;
+    blockchain: string;
+    value: string;
+    gas: string;
+    gasPrice: number
 }
 
 const TransferModal = (props: any) => {
@@ -26,8 +28,9 @@ const TransferModal = (props: any) => {
     const {Button} = useContinueButton();
 
     useEffect(() => {
-        const sessionKey = sessionStorage.getItem('sessionKey')
-        if(sessionKey){
+        const sessionKey = sessionStorage.getItem('sessionKey');
+        const freeLimit = sessionStorage.getItem('freeLimit');
+        if(sessionKey || freeLimit){
             setIsFree(true)
         }
     },[])
@@ -89,7 +92,7 @@ const TransferModal = (props: any) => {
                                 </div>
                                 <div className={styles.transferSendItem} style={{alignItems: "start"}}>
                                     <span className={styles.transferSendItemTitle}>Gas fee</span>
-                                    <div className={`${styles.transferSendItemContent} ${styles.transferSendItemPrice}`}><span className={styles.transferSendItemText}>0.000001 ETH</span><span className={styles.transferSendItemNum}>$20.02</span></div>
+                                    <div className={`${styles.transferSendItemContent} ${styles.transferSendItemPrice}`}><span className={styles.transferSendItemText}>{info?.gas} {info?.send}</span><span className={styles.transferSendItemNum}>$ {info?.gasPrice}</span></div>
                                 </div>
                             </div>
                             {isFree && <div><Button onClick={() => handleSubmit("")}>Confirm</Button></div>}

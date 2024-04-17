@@ -20,20 +20,27 @@ import { AxiomAccount, generateSigner } from "axiom-smart-account-test";
 import { sha256 } from "js-sha256";
 import {connect} from "@@/exports";
 import Toast from "@/hooks/Toast";
+import {passwordTimes, transferLockTime, wrongPassword} from "@/services/transfer";
+import {getMail} from "@/utils/help";
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
 })
 
 const TransferFree = (props: any) => {
+    const email: string | any = getMail();
     const { userInfo } = props;
     const [isSwitch, setIsSwitch] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [maxNumber, setMaxNumber] = useState(5000);
     const [value, setValue] = useState<string>("");
+    const [msg, setMsg] = useState<string>("");
     const [sessionKey, setSessionKey] = useState<string>("");
-    const {showSuccessToast} = Toast();
+    const [freeLimit, setFreeLimit] = useState<string>("");
+    const {showSuccessToast, showErrorToast} = Toast();
+    const [info, setInfo] = useState<any>({});
+    const [isLock, setIsLock] = useState(false);
 
     const { Button } = ContinueButton();
 
@@ -42,40 +49,64 @@ const TransferFree = (props: any) => {
             setSessionKey(sessionStorage.getItem("sessionKey"))
             setIsSwitch(true)
         }
+        if(sessionStorage.getItem("freeLimit")) {
+            setFreeLimit(sessionStorage.getItem("freeLimit"))
+            setIsSwitch(true)
+            setValue(sessionStorage.getItem("freeLimit"))
+        }
+        handleLockTimes()
     },[])
+
+    const handleLockTimes = async () => {
+        const times = await transferLockTime({email});
+        if(times > 0) {
+            setIsLock(true)
+        }
+    };
+
+    useEffect(() => {
+        setInfo(userInfo)
+    }, [userInfo])
 
     const handleChange = (e: any) => {
         setIsSwitch(e.target.checked)
+        if(!e.target.checked) {
+            setSessionKey("");
+            setFreeLimit("");
+            setValue("");
+            sessionStorage.setItem("sessionKey", "");
+            sessionStorage.setItem("freeLimit", "");
+        }
     }
 
     const handleSubmit = async (e: any) => {
-        const validAfter = Math.round(Date.now() / 1000);
-        const validUntil = Math.round(Date.now() / 1000) + 60 * 60 * 24;
-        const sessionSigner = generateSigner();
         try {
-            const axiom = await AxiomAccount.fromEncryptedKey(sha256(e), userInfo.transfer_salt, userInfo.enc_private_key);
-            await axiom.setSession(
-                sessionSigner,
-                value,
-                validAfter,
-                validUntil,
-                {
-                    onBuild: (op) => {
-                        op.preVerificationGas = 60000;
-                        console.log("Signed UserOperation:", op);
-                    },
-                }
-            );
-            sessionStorage.setItem("key", sha256(e))
-            sessionStorage.setItem("sessionKey", sessionSigner.privateKey)
+            await AxiomAccount.fromEncryptedKey(sha256(e), info.transfer_salt, info.enc_private_key);
+            sessionStorage.setItem("key", sha256(e));
+            sessionStorage.setItem("freeLimit", value);
+            setFreeLimit(value)
             showSuccessToast("Password-free transfer has been activated");
             setIsOpen(false)
-        }catch (err) {
-            console.log(err)
+        }catch (e) {
+            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
+            if(string.search(expr) > 0 || string.search(expr2) > 0) {
+                await wrongPassword({email});
+                const times = await passwordTimes({email})
+                if(times > 0) {
+                    setMsg(`Invalid password ，only ${times} attempts are allowed today!`)
+                }else {
+                    setMsg("Invalid password ，your account is currently locked. Please try again tomorrow !")
+                }
+            }
+            return;
         }
     }
 
     const handleConfirm = () => {
+        if(isLock) {
+            showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
+            return;
+        }
         setIsOpen(true)
     }
 
@@ -112,9 +143,10 @@ const TransferFree = (props: any) => {
                     </div>
                     <div className={styles.freeSettingCenter}>
                         <span className={styles.freeSettingCenterTitle}>Daily transfer limit</span>
-                        <FormControl isInvalid={errorMessage !==''}>
+                        <FormControl isInvalid={errorMessage !== ''}>
                             <InputGroup width="420px">
-                                <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px" style={{border: errorMessage !=='' && "1px solid #E53E3E"}}>
+                                <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px"
+                                                style={{border: errorMessage !== '' && "1px solid #E53E3E"}}>
                                     <span className={styles.freeSettingCenterBefore}>HK$</span>
                                 </InputLeftAddon>
                                 <Input
@@ -133,20 +165,25 @@ const TransferFree = (props: any) => {
                                         border: "1px solid #E53E3E"
                                     }}
                                     onBlur={handleBlur}
-                                    onChange={(e: any) => {setValue(e.target.value)}}
+                                    onChange={(e: any) => {
+                                        setValue(e.target.value)
+                                    }}
                                 />
                                 <InputRightElement style={{top: "8px", right: "20px"}}>
-                                    <div className={styles.freeSettingCenterMax} onClick={() => {setValue("5000")}}>MAX</div>
+                                    <div className={styles.freeSettingCenterMax} onClick={() => {
+                                        setValue("5000")
+                                    }}>MAX
+                                    </div>
                                 </InputRightElement>
                             </InputGroup>
                             <FormErrorMessage style={{marginLeft: "16px"}}>{errorMessage}</FormErrorMessage>
                         </FormControl>
                     </div>
                     <div className={styles.freeSettingBottom}>
-                        <Button onClick={handleConfirm}>{sessionKey ? "Update" : "Confirm"}</Button>
+                        <Button onClick={handleConfirm}>{(sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>
                     </div>
                 </div>}
-                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} />
+                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} errorMsg={msg} />
             </div>
         </ChakraProvider>
     )
