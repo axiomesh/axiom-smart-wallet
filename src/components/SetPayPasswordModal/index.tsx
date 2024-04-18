@@ -82,11 +82,15 @@ const SetPayPasswordModal = (props: Props) => {
         }
         if(!password || !passWordReg.test(password)) return
         try{
-            await checkPassword({
+            const data = await checkPassword({
                 email,
                 login_password: sha256(password),
             })
-            setIsVerify(true)
+            if(data){
+                setIsVerify(true)
+            } else {
+                setErrorTxt('Invalid password')
+            }
         }catch (e){
             console.log(e);
             // @ts-ignore

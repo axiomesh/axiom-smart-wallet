@@ -6,7 +6,7 @@ export default defineConfig({
   jsMinifier: 'terser',
   proxy: {
     '/api/axm-wallet': {
-      target: 'http://172.16.13.133:8581',
+      target: 'http://172.16.13.133:8580',
       changeOrigin: true,
     },
     '/api/ticker': {

@@ -33,12 +33,16 @@ export default function ResetUnlockPassword() {
         if(!password || !passWordReg.test(password)) return
         try{
             setLoading(true)
-            await checkPassword({
+            const data = await checkPassword({
                 email,
                 login_password: sha256(password),
             })
-            sessionStorage.setItem('Old_Password', sha256(password))
-            history.push('/security/update-password');
+            if(data){
+                sessionStorage.setItem('Old_Password', sha256(password))
+                history.push('/security/update-password');
+            } else {
+                setErrorText('Invalid password')
+            }
         } catch (e){
             // @ts-ignore
             showErrorToast(e);
