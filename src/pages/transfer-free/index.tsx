@@ -16,7 +16,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import ContinueButton from "@/hooks/ContinueButton";
 import VerifyTransferModal from "@/components/VerifyTransferModal";
 import { history } from 'umi';
-import { AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, decryptStr } from "axiom-smart-account-test";
+import { AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt } from "axiom-smart-account-test";
 import { sha256 } from "js-sha256";
 import {connect} from "@@/exports";
 import Toast from "@/hooks/Toast";
@@ -140,7 +140,7 @@ const TransferFree = (props: any) => {
         console.log(secretKey, sessionSigner.privateKey,'secretKey, sessionSigner.privateKey')
         const encryptKey = encrypt(secretKey.toString(), sessionSigner.privateKey);
         console.log(encryptKey,'encryptKey')
-        const decryptKey = decryptStr(encryptKey, secretKey.toString());
+        const decryptKey = decrypt(encryptKey, secretKey.toString());
         console.log(decryptKey,'decryptKey')
         sessionStorage.setItem("sk", encryptKey);
         sessionStorage.setItem("freeLimit", value);
