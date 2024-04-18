@@ -1,4 +1,4 @@
-import { Outlet, history } from 'umi';
+import { Outlet, history, useLocation } from 'umi';
 import styles from './index.less';
 import Logo from '@/components/Logo';
 import Menu from '@/components/Menu'
@@ -10,15 +10,21 @@ import {refreshToken} from "@/services/login";
 
 export default function Layout() {
     const email: string | any = getMail();
+    const location = useLocation();
     useEffect(() => {
         if(!email) history.replace('/login')
     }, [])
 
     useEffect(() => {
         // @ts-ignore
+        if(!window.SockJS || !location?.pathname || location?.pathname ==='/' ){
+            return
+        }
+        // @ts-ignore
         const socket_js = new window.SockJS(window.socketUrl)
         // @ts-ignore
-        let stompClient = window.Stomp.over(socket_js)
+        let stompClient = window.Stomp.over(socket_js);
+
         if(stompClient){
             stompClient.connect({}, function(frame: any) {
                 stompClient.subscribe(`/topic/logout/${email}`, async function(message: any) {
