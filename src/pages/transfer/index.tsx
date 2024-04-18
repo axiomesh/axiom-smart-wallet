@@ -212,11 +212,8 @@ const Transfer = (props: any) => {
             }
             if(sessionForm.value) {
                 newForm.value = sessionForm.value
-                getGas(sessionForm.value).then((res: any) => {
+                getGas(sessionForm.value, sessionForm.send).then((res: any) => {
                     setGasFee(res);
-                    if((Number(res) + Number(form.value)) > Number(balance)) {
-                        setValueError("Gas fee is insufficient");
-                    }
                 })
             }
             sessionForm.to && (newForm.to = sessionForm.to);
@@ -234,7 +231,7 @@ const Transfer = (props: any) => {
     const handleValueBlur = () => {
         if(form.value && Number(form.value) > 0) {
             setValueError("");
-            getGas(form.value).then((res: any) => {
+            getGas(form.value, form.send).then((res: any) => {
                 setGasFee(res);
                 if((Number(res) + Number(form.value)) > Number(balance)) {
                     setValueError("Gas fee is insufficient");
@@ -245,20 +242,20 @@ const Transfer = (props: any) => {
         }
     }
 
-    const getGas = async (amount: string) => {
+    const getGas = async (amount: string, send: any) => {
         const signer = generateSigner();
-        let value = ethers.utils.parseUnits(amount, form.send.decimals);
+        let value = ethers.utils.parseUnits(amount, send.decimals);
         const axiom = await AxiomAccount.voidSmartAccout();
         let calldata = "0x";
         let targetAddress = signer.address;
         let payMaster = "";
         let erc20Address = "";
-        if(form.send.value !== "AXC") {
-            const erc20 = new ethers.Contract(form.send.contract, ERC20_ABI);
+        if(send.value !== "AXC") {
+            const erc20 = new ethers.Contract(send.contract, ERC20_ABI);
             calldata = erc20.interface.encodeFunctionData('transfer',[signer.address, value]);
-            targetAddress = form.send.contract;
+            targetAddress = send.contract;
             payMaster = window.PAYMASTER;
-            erc20Address = form.send.contract;
+            erc20Address = send.contract;
             value = 0;
         }
         const res = await axiom.estimateUserOperationGas(
@@ -269,13 +266,13 @@ const Transfer = (props: any) => {
             erc20Address
         );
         const axcGas = ethers.utils.formatEther(res);
-        if(form.send.value === "AXC") {
+        if(send.value === "AXC") {
             return axcGas;
         }else {
             const priceList = await getTickerPrice();
             let price: number, axcPrice: number;
             priceList.map((item:any) => {
-                if(item.symbol.toLowerCase() === form.send.symbol.toLowerCase()) {
+                if(item.symbol.toLowerCase() === send.symbol.toLowerCase()) {
                     price = item.price;
                 }
                 if(item.symbol === "AXCUSD") {
@@ -350,7 +347,7 @@ const Transfer = (props: any) => {
                 setValueError("Invalid balance");
                 return;
             }
-            const gas = await getGas(form.value);
+            const gas = await getGas(form.value, form.send);
             if((Number(gas) + Number(form.value)) > Number(balance)) {
                 setValueError("Gas fee is insufficient");
                 return;
@@ -412,7 +409,7 @@ const Transfer = (props: any) => {
     }
 
     const handleMax = async () => {
-        const gas = await getGas(balance.toString());
+        const gas = await getGas(balance.toString(), form.send);
         setGasFee(gas)
         // console.log(gas, "gas")
         // const gasNumber = ethers.utils.parseUnits(gas.toString(), 18);
