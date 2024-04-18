@@ -3,10 +3,7 @@ import React, { useState, useEffect } from 'react';
 import useCancelModal from "@/hooks/CancelModal";
 import {exchangeAddress, getImgFromHash, getMail} from '@/utils/help';
 import {getUserInfo} from "@/services/login";
-import {history} from "@@/core/history";
-import { connect } from 'umi';
-import { AxiomAccount, encrypt, deriveAES256GCMSecretKey } from "axiom-smart-account-test";
-import { Wallet } from "ethers";
+import { connect, history } from 'umi';
 import handleClipboard from "@/utils/clipboard"
 
 const PersonInfo = (props: any) => {
@@ -42,6 +39,7 @@ const PersonInfo = (props: any) => {
     }, []);
 
     useEffect(() => {
+        console.log('side')
         document.addEventListener('click', handleClickOutside);
         return () => {
             document.removeEventListener('click', handleClickOutside);
