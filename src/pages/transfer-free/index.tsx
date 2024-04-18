@@ -16,12 +16,14 @@ import { ChakraProvider } from '@chakra-ui/react'
 import ContinueButton from "@/hooks/ContinueButton";
 import VerifyTransferModal from "@/components/VerifyTransferModal";
 import { history } from 'umi';
-import { AxiomAccount, generateSigner } from "axiom-smart-account-test";
+import { AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, decryptStr } from "axiom-smart-account-test";
 import { sha256 } from "js-sha256";
 import {connect} from "@@/exports";
 import Toast from "@/hooks/Toast";
 import {passwordTimes, transferLockTime, wrongPassword} from "@/services/transfer";
 import {getMail} from "@/utils/help";
+import {generateRandomBytes} from "@/utils/utils";
+import {ethers} from "ethers";
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -41,16 +43,18 @@ const TransferFree = (props: any) => {
     const {showSuccessToast, showErrorToast} = Toast();
     const [info, setInfo] = useState<any>({});
     const [isLock, setIsLock] = useState(false);
+    const [oldLimit, setOldLimit] = useState<string>("");
 
     const { Button } = ContinueButton();
 
     useEffect(() => {
-        if(sessionStorage.getItem("sessionKey")) {
-            setSessionKey(sessionStorage.getItem("sessionKey"))
+        if(sessionStorage.getItem("sk")) {
+            setSessionKey(sessionStorage.getItem("sk"))
             setIsSwitch(true)
         }
         if(sessionStorage.getItem("freeLimit")) {
             setFreeLimit(sessionStorage.getItem("freeLimit"))
+            setOldLimit(sessionStorage.getItem("freeLimit"))
             setIsSwitch(true)
             setValue(sessionStorage.getItem("freeLimit"))
         }
@@ -74,32 +78,74 @@ const TransferFree = (props: any) => {
             setSessionKey("");
             setFreeLimit("");
             setValue("");
-            sessionStorage.setItem("sessionKey", "");
-            sessionStorage.setItem("freeLimit", "");
+            sessionStorage.removeItem("sk");
+            sessionStorage.removeItem("a");
+            sessionStorage.removeItem("b");
+            sessionStorage.removeItem("op");
+            sessionStorage.removeItem("freeLimit");
         }
     }
 
+    const generateRandomSixDigits = () => {
+        const min = 100000; // 最小值为 100000
+        const max = 999999; // 最大值为 999999
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
     const handleSubmit = async (e: any) => {
+        let axiom:any;
         try {
-            await AxiomAccount.fromEncryptedKey(sha256(e), info.transfer_salt, info.enc_private_key);
-            sessionStorage.setItem("key", sha256(e));
-            sessionStorage.setItem("freeLimit", value);
+            axiom = await AxiomAccount.fromEncryptedKey(sha256(e), info.transfer_salt, info.enc_private_key);
             setFreeLimit(value)
-            showSuccessToast("Password-free transfer has been activated");
-            setIsOpen(false)
         }catch (e) {
             const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
             if(string.search(expr) > 0 || string.search(expr2) > 0) {
                 await wrongPassword({email});
                 const times = await passwordTimes({email})
                 if(times > 0) {
-                    setMsg(`Invalid password ，only ${times} attempts are allowed today!`)
+                    if(times < 4) {
+                        setMsg(`Invalid password ，only ${times} attempts are allowed today!`)
+                    }else {
+                        setMsg(`Invalid password`)
+                    }
                 }else {
                     setMsg("Invalid password ，your account is currently locked. Please try again tomorrow !")
                 }
             }
             return;
         }
+        const skPassword = generateRandomSixDigits().toString();
+        const salt = generateRandomBytes(16);
+        const limit = ethers.utils.parseUnits(value, 18);
+        let currentDate = new Date();
+        currentDate.setHours(23, 59, 59, 999)
+        const validAfter = Math.round(Date.now() / 1000);
+        const validUntil = currentDate.getTime();
+        const sessionSigner = generateSigner();
+        const sessionResult = await axiom.setSession(
+            sessionSigner,
+            limit,
+            validAfter,
+            validUntil,
+            "",
+            ""
+        );
+        console.log(skPassword, 'skPassword')
+        console.log(sha256(skPassword), salt, 'sha256(skPassword), salt')
+        sessionStorage.setItem("ow", axiom.getOwnerAddress())
+        sessionStorage.setItem("a", sha256(skPassword));
+        sessionStorage.setItem("b", salt);
+        sessionStorage.setItem("op", JSON.stringify(sessionResult));
+        const secretKey = await deriveAES256GCMSecretKey(sha256(skPassword), salt);
+        console.log(secretKey, sessionSigner.privateKey,'secretKey, sessionSigner.privateKey')
+        const encryptKey = encrypt(secretKey.toString(), sessionSigner.privateKey);
+        console.log(encryptKey,'encryptKey')
+        const decryptKey = decryptStr(encryptKey, secretKey.toString());
+        console.log(decryptKey,'decryptKey')
+        sessionStorage.setItem("sk", encryptKey);
+        sessionStorage.setItem("freeLimit", value);
+        showSuccessToast("Password-free transfer has been activated");
+        setIsOpen(false)
     }
 
     const handleConfirm = () => {
@@ -131,10 +177,10 @@ const TransferFree = (props: any) => {
             <div className={styles.free}>
                 <Back onClick={() => {history.push('/security')}} />
                 <h1 className={styles.freeTitle}>Password-free transfer</h1>
-                <p className={styles.freeTip}>once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification .</p>
+                <p className={styles.freeTip}>once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification on AXIOMESH .Other blockchains are coming soon!</p>
                 <div className={styles.freeSwitch}>
                     <span>Password-free transfer switch </span>
-                    <Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} />
+                    <div><Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} /></div>
                 </div>
                 {isSwitch && <div className={styles.freeSetting}>
                     <div className={styles.freeSettingTop}>
@@ -171,7 +217,8 @@ const TransferFree = (props: any) => {
                                 />
                                 <InputRightElement style={{top: "8px", right: "20px"}}>
                                     <div className={styles.freeSettingCenterMax} onClick={() => {
-                                        setValue("5000")
+                                        setValue("5000");
+                                        setErrorMessage("");
                                     }}>MAX
                                     </div>
                                 </InputRightElement>
@@ -180,7 +227,7 @@ const TransferFree = (props: any) => {
                         </FormControl>
                     </div>
                     <div className={styles.freeSettingBottom}>
-                        <Button onClick={handleConfirm}>{(sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>
+                        <Button disabled={oldLimit && (oldLimit === freeLimit)} onClick={handleConfirm}>{(sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>
                     </div>
                 </div>}
                 <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} errorMsg={msg} />

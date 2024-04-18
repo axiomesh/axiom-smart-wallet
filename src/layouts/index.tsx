@@ -38,6 +38,16 @@ export default function Layout() {
 
     }, []);
 
+    useEffect(() => {
+        const handleBeforeUnload = (event) => {
+            sessionStorage.removeItem("form");
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    },[])
+
   return (
     <div className={styles.layout}>
       <div className={styles.navs}>

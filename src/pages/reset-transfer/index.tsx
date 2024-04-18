@@ -24,19 +24,24 @@ const ResetTransfer = (props: any) => {
     const [message, setMessage] = useState('');
     const [timer, setTimer] = useState('');
     const [info, setInfo] = useState<any>({});
+    const [isError, setIsError] = useState(false);
     const email = getMail();
     const { userInfo } = props;
     const { Button } = ContinueButton();
     const {showSuccessToast, showErrorToast} = Toast();
-    const [toastMsg, setToastMsg] = useState('Your account will be locked for 24 hours after resetting your password, and transactions cannot be sent normally.');
+    const [toastMsg, setToastMsg] = useState("");
 
     useEffect(() => {
         async function times() {
-            const times = await passwordTimes({email});
-            if(times === 0) {
+            const times = await transferLockTime({email});
+            console.log(times)
+            if(times > 0) {
                 setToastMsg("The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.")
+            }else {
+                setToastMsg('Your account will be locked for 24 hours after resetting your password, and transactions cannot be sent normally.')
             }
         }
+        times();
     }, [])
 
     useEffect(() => {
@@ -77,7 +82,7 @@ const ResetTransfer = (props: any) => {
             setMessage("Are you sure to cancel password reset?")
             setStep(2);
         }).catch((error: any) => {
-            showErrorToast(error)
+            setIsError(true)
         })
     }
 
@@ -109,6 +114,7 @@ const ResetTransfer = (props: any) => {
             })
         }catch (error) {
             console.log(error)
+            showErrorToast("failed")
         }
     }
 
@@ -122,7 +128,7 @@ const ResetTransfer = (props: any) => {
             {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>
                 <span>Send a verify email</span>
             </div>}
-            {step === 1 && <div style={{marginTop: "20px"}}><InputPassword onSend={handleSendEmail} onVerify={handleVerify} needTimer={false} timer={timer}/></div>}
+            {step === 1 && <div style={{marginTop: "20px"}}><InputPassword isError={isError} setIsError={setIsError} onSend={handleSendEmail} onVerify={handleVerify} needTimer={false} timer={timer}/></div>}
             {step === 2 && <div style={{marginTop: "20px"}}>
                 <TransferPassword onSubmit={handleCallBack} />
                 <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button>Confirm</Button></div>

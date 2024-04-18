@@ -18,3 +18,10 @@ export const msToTime = (duration) => {
 
     return hours + "h:" + minutes + "min:" + seconds + "s";
 }
+
+export const formatAmount = (inputAmount) => {
+    const parts = inputAmount.split('.');
+    const integerPart = parts[0];
+    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.length === 1 ? formattedIntegerPart : formattedIntegerPart + '.' + parts[1];
+};

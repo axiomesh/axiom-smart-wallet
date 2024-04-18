@@ -50,7 +50,7 @@ const SetPayPasswordModal = (props: Props) => {
     }
 
     const handleSubmit = async (e: string) => {
-        const token = sessionStorage.getItem("token");
+        const token = sha256(password);
         const salt = generateRandomBytes(16);
         try {
             const secretKey = await deriveAES256GCMSecretKey(token, userInfo.user_salt);

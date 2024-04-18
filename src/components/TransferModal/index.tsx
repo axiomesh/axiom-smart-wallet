@@ -11,6 +11,7 @@ import {
 import ModalInputPassword from '@/components/ModalInputPassword';
 import useContinueButton from "@/hooks/ContinueButton";
 import {history} from "umi";
+import Toast from "@/hooks/Toast"
 interface transferProps {
     send: string;
     to: string;
@@ -25,7 +26,9 @@ const TransferModal = (props: any) => {
     const [isFree, setIsFree] = useState<Boolean>(false);
     const [info, setInfo] = useState<transferProps>();
     const [error, setError] = useState<string>('');
+    const [time, setTime] = useState<number>(30);
     const {Button} = useContinueButton();
+    const {showErrorToast} = Toast();
 
     useEffect(() => {
         const sessionKey = sessionStorage.getItem('sessionKey');
@@ -36,16 +39,31 @@ const TransferModal = (props: any) => {
     },[])
 
     useEffect(() => {
+        setIsOpen(props.open)
+        setTime(30)
+        if(props.open) {
+            let t = setInterval(countDown, 1000);
+            let i = 30
+            function countDown() {
+                setTime(i)
+                if (i === 0){
+                    clearInterval(t);
+                    showErrorToast("Password verification timeout");
+                    props.onClose();
+                }
+                i--;
+            }
+            return () => clearInterval(t);
+        }
+    },[props.open])
+
+    useEffect(() => {
         setError(props.errorMsg)
     }, [props.errorMsg])
 
     useEffect(() => {
         setInfo(props.info)
     },[props.info])
-
-    useEffect(() => {
-        setIsOpen(props.open)
-    },[props.open])
 
     const onClose = () => {
         props.onClose()
@@ -66,7 +84,7 @@ const TransferModal = (props: any) => {
                 <ModalOverlay />
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
-                        Transfer
+                        <div>Transfer <span className={styles.transferTitleTime}>（{time}s）</span></div>
                         <i className={styles.transferClose} onClick={onClose}></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">

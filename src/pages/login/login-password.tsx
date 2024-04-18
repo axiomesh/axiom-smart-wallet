@@ -42,7 +42,6 @@ export default function LoginPassword() {
                 // login_password: password,
             })
             setToken(res);
-            sessionStorage.setItem('token', sha256(password));
             history.replace('/home');
         } catch (e){
             // @ts-ignore

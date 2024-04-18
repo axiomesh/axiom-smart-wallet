@@ -10,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 import ModalInputPassword from "@/components/ModalInputPassword";
 import {history} from "umi";
+import Toast from "@/hooks/Toast"
 
 interface Props {
     isOpen: boolean;
@@ -23,6 +24,7 @@ const VerifyTransferModal = (props: Props) => {
     const [open, setOpen] = useState(false);
     const [time, setTime] = useState<number>(30);
     const [error, setError] = useState('');
+    const {showErrorToast} = Toast();
 
     useEffect(() => {
     }, [])
@@ -34,17 +36,20 @@ const VerifyTransferModal = (props: Props) => {
     useEffect(() => {
         setTime(30)
         setOpen(props.isOpen)
-        let t = setInterval(countDown, 1000);
-        let i = 30
-        function countDown() {
-            setTime(i)
-            if (i === 0){
-                clearInterval(t);
-                props.onClose();
+        if(props.isOpen) {
+            let t = setInterval(countDown, 1000);
+            let i = 30
+            function countDown() {
+                setTime(i)
+                if (i === 0){
+                    clearInterval(t);
+                    showErrorToast("Password verification timeout");
+                    props.onClose();
+                }
+                i--;
             }
-            i--;
+            return () => clearInterval(t);
         }
-        return () => clearInterval(t);
     },[props.isOpen])
 
     const toReset = () => {

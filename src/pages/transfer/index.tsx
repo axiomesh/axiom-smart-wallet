@@ -17,12 +17,12 @@ import {connect, history} from "umi";
 import {transaction, passwordTimes, wrongPassword, transferLockTime} from "@/services/transfer";
 import {getTickerPrice} from "@/services/login";
 import {getMail} from "@/utils/help";
-import {ERC20_ABI, AxiomAccount, generateSigner} from "axiom-smart-account-test";
+import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt} from "axiom-smart-account-test";
 import {ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 import TransferResultModal from "@/components/TransferResultModal";
-import {msToTime} from "@/utils/utils";
+import {msToTime, formatAmount, generateRandomBytes} from "@/utils/utils";
 
 interface token {
     value: string;
@@ -126,7 +126,8 @@ const Transfer = (props: any) => {
     const [valueError, setValueError] = useState("");
     const [resultStatus, setResultStatus] = useState("");
     const [resultName, setResultName] = useState("");
-    const [form, setForm] = useState<FormProps>({chain: options[1], to: "", value: "", send: ""});
+    const [form, setForm] = useState<FormProps>({chain: options[1], to: "", value: "", send: null});
+    const [sessionForm, setSessionForm] = useState<FormProps>();
     const {showSuccessToast, showErrorToast} = Toast();
     const [gasFee, setGasFee] = useState("");
     const [passwordError, setPasswordError] = useState("");
@@ -181,24 +182,72 @@ const Transfer = (props: any) => {
     };
 
     useEffect(() => {
-        handleLockTimes()
-        handleTokenOption("Axiomesh")
+        handleLockTimes();
+        const formInfo = sessionStorage.getItem("form");
+        let formParse;
+        if(formInfo) {
+            formParse = JSON.parse(formInfo);
+            handleTokenOption(formParse.chain.label)
+            setSessionForm(formParse)
+        }else {
+            handleTokenOption("Axiomesh");
+        }
         return () => {
-            clearInterval(timer)
+            clearInterval(timer);
         };
     },[])
 
     useEffect(() => {
-        if(form.value) {
+        if(sessionForm) {
+            let newForm: FormProps = {chain: null, to: "", send: null, value: ""};
+            const chainFilter = options.filter(item => item.label === sessionForm.chain.label);
+            newForm.chain = chainFilter[0];
+            if(sessionForm.send){
+                const sendFilter = tokenList.filter(item => item.symbol === sessionForm.send.symbol);
+                newForm.send = sendFilter[0];
+                setIsChangeSend(true)
+                initBalance(newForm.send.value).then((balance: any) => {
+                    setBalance(formatAmount(balance.toString()))
+                });
+            }
+            if(sessionForm.value) {
+                newForm.value = sessionForm.value
+                getGas(sessionForm.value).then((res: any) => {
+                    setGasFee(res);
+                    if((Number(res) + Number(form.value)) > Number(balance)) {
+                        setValueError("Gas fee is insufficient");
+                    }
+                })
+            }
+            sessionForm.to && (newForm.to = sessionForm.to);
+            setForm(newForm)
+        }
+    }, [sessionForm])
+
+    useEffect(() => {
+        return () => {
+            if(form.value)
+            sessionStorage.setItem("form", JSON.stringify(form))
+        }
+    }, [form])
+
+    const handleValueBlur = () => {
+        if(form.value && Number(form.value) > 0) {
+            setValueError("");
             getGas(form.value).then((res: any) => {
                 setGasFee(res);
+                if((Number(res) + Number(form.value)) > Number(balance)) {
+                    setValueError("Gas fee is insufficient");
+                }
             })
+        }else {
+            setValueError("Invalid balance");
         }
-    },[form.value])
+    }
 
     const getGas = async (amount: string) => {
         const signer = generateSigner();
-        const value = ethers.utils.parseUnits(amount, form.send.decimals);
+        let value = ethers.utils.parseUnits(amount, form.send.decimals);
         const axiom = await AxiomAccount.voidSmartAccout();
         let calldata = "0x";
         let targetAddress = signer.address;
@@ -210,6 +259,7 @@ const Transfer = (props: any) => {
             targetAddress = form.send.contract;
             payMaster = window.PAYMASTER;
             erc20Address = form.send.contract;
+            value = 0;
         }
         const res = await axiom.estimateUserOperationGas(
             targetAddress,
@@ -218,7 +268,22 @@ const Transfer = (props: any) => {
             payMaster,
             erc20Address
         );
-        return ethers.utils.formatEther(res);
+        const axcGas = ethers.utils.formatEther(res);
+        if(form.send.value === "AXC") {
+            return axcGas;
+        }else {
+            const priceList = await getTickerPrice();
+            let price: number, axcPrice: number;
+            priceList.map((item:any) => {
+                if(item.symbol.toLowerCase() === form.send.symbol.toLowerCase()) {
+                    price = item.price;
+                }
+                if(item.symbol === "AXCUSD") {
+                    axcPrice = item.price;
+                }
+            })
+            return (axcPrice / price) * axcGas;
+        }
     }
 
     const getSymbol = async (erc20:any, currentProvider:any) => {
@@ -281,11 +346,15 @@ const Transfer = (props: any) => {
                 setSendError("Please Select a token");
                 return;
             }
-            if(!form.value){
+            if(!form.value || Number(form.value) <= 0){
                 setValueError("Invalid balance");
                 return;
             }
             const gas = await getGas(form.value);
+            if((Number(gas) + Number(form.value)) > Number(balance)) {
+                setValueError("Gas fee is insufficient");
+                return;
+            }
             const priceList = await getTickerPrice();
             let price: number;
             priceList.map((item: any) => {
@@ -293,7 +362,6 @@ const Transfer = (props: any) => {
                     price = item.price * gas;
                 }
             })
-            console.log(price)
             setTransferInfo({
                 send: form.send.value,
                 to: form.to,
@@ -319,14 +387,17 @@ const Transfer = (props: any) => {
         }
     }
 
-    const handleFromChange = (e: any) => {
-        setForm({...form, chain: e})
+    const handleFromChange = async (e: any) => {
+        setForm({...form, chain: e, send: null})
+        setIsChangeSend(false)
         handleTokenOption(e.label)
     }
 
     const handleSendChange = async (e: any) => {
-        setForm({...form, send: e})
-        setBalance(await initBalance(e.value))
+        setGasFee("")
+        setForm({...form, send: e, value: ""})
+        const balance = await initBalance(e.value);
+        setBalance(formatAmount(balance.toString()))
         setSendError("")
         setIsChangeSend(true)
     }
@@ -342,6 +413,16 @@ const Transfer = (props: any) => {
 
     const handleMax = async () => {
         const gas = await getGas(balance.toString());
+        setGasFee(gas)
+        // console.log(gas, "gas")
+        // const gasNumber = ethers.utils.parseUnits(gas.toString(), 18);
+        // console.log(gasNumber)
+        // const balanceNumber = ethers.utils.parseUnits(balance.toString(), 18);
+        // console.log(balanceNumber)
+        // const maxNumber = balanceNumber.sub(gasNumber);
+        // const max = ethers.utils.formatUnits(maxNumber, 18);
+        // console.log(maxNumber)
+        // console.log(max)
         const max = balance - gas;
         setForm({ ...form, value: max.toString() })
     }
@@ -352,20 +433,24 @@ const Transfer = (props: any) => {
 
     const handleSubmit = async (password: string) => {
         const value = ethers.utils.parseUnits(form.value, form.send.decimals);
-        const sessionKey = sessionStorage.getItem("sessionKey");
-        const key = sessionStorage.getItem("key");
+        const sessionKey = sessionStorage.getItem("sk");
         const freeLimit = sessionStorage.getItem("freeLimit");
+        const limit = freeLimit ? ethers.utils.parseUnits(freeLimit, 18) : "";
+        const ow = sessionStorage.getItem("ow");
         let axiom: any;
         try {
-            axiom = (sessionKey || freeLimit) ? await AxiomAccount.fromEncryptedKey(key, userInfo.transfer_salt, userInfo.enc_private_key) : await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key);
+            axiom = sessionKey ? await AxiomAccount.voidSmartAccout(ow) : await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key);
         }catch (e: any) {
             const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
             if(string.search(expr) > 0 || string.search(expr2) > 0) {
                 await wrongPassword({email});
                 const times = await passwordTimes({email})
-                console.log(times)
                 if(times > 0) {
-                    setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                    if(times < 4) {
+                        setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                    }else {
+                        setPasswordError(`Invalid password`)
+                    }
                 }else {
                     setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow !")
                 }
@@ -379,41 +464,60 @@ const Transfer = (props: any) => {
         const sessionSigner = generateSigner();
         setTransferOpen(false);
         setResultOpen(true);
-        setResultStatus("loading")
+        setResultStatus("loading");
         try {
             let ev: any;
-            if(sessionKey) {
-                const key = sessionStorage.getItem("sessionKey");
-                const signer = new Wallet(key);
-                axiom.updateSigner(signer)
+            const userop = sessionStorage.getItem("op")
+            console.log(userop)
+            if(sessionKey && userop === undefined) {
+                const skPassword = sessionStorage.getItem("a");
+                const salt = sessionStorage.getItem("b");
+                const secretKey = await deriveAES256GCMSecretKey(skPassword, salt);
+                console.log(skPassword,salt)
+                const decryptKey = decrypt(sessionKey, secretKey.toString())
+                const signer = new Wallet(decryptKey);
+                await axiom.updateSigner(signer)
             }
             if(form.send.value === "AXC") {
-                if(!sessionKey && freeLimit) {
-                    const session = await axiom.setSession(
-                        sessionSigner,
-                        value,
-                        validAfter,
-                        validUntil,
-                        "",
-                        "",
-                        {}
-                    );
-                    const signer = new Wallet(sessionSigner.privateKey);
-                    axiom.updateSigner(signer)
-                    sessionStorage.setItem("sessionKey", sessionSigner.privateKey);
+                if(userop) {
+                    const skPassword = sessionStorage.getItem("a");
+                    const salt = sessionStorage.getItem("b");
+                    const secretKey = await deriveAES256GCMSecretKey(skPassword, salt);
+                    console.log(skPassword,salt)
+                    const decryptKey = decrypt(sessionKey, secretKey.toString())
+                    console.log(userop)
+                    const sessionResult = await axiom.sendSetSession(JSON.parse(userop));
+                    console.log(sessionResult)
+                    if(sessionResult){
+                        console.log(decryptKey, "decryptKey")
+                        const signer = new Wallet(decryptKey);
+                        console.log(signer)
+                        axiom.updateSigner(signer).then(() => {
+                            console.log(11111)
+                            sessionStorage.removeItem("op")
+                        }).catch((err:any) => {
+                            console.log(err)
+                        });
+                    }else {
+                        setResultStatus("failed");
+                        return;
+                    }
                 }
-                const callData = "0x"
+                console.log(axiom)
+                const callData = "0x";
                 const res = await axiom.sendUserOperation(form.to, value, callData, "", "", {
                     onBuild: (op) => {
                         console.log("Signed UserOperation:", op);
                     }
                 })
+                console.log(res)
                 ev = await res.wait();
+                console.log(ev)
             }else {
                 if(!sessionKey && freeLimit) {
                     await axiom.setSession(
                         sessionSigner,
-                        value,
+                        limit,
                         validAfter,
                         validUntil,
                         window.PAYMASTER,
@@ -422,7 +526,7 @@ const Transfer = (props: any) => {
                     );
                     const signer = new Wallet(sessionSigner.privateKey);
                     axiom.updateSigner(signer)
-                    sessionStorage.setItem("sessionKey", sessionSigner.privateKey);
+                    sessionStorage.setItem("sk", sessionSigner.privateKey);
                 }
                 // @ts-ignore
                 const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
@@ -457,6 +561,7 @@ const Transfer = (props: any) => {
                         }
                     })
                     ev = await res.wait();
+                    console.log(ev)
                 }
             }
 
@@ -470,9 +575,9 @@ const Transfer = (props: any) => {
             })
             setResultName(form.send.value)
             setResultStatus("success")
-            setTimeout(() => {
-                window.location.reload()
-            },3000)
+            // setTimeout(() => {
+            //     window.location.reload()
+            // },3000)
         }catch (e) {
             setResultStatus("failed")
             console.log(e)
@@ -506,7 +611,8 @@ const Transfer = (props: any) => {
                         {/*<FormErrorMessage>{form.errors.name}</FormErrorMessage>*/}
                     </FormControl>
                     <div className={styles.formSend}>
-                        <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}} isInvalid={sendError !== ""}>
+                        <FormControl className={styles.formControl} style={{width: isChangeSend ? "auto" : "100%"}}
+                                      isInvalid={sendError !== ""}>
                             <FormLabel className={styles.formTitle}>Send</FormLabel>
                             <Select
                                 value={form.send}
@@ -514,7 +620,7 @@ const Transfer = (props: any) => {
                                 isDisabled={!isSetPassword}
                                 styles={customStyles(!isChangeSend)}
                                 placeholder="Select a token"
-                                components={{ Option: customOption, ValueContainer: customSingleValue }}
+                                components={{Option: customOption, ValueContainer: customSingleValue}}
                                 onChange={handleSendChange}
                             />
                             <FormErrorMessage>{sendError}</FormErrorMessage>
@@ -524,6 +630,7 @@ const Transfer = (props: any) => {
                                 <FormLabel className={styles.formTitle}></FormLabel>
                                 <InputGroup>
                                     <Input
+                                        type={"number"}
                                         value={form.value}
                                         isDisabled={!isSetPassword}
                                         fontSize="14px"
@@ -540,17 +647,16 @@ const Transfer = (props: any) => {
                                             color: "#A0AEC0"
                                         }}
                                         onChange={handleValueChange}
+                                        onBlur={handleValueBlur}
                                     />
                                     <InputRightElement style={{top: "10px", right: "20px"}}>
                                         <div className={styles.formMax} onClick={handleMax}>MAX</div>
                                     </InputRightElement>
                                 </InputGroup>
-                                {valueError === "" &&
-                                    <div>
-                                        {gasFee && <span className={styles.formGas}>Gas fee: {gasFee} {form.send.value}</span>}
-                                        <span className={styles.formBalance}>Balance:{balance}</span>
-                                    </div>
-                                }
+                                <div>
+                                    {(gasFee && valueError === "") && <span className={styles.formGas}>Gas fee &asymp; {gasFee} {form.send.value}</span>}
+                                    <span className={styles.formBalance}>Balance:{balance}</span>
+                                </div>
                                 <FormErrorMessage style={{position: "absolute"}}>{valueError}</FormErrorMessage>
                             </FormControl>}
                     </div>
@@ -583,7 +689,7 @@ const Transfer = (props: any) => {
                 </div>
                 <TransferModal open={transferOpen} onSubmit={handleSubmit} onClose={() => {setTransferOpen(false)}} info={transferInfo} errorMsg={passwordError} />
                 <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
-                <TransferResultModal isOpen={resultOpen} onClose={() => {setResultOpen(false);window.location.reload();}} status={resultStatus} name={resultName} />
+                <TransferResultModal isOpen={resultOpen} onClose={() => {setResultOpen(false);}} status={resultStatus} name={resultName} />
             </div>
         </>
     )
