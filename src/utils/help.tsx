@@ -32,7 +32,7 @@ export const changePrice = (num = 0, needSymbol = true) => {
         if(strList.length > 1) {
             if(strList[1].length > 2){
                 const strNum = strList[1].substring(0, 2)
-                return <Tooltip hasArrow label={num} bg='#000' color='#fff' placement="top">
+                return <Tooltip hasArrow label={num} bg='#171923' color='#fff' placement="top">
                     {/*@ts-ignore*/}
                     {`${needSymbol ? window.symbol : ''}${formatNumberWithCommas(strList[0])}.${strNum}`}
                 </Tooltip>
@@ -46,7 +46,7 @@ export const changePrice = (num = 0, needSymbol = true) => {
         if(strList.length > 1){
             if(strList[1].length > 5) {
                 const strNum = strList[1].substring(0, 5)
-                return  <Tooltip hasArrow label={num} bg='#000' color='#fff' placement="top">
+                return  <Tooltip hasArrow label={num} bg='#171923' color='#fff' placement="top">
                     {/*@ts-ignore*/}
                     { `${needSymbol ? window.symbol : ''} ${formatNumberWithCommas(strList[0])}.${strNum}`}
                 </Tooltip>

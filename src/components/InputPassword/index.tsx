@@ -26,17 +26,35 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
             const newValue = [...value];
             // @ts-ignore
             if(e.target.value === '-' || e.target.value === '' || index === 5){
-                if(index){
-                    newValue[index] = '-';
-                    newValue[index - 1] = '';
-                } else {
-                    newValue[index] = '';
-                }
-                setValue(newValue);
-                // @ts-ignore
-                const prevInput = e.target.previousElementSibling;
-                if (prevInput && index > 0) {
-                    prevInput.focus();
+                if(index === 5){
+                    if(e.target.value === '-' || e.target.value === ''){
+                        newValue[index] = '-';
+                        newValue[index - 1] = '';
+                        setValue(newValue);
+                        // @ts-ignore
+                        const prevInput = e.target.previousElementSibling;
+                        if (prevInput && index > 0) {
+                            prevInput.focus();
+                        }
+                    } else {
+                        newValue[index] = '-';
+                        setValue(newValue);
+                    }
+
+                    // e.target.focus();
+                }else {
+                    if(index){
+                        newValue[index] = '-';
+                        newValue[index - 1] = '';
+                    } else {
+                        newValue[index] = '';
+                    }
+                    setValue(newValue);
+                    // @ts-ignore
+                    const prevInput = e.target.previousElementSibling;
+                    if (prevInput && index > 0) {
+                        prevInput.focus();
+                    }
                 }
             } else {
                 newValue[index] = '';
@@ -53,7 +71,6 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
             if(index < 5){
                 newValue[index + 1] = '';
             } else {
-                console.log(newValue);
                 onVerify(newValue.join(''));
             }
             setValue(newValue);
@@ -117,6 +134,10 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
         }
     }
 
+    const handleIsReadOnly = (index: number) => {
+       return index !== activeIndex && ((value[index]==='-') || (value[index]===''))
+    }
+
 
     return (
         <div className={styles.container}>
@@ -126,12 +147,12 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
                         <input
                             type={type}
                             id={`passwordInput${index}`}
-                            className={loading ? styles.disabledInput : isError ? styles.errorInput : index !== activeIndex && (getValue(index)==='-') ? styles.readonlyInput : styles.pinInput}
+                            className={loading ? styles.disabledInput : isError ? styles.errorInput : handleIsReadOnly(index) ? styles.readonlyInput : styles.pinInput}
                             // className={index < isReadOnly.length ? styles.pinInput : styles.readonlyInput}
                             key={index}
                             maxLength={1}
-                            readOnly={index !== activeIndex && (value[index]==='-')}
-                            value={getValue(index)}
+                            readOnly={handleIsReadOnly(index)}
+                            value={handleIsReadOnly(index) ? '-' : getValue(index)}
                             onKeyDown={(e) => handleOnKeyDown(e,index)}
                             onPaste={(e) => handlePaste(e,index)}
                             onContextMenu={(e) => e.preventDefault()}
