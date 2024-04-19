@@ -53,7 +53,6 @@ const Security = (props: any) => {
     const handleClickItem = async (i: number) => {
         if(i === 0){
             try{
-                await lockPage(email)
                 history.push('/security/reset-unlock-password')
             } catch (e){
                 // @ts-ignore

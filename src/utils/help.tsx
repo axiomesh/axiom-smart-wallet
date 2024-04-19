@@ -1,4 +1,5 @@
 import { generateFromString } from 'generate-avatar';
+import { Tooltip } from "@chakra-ui/react";
 
 export const getImgFromHash = (hash = "") => `data:image/svg+xml;utf8,${generateFromString(hash)}`;
 export const getQueryParam = (param: string) => {
@@ -18,28 +19,44 @@ export const toThousands = (num = 0, needSymbol = false) => {
     return `${needSymbol ? window.symbol : ''}${(Number(strList[0])).toLocaleString('en-us')}`;
 }
 
+const formatNumberWithCommas = (number: string) => {
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 export const changePrice = (num = 0, needSymbol = true) => {
     const str = num ? String(num) : '0';
     const strList = str.split('.')
     // @ts-ignore
     if(num === 0) return `${needSymbol ? window.symbol : ''}0`;
-    if(num > 100){
+    if(num > 1){
         if(strList.length > 1) {
+            if(strList[1].length > 2){
+                const strNum = strList[1].substring(0, 2)
+                return <Tooltip hasArrow label={num} bg='#000' color='#fff' placement="top">
+                    {/*@ts-ignore*/}
+                    {`${needSymbol ? window.symbol : ''}${formatNumberWithCommas(strList[0])}.${strNum}`}
+                </Tooltip>
+            }
             // @ts-ignore
-            return `${needSymbol ? window.symbol : ''}${(num.toFixed(2)).toLocaleString('en-us')}`
+            return `${needSymbol ? window.symbol : ''}${formatNumberWithCommas(strList[0])}.${strList[1]}`
         }
         // @ts-ignore
-        return `${needSymbol ? window.symbol : ''}${(num.toFixed(2)).toLocaleString('en-us')}`;
+        return `${needSymbol ? window.symbol : ''}${formatNumberWithCommas(str)}`;
     } else {
         if(strList.length > 1){
+            if(strList[1].length > 5) {
+                const strNum = strList[1].substring(0, 5)
+                return  <Tooltip hasArrow label={num} bg='#000' color='#fff' placement="top">
+                    {/*@ts-ignore*/}
+                    { `${needSymbol ? window.symbol : ''} ${formatNumberWithCommas(strList[0])}.${strNum}`}
+                </Tooltip>
+            }
             // @ts-ignore
-            if(strList[1].length > 8) return `${needSymbol ? window.symbol : ''}${(num.toFixed(8)).toLocaleString('en-us')}`
-            // @ts-ignore
-           return `${needSymbol ? window.symbol : ''}${(Number(strList[0])).toLocaleString('en-us')}.${strList[1]}`
+           return `${needSymbol ? window.symbol : ''} ${formatNumberWithCommas(strList[0])}.${strList[1]}`
 
         } else {
             // @ts-ignore
-            return `${needSymbol ? window.symbol : ''}${(Number(strList[0])).toLocaleString('en-us')}`
+            return `${needSymbol ? window.symbol : ''}${formatNumberWithCommas(strList[0])}`
         }
     }
 

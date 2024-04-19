@@ -6,7 +6,7 @@ import styles from './index.less';
 import {currencyList, selectCurrencyList} from './config';
 import { SelectDownIcon } from '@/components/Icons';
 import TokenList from './componment/tokenList';
-import {changePrice, getImgFromHash, toThousands} from "@/utils/help";
+import {changePrice, getImgFromHash} from "@/utils/help";
 import {getTickerPrice} from "@/services/login";
 import { ethers } from "ethers";
 // @ts-ignore
@@ -120,7 +120,7 @@ const Home = (props:any) => {
     useEffect(() => {
         // if(priceList && priceList.length){
             const list = selectCurrencyList[activeKey];
-            const newList = [...list].map(item => {
+            const newList = [...list].map( (item, index) => {
                 const priceDataItem: Item = priceList.filter(li => li.symbol?.toLowerCase() === item.symbol.toLowerCase())[0];
                 return  {
                     ...item,
