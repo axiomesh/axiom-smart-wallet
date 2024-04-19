@@ -27,6 +27,7 @@ const InputPassword = (props:{ type: string, loading: boolean, timer?: string, i
             // @ts-ignore
             if(e.target.value === '-' || e.target.value === '' || index === 5){
                 if(index === 5){
+                    // @ts-ignore
                     if(e.target.value === '-' || e.target.value === ''){
                         newValue[index] = '-';
                         newValue[index - 1] = '';

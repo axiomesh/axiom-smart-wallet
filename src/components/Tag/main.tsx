@@ -19,7 +19,7 @@ export default function MainTag(props: any) {
                 borderColor={borderColor}
                 _hover={{ bg: rest.onClick && (text || text === 0) ? hoverBgColor : "" }}
                 _active={{ bg:  rest.onClick && (text || text === 0) ? activeColor : "" }}
-                {...rest }
+                {...rest}
             >
                 {icon ? <Box lineHeight="16px" mr="8px">{icon}</Box> : null}
                 <Tooltip hasArrow label={fullData} fontSize="14px" borderRadius="4px" bg='gray.900' color='#FFFFFF' placement="top">

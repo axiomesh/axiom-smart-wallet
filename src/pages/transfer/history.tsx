@@ -143,7 +143,7 @@ const TransferHistory = () => {
                                                 <Copy text={item.url ? item.url : item.to_address} />
                                             </Flex>
                                         </Td>
-                                        <Td>{dayjs(item.transaction_time).utc().format('llll')}</Td>
+                                        <Td>{dayjs(item.transaction_time).format('llll')}</Td>
                                         <Td>{statusList[item.transaction_status]}</Td>
                                     </Tr>) : <Tr>
                                         <Td colSpan={5} border="0">
