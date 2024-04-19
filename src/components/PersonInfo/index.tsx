@@ -39,7 +39,6 @@ const PersonInfo = (props: any) => {
     }, []);
 
     useEffect(() => {
-        console.log('side')
         document.addEventListener('click', handleClickOutside);
         return () => {
             document.removeEventListener('click', handleClickOutside);

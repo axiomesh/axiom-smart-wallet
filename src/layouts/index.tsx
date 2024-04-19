@@ -17,14 +17,16 @@ export default function Layout() {
 
     useEffect(() => {
         // @ts-ignore
-        if(!window.SockJS || !location?.pathname || location?.pathname ==='/' ){
+        if(!window.SockJS){
             return
         }
         // @ts-ignore
         const socket_js = new window.SockJS(window.socketUrl)
         // @ts-ignore
         let stompClient = window.Stomp.over(socket_js);
-
+        if(stompClient && stompClient.connected){
+            stompClient.disconnect();
+        }
         if(stompClient){
             stompClient.connect({}, function(frame: any) {
                 stompClient.subscribe(`/topic/logout/${email}`, async function(message: any) {

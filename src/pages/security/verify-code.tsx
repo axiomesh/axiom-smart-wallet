@@ -60,8 +60,6 @@ export default function SecurityVerifyCode() {
             history.replace(`/security/update-reset-password`)
         } catch (e) {
             setIsError(true)
-            // @ts-ignore
-            showErrorToast(e)
         } finally {
             setLoading(false)
         }
