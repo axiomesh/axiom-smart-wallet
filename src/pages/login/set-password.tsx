@@ -160,7 +160,7 @@ export default function SetPassword() {
         if(e.target.value === ""){
             setErrorText('Please enter a repeat password')
         }else if(e.target.value !== password){
-            setErrorText('Password do not match')
+            setErrorText('Passwords do not match')
         } else {
             setErrorText('');
         }
@@ -172,7 +172,7 @@ export default function SetPassword() {
             setNewErrorText('Please enter a new password')
         } else if(rePassword !== ''){
             if(e.target.value !== rePassword){
-                setErrorText('Password do not match')
+                setErrorText('Passwords do not match')
             } else {
                 setErrorText('');
             }
