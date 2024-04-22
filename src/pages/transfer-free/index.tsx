@@ -9,6 +9,13 @@ import {
     InputRightElement,
     FormControl,
     FormErrorMessage,
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    PopoverBody,
+    PopoverArrow,
+    PopoverCloseButton,
+    PopoverAnchor,
 } from '@chakra-ui/react'
 import { switchTheme } from "./theme"
 import { extendTheme } from '@chakra-ui/react'
@@ -23,7 +30,8 @@ import Toast from "@/hooks/Toast";
 import {passwordTimes, transferLockTime, wrongPassword} from "@/services/transfer";
 import {getMail} from "@/utils/help";
 import {generateRandomBytes} from "@/utils/utils";
-import {ethers} from "ethers";
+import {ethers, Wallet} from "ethers";
+import useCancelModal from "@/hooks/CancelModal";
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -36,18 +44,26 @@ const TransferFree = (props: any) => {
     const [isOpen, setIsOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [maxNumber, setMaxNumber] = useState(5000);
-    const [value, setValue] = useState<string>("");
+    const [value, setValue] = useState<string | null>("");
     const [msg, setMsg] = useState<string>("");
-    const [sessionKey, setSessionKey] = useState<string>("");
-    const [freeLimit, setFreeLimit] = useState<string>("");
+    const [sessionKey, setSessionKey] = useState<string | null>("");
+    const [freeLimit, setFreeLimit] = useState<string | null>("");
     const {showSuccessToast, showErrorToast} = Toast();
     const [info, setInfo] = useState<any>({});
     const [isLock, setIsLock] = useState(false);
-    const [oldLimit, setOldLimit] = useState<string>("");
+    const [oldLimit, setOldLimit] = useState<string | null>("");
+    const [btnLoading, setBtnLoading] = useState(false);
+    const [freeStep, setFreeStep] = useState<string | null>("");
+    const [isDisabled, setIsDisabled] = useState<boolean>(false);
+    const [isUpdate, setIsUpdate] = useState<boolean>(false);
 
     const { Button } = ContinueButton();
+    const [ModalComponent, openModal, closeModal] = useCancelModal();
 
     useEffect(() => {
+        if(sessionStorage.getItem("sr")) {
+            setFreeStep(sessionStorage.getItem("sr"))
+        }
         if(sessionStorage.getItem("sk")) {
             setSessionKey(sessionStorage.getItem("sk"))
             setIsSwitch(true)
@@ -72,17 +88,37 @@ const TransferFree = (props: any) => {
         setInfo(userInfo)
     }, [userInfo])
 
+    useEffect(() => {
+        if(freeStep === "0") {
+            setIsDisabled(true);
+        }else {
+            setIsDisabled(false);
+        }
+    }, [freeStep])
+
+    useEffect(() => {
+        if(oldLimit) {
+            oldLimit === value ? setIsDisabled(true) : setIsDisabled(false)
+        }
+    }, [value])
+
     const handleChange = (e: any) => {
         setIsSwitch(e.target.checked)
         if(!e.target.checked) {
             setSessionKey("");
             setFreeLimit("");
+            setFreeStep("");
             setValue("");
+            setOldLimit("");
             sessionStorage.removeItem("sk");
             sessionStorage.removeItem("a");
             sessionStorage.removeItem("b");
             sessionStorage.removeItem("op");
             sessionStorage.removeItem("freeLimit");
+            sessionStorage.removeItem("sr");
+            sessionStorage.removeItem("validAfter");
+            sessionStorage.removeItem("validUntil");
+            sessionStorage.removeItem("ow");
         }
     }
 
@@ -92,24 +128,25 @@ const TransferFree = (props: any) => {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (password: any) => {
         let axiom:any;
         try {
-            axiom = await AxiomAccount.fromEncryptedKey(sha256(e), info.transfer_salt, info.enc_private_key);
+            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key);
             setFreeLimit(value)
-        }catch (e) {
+        }catch (e: any) {
+            setBtnLoading(false);
             const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
             if(string.search(expr) > 0 || string.search(expr2) > 0) {
                 await wrongPassword({email});
                 const times = await passwordTimes({email})
                 if(times > 0) {
                     if(times < 4) {
-                        setMsg(`Invalid password ，only ${times} attempts are allowed today!`)
+                        setMsg(`Invalid password , only ${times} attempts are allowed today!`)
                     }else {
                         setMsg(`Invalid password`)
                     }
                 }else {
-                    setMsg("Invalid password ，your account is currently locked. Please try again tomorrow !")
+                    setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
                 }
             }
             return;
@@ -122,39 +159,47 @@ const TransferFree = (props: any) => {
         const validAfter = Math.round(Date.now() / 1000);
         const validUntil = currentDate.getTime();
         const sessionSigner = generateSigner();
-        const sessionResult = await axiom.setSession(
-            sessionSigner,
-            limit,
-            validAfter,
-            validUntil,
-            "",
-            ""
-        );
-        console.log(skPassword, 'skPassword')
-        console.log(sha256(skPassword), salt, 'sha256(skPassword), salt')
-        sessionStorage.setItem("ow", axiom.getOwnerAddress())
+        setFreeStep("0")
+        const secretKey = await deriveAES256GCMSecretKey(sha256(skPassword), salt);
+        const encryptKey = encrypt(sessionSigner.privateKey, secretKey.toString());
+
+        sessionStorage.setItem("ow", axiom.getAddress())
         sessionStorage.setItem("a", sha256(skPassword));
         sessionStorage.setItem("b", salt);
-        sessionStorage.setItem("op", JSON.stringify(sessionResult));
-        const secretKey = await deriveAES256GCMSecretKey(sha256(skPassword), salt);
-        console.log(secretKey, sessionSigner.privateKey,'secretKey, sessionSigner.privateKey')
-        const encryptKey = encrypt(secretKey.toString(), sessionSigner.privateKey);
-        console.log(encryptKey,'encryptKey')
-        const decryptKey = decrypt(encryptKey, secretKey.toString());
-        console.log(decryptKey,'decryptKey')
+        sessionStorage.setItem("sr", "0");
         sessionStorage.setItem("sk", encryptKey);
-        sessionStorage.setItem("freeLimit", value);
+        sessionStorage.setItem("freeLimit", value ? value : "");
+        sessionStorage.setItem("validAfter", validAfter.toString());
+        sessionStorage.setItem("validUntil", validUntil.toString());
         showSuccessToast("Password-free transfer has been activated");
-        setIsOpen(false)
+        setIsOpen(false);
+        setBtnLoading(false);
+        if(sessionKey || freeLimit) {
+            setIsUpdate(true);
+        }
     }
 
     const handleConfirm = () => {
+        if(isDisabled) {
+            return;
+        }
         if(isLock) {
             showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
             return;
         }
-        setIsOpen(true)
+        if(freeStep === "0") {
+            return ;
+        }
+        if(!btnLoading) {
+            setBtnLoading(true);
+            openModal('Attention', handlePassword)
+        }
     }
+
+    const handlePassword = () => {
+        setIsOpen(true);
+        closeModal();
+    };
 
     const validate = (value: string) => {
         if (!value) {
@@ -177,7 +222,7 @@ const TransferFree = (props: any) => {
             <div className={styles.free}>
                 <Back onClick={() => {history.push('/security')}} />
                 <h1 className={styles.freeTitle}>Password-free transfer</h1>
-                <p className={styles.freeTip}>once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification on AXIOMESH .Other blockchains are coming soon!</p>
+                <p className={styles.freeTip}>Once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification on <i></i> Other blockchains are coming soon！</p>
                 <div className={styles.freeSwitch}>
                     <span>Password-free transfer switch </span>
                     <div><Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} /></div>
@@ -192,12 +237,12 @@ const TransferFree = (props: any) => {
                         <FormControl isInvalid={errorMessage !== ''}>
                             <InputGroup width="420px">
                                 <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px"
-                                                style={{border: errorMessage !== '' && "1px solid #E53E3E"}}>
+                                                style={{border: errorMessage !== '' ? "1px solid #E53E3E" : ""}}>
                                     <span className={styles.freeSettingCenterBefore}>HK$</span>
                                 </InputLeftAddon>
                                 <Input
                                     type='number'
-                                    value={value}
+                                    value={value?value:""}
                                     placeholder='100-5000'
                                     fontSize="14px"
                                     fontWeight="400"
@@ -210,27 +255,44 @@ const TransferFree = (props: any) => {
                                     _invalid={{
                                         border: "1px solid #E53E3E"
                                     }}
+                                    _disabled={{
+                                        color: "#A0AEC0",
+                                        backgroundColor: "#EDF2F7"
+                                    }}
                                     onBlur={handleBlur}
                                     onChange={(e: any) => {
                                         setValue(e.target.value)
                                     }}
+                                    disabled={freeStep === "0"}
                                 />
-                                <InputRightElement style={{top: "8px", right: "20px"}}>
+                                {
+                                    freeStep !== "0" && <InputRightElement style={{top: "8px", right: "20px"}}>
                                     <div className={styles.freeSettingCenterMax} onClick={() => {
                                         setValue("5000");
                                         setErrorMessage("");
                                     }}>MAX
                                     </div>
                                 </InputRightElement>
+                                }
                             </InputGroup>
                             <FormErrorMessage style={{marginLeft: "16px"}}>{errorMessage}</FormErrorMessage>
                         </FormControl>
                     </div>
                     <div className={styles.freeSettingBottom}>
-                        <Button disabled={oldLimit && (oldLimit === freeLimit)} onClick={handleConfirm}>{(sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>
+                        {freeStep !== "0" && <Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>}
+                        {freeStep === "0" && <div style={{position: "relative"}}><Popover trigger="hover" placement="top">
+                            <PopoverTrigger>
+                                <div><Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button></div>
+                            </PopoverTrigger>
+                            <PopoverContent style={{background: "#171923",color:"#fff",fontSize: "14px",boxShadow:"none"}}>
+                                <PopoverArrow bg="#171923" />
+                                <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after this transfer transaction.":"Password-free payment will be activated after this transfer transaction."}</PopoverBody>
+                            </PopoverContent>
+                        </Popover></div>}
                     </div>
                 </div>}
-                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} errorMsg={msg} />
+                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false)}} errorMsg={msg} />
+                <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
             </div>
         </ChakraProvider>
     )

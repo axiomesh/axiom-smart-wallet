@@ -18,7 +18,6 @@ import Prompt from "@/components/Prompt";
 let loadTimer:any = null;
 const ResetTransfer = (props: any) => {
     const {dispatch} = props;
-    const [isLock, setIsLock] = useState(false);
     const [step, setStep] = useState(0);
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
@@ -30,11 +29,11 @@ const ResetTransfer = (props: any) => {
     const { Button } = ContinueButton();
     const {showSuccessToast, showErrorToast} = Toast();
     const [toastMsg, setToastMsg] = useState("");
+    const [btnLoading, setBtnLoading] = useState(false);
 
     useEffect(() => {
         async function times() {
             const times = await transferLockTime({email});
-            console.log(times)
             if(times > 0) {
                 setToastMsg("The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.")
             }else {
@@ -46,8 +45,6 @@ const ResetTransfer = (props: any) => {
 
     useEffect(() => {
         setInfo(userInfo)
-        if(userInfo && userInfo.pay_password_set_status === 2)
-            setIsLock(true)
     },[userInfo])
 
     const runTimer = (cm = 120) => {
@@ -71,10 +68,16 @@ const ResetTransfer = (props: any) => {
     }
 
     const handleSendEmail = () => {
-        sendVerifyCode(email).then((res: any) => {
-            runTimer(Number((res / 1000).toFixed(0)))
-            setStep(1);
-        })
+        if(!btnLoading) {
+            setBtnLoading(true);
+            sendVerifyCode(email).then((res: any) => {
+                runTimer(Number((res / 1000).toFixed(0)))
+                setStep(1);
+                setBtnLoading(false);
+            }).catch((error: any) =>{
+                showErrorToast(error);
+            })
+        }
     }
 
     const handleVerify = (code: string) => {
@@ -91,30 +94,36 @@ const ResetTransfer = (props: any) => {
     }
 
     const handleSubmit = async () => {
-        const salt = generateRandomBytes(16);
-        const transferSalt = generateRandomBytes(16);
-        try {
-            const signer = generateSigner();
-            const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
-            const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
-            setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
-                const userRes = await getUserInfo(email);
-                if(userRes){
-                    dispatch({
-                        type: 'global/setUser',
-                        payload: userRes,
-                    })
-                }
-                setInfo(userRes);
-                showSuccessToast("Password reset successfully！");
-                setMessage("")
-                setStep(0)
-            }).catch((err: any) => {
-                showErrorToast(err)
-            })
-        }catch (error) {
-            console.log(error)
-            showErrorToast("failed")
+        if(!btnLoading) {
+            setBtnLoading(true);
+            const salt = generateRandomBytes(16);
+            const transferSalt = generateRandomBytes(16);
+            try {
+                const signer = generateSigner();
+                const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
+                const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
+                setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
+                    const userRes = await getUserInfo(email);
+                    if(userRes){
+                        dispatch({
+                            type: 'global/setUser',
+                            payload: userRes,
+                        })
+                    }
+                    setInfo(userRes);
+                    showSuccessToast("Password reset successfully！");
+                    setBtnLoading(false);
+                    setMessage("")
+                    setStep(0)
+                }).catch((err: any) => {
+                    setBtnLoading(false);
+                    showErrorToast(err)
+                })
+            }catch (error) {
+                console.log(error)
+                setBtnLoading(false);
+                showErrorToast("failed")
+            }
         }
     }
 
@@ -126,12 +135,12 @@ const ResetTransfer = (props: any) => {
             <h1>Reset Transfer Password</h1>
             <p className={styles.resetTip}>Please complete the email verification code first .</p>
             {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>
-                <span>Send a verify email</span>
+                <Button loading={btnLoading}>Send a verify email</Button>
             </div>}
             {step === 1 && <div style={{marginTop: "20px"}}><InputPassword isError={isError} setIsError={setIsError} onSend={handleSendEmail} onVerify={handleVerify} needTimer={false} timer={timer}/></div>}
             {step === 2 && <div style={{marginTop: "20px"}}>
                 <TransferPassword onSubmit={handleCallBack} />
-                <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button>Confirm</Button></div>
+                <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button loading={btnLoading}>Confirm</Button></div>
             </div>}
         </div>
     )

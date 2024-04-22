@@ -26,6 +26,7 @@ const TransferModal = (props: any) => {
     const [isFree, setIsFree] = useState<Boolean>(false);
     const [info, setInfo] = useState<transferProps>();
     const [error, setError] = useState<string>('');
+    const [freeStep, setFreeStep] = useState<string>('');
     const [time, setTime] = useState<number>(30);
     const {Button} = useContinueButton();
     const {showErrorToast} = Toast();
@@ -33,8 +34,12 @@ const TransferModal = (props: any) => {
     useEffect(() => {
         const sessionKey = sessionStorage.getItem('sessionKey');
         const freeLimit = sessionStorage.getItem('freeLimit');
+        const sr = sessionStorage.getItem('sr');
         if(sessionKey || freeLimit){
             setIsFree(true)
+        }
+        if(sr) {
+            setFreeStep(sr)
         }
     },[])
 
@@ -49,7 +54,7 @@ const TransferModal = (props: any) => {
                 if (i === 0){
                     clearInterval(t);
                     showErrorToast("Password verification timeout");
-                    props.onClose();
+                    // props.onClose();
                 }
                 i--;
             }
@@ -88,7 +93,11 @@ const TransferModal = (props: any) => {
                         <i className={styles.transferClose} onClick={onClose}></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">
-                        {!isFree && <><p className={styles.transferTitle}>Transfer password verification</p>
+                        {freeStep === "0" && <div className={styles.transferFreeToast}>
+                            <img src={require("@/assets/transfer/free-toast.png")} alt="" />
+                            <span>Password-free payment will be activated after this transfer transaction.</span>
+                        </div>}
+                        {(!isFree || freeStep === "0") && <><p className={styles.transferTitle}>Transfer password verification</p>
                         <ModalInputPassword onSubmit={handleSubmit} isError={error}/>
                         <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p></>}
                         <div className={styles.transferDetail}>
@@ -113,8 +122,8 @@ const TransferModal = (props: any) => {
                                     <div className={`${styles.transferSendItemContent} ${styles.transferSendItemPrice}`}><span className={styles.transferSendItemText}>{info?.gas} {info?.send}</span><span className={styles.transferSendItemNum}>$ {info?.gasPrice}</span></div>
                                 </div>
                             </div>
-                            {isFree && <div><Button onClick={() => handleSubmit("")}>Confirm</Button></div>}
                         </div>
+                        {(isFree && freeStep !== "0") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm</Button></div>}
                     </ModalBody>
                     <ModalFooter>
                         {/*<Button colorScheme='blue' mr={3} onClick={onClose}>*/}
