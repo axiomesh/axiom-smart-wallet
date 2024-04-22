@@ -4,7 +4,7 @@ window.symbol = '$';
 window.salt= '0';
 window.accountSalt= '0'
 // AXM RPC
-window.RPC_URL='http://172.16.13.132:28881';
+window.RPC_URL='http://10.2.69.157:8881';
 // ETH RPC
 // window.ETH_RPC='http://172.16.13.132:28881';
 window.ETH_RPC = "https://eth-sepolia.g.alchemy.com/v2/uxsdJERFKDg5pOJ1pFiaebgU1r2VNGZs"
@@ -23,5 +23,5 @@ window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 window.AXC_SYMBOL = 18;
 window.ETH_SYMBOL = 18;
 window.ETH_BROWSER = 'https://sepolia.etherscan.io';
-window.AXM_BROWSER = 'http://172.16.13.132:8080';
-window.socketUrl = 'http://172.16.13.133:8580/websocket'
+window.AXM_BROWSER = 'http://10.2.69.157:8080';
+window.socketUrl = 'http://10.2.69.157:8580/websocket'

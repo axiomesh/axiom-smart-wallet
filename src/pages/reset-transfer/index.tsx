@@ -72,6 +72,7 @@ const ResetTransfer = (props: any) => {
 
     const handleSendEmail = () => {
         sendVerifyCode(email).then((res: any) => {
+            sessionStorage.setItem('EndTime', (new Date()).getTime() + res)
             runTimer(Number((res / 1000).toFixed(0)))
             setStep(1);
         })
@@ -85,6 +86,31 @@ const ResetTransfer = (props: any) => {
             setIsError(true)
         })
     }
+
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            if(loadTimer){
+                clearTimeout(loadTimer)
+            }
+        } else {
+            const endTime  = sessionStorage.getItem('EndTime')
+            const newDate = Number(((Number(endTime) - (new Date()).getTime())/ 1000).toFixed(0))
+            if(newDate <= 0 ){
+                runTimer(0)
+            } else {
+                runTimer(newDate);
+            }
+        }
+    }
+
+
+    useEffect(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        }
+    }, []);
 
     const handleCallBack = (value: string) => {
         setPassword(value)
