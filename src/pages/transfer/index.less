@@ -72,6 +72,12 @@
       &:hover {
         background: #EDF2F7
       }
+      &Disabled {
+        opacity: .3;
+        &:hover {
+          background: #fff;
+        }
+      }
     }
     &Single {
       display: flex;
@@ -144,4 +150,11 @@
   padding: 20px;
   border-radius: 20px;
   margin-top: 40px;
+}
+
+.iconEthDisabled {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: url("../../assets/transfer/eth-disabled.png") no-repeat center / cover;
 }

@@ -1,7 +1,12 @@
 import styles from './index.less'
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody } from '@chakra-ui/react';
 import useContinueButton from "@/hooks/ContinueButton";
+
+type ChildType = ReactNode | string | number;
+type onConfirmType = (() => void) | ((e: React.MouseEvent<HTMLButtonElement>) => void);
+
+
 
 const useCancelModal = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -9,7 +14,7 @@ const useCancelModal = () => {
     const [confirmCallback, setConfirmCallback] = useState(() => () => {});
     const {Button} = useContinueButton();
 
-    const openModal = (headerText,onConfirm) => {
+    const openModal = (headerText: string, onConfirm: onConfirmType) => {
         setHeader(headerText);
         setConfirmCallback(() => onConfirm);
         setIsOpen(true);
@@ -21,8 +26,8 @@ const useCancelModal = () => {
         setIsOpen(false);
     };
 
-    const ModalComponent = ({ children }) => (
-        <Modal isOpen={isOpen}>
+    const ModalComponent: React.FC<{children: ChildType, buttonText: string}> = ({ children, buttonText }) => (
+        <Modal isOpen={isOpen} onClose={closeModal}>
             <ModalOverlay />
             <ModalContent borderRadius="32px" boxShadow="lg" bg="white" padding="0 40px 0 40px" w="500px" maxWidth="none">
                 <ModalHeader padding="45px 0 20px 0" fontSize="24px" maxWidth="260px">{header}</ModalHeader>
@@ -31,7 +36,7 @@ const useCancelModal = () => {
                     {children}
                 </ModalBody>}
                 <ModalFooter padding="0 0 40px 0">
-                    <Button onClick={confirmCallback}>Continue</Button>
+                    <Button onClick={confirmCallback}>{buttonText ? buttonText : "Continue"}</Button>
                 </ModalFooter>
             </ModalContent>
         </Modal>

@@ -16,7 +16,6 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (password: string) => void;
-    onCancel: () => void;
     errorMsg: string;
 }
 
