@@ -18,7 +18,8 @@ interface transferProps {
     blockchain: string;
     value: string;
     gas: string;
-    gasPrice: number
+    gasPrice: number;
+    isTransfinite: boolean;
 }
 
 const TransferModal = (props: any) => {
@@ -54,7 +55,7 @@ const TransferModal = (props: any) => {
                 if (i === 0){
                     clearInterval(t);
                     showErrorToast("Password verification timeout");
-                    // props.onClose();
+                    props.onClose();
                 }
                 i--;
             }
@@ -68,6 +69,10 @@ const TransferModal = (props: any) => {
 
     useEffect(() => {
         setInfo(props.info)
+        console.log(props.info?.isTransfinite)
+        if(props.info?.isTransfinite){
+            setIsFree(false)
+        }
     },[props.info])
 
     const onClose = () => {

@@ -56,6 +56,7 @@ const TransferFree = (props: any) => {
     const [freeStep, setFreeStep] = useState<string | null>("");
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [isUpdate, setIsUpdate] = useState<boolean>(false);
+    const [isLimitDisabled, setIsLimitDisabled] = useState<boolean>(false);
 
     const { Button } = ContinueButton();
     const [ModalComponent, openModal, closeModal] = useCancelModal();
@@ -73,6 +74,7 @@ const TransferFree = (props: any) => {
             setOldLimit(sessionStorage.getItem("freeLimit"))
             setIsSwitch(true)
             setValue(sessionStorage.getItem("freeLimit"))
+            setIsLimitDisabled(true)
         }
         handleLockTimes()
     },[])
@@ -90,6 +92,7 @@ const TransferFree = (props: any) => {
 
     useEffect(() => {
         if(freeStep === "0") {
+            setIsLimitDisabled(true)
             setIsDisabled(true);
         }else {
             setIsDisabled(false);
@@ -198,6 +201,7 @@ const TransferFree = (props: any) => {
 
     const handlePassword = () => {
         setIsOpen(true);
+        setMsg("");
         closeModal();
     };
 
@@ -263,16 +267,23 @@ const TransferFree = (props: any) => {
                                     onChange={(e: any) => {
                                         setValue(e.target.value)
                                     }}
-                                    disabled={freeStep === "0"}
+                                    disabled={isLimitDisabled}
                                 />
                                 {
-                                    freeStep !== "0" && <InputRightElement style={{top: "8px", right: "20px"}}>
-                                    <div className={styles.freeSettingCenterMax} onClick={() => {
-                                        setValue("5000");
-                                        setErrorMessage("");
-                                    }}>MAX
-                                    </div>
-                                </InputRightElement>
+                                    !isLimitDisabled && <InputRightElement style={{top: "8px", right: "20px"}}>
+                                        <div className={styles.freeSettingCenterMax} onClick={() => {
+                                            setValue("5000");
+                                            setErrorMessage("");
+                                        }}>MAX
+                                        </div>
+                                    </InputRightElement>
+                                }
+                                {
+                                    (isLimitDisabled && freeStep === "") && <InputRightElement style={{top: "8px", right: "16px"}}>
+                                        <div className={styles.freeSettingCenterEdit} onClick={() => {
+                                            setIsLimitDisabled(false);
+                                        }}></div>
+                                    </InputRightElement>
                                 }
                             </InputGroup>
                             <FormErrorMessage style={{marginLeft: "16px"}}>{errorMessage}</FormErrorMessage>
@@ -291,7 +302,7 @@ const TransferFree = (props: any) => {
                         </Popover></div>}
                     </div>
                 </div>}
-                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false)}} errorMsg={msg} />
+                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
                 <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
             </div>
         </ChakraProvider>
