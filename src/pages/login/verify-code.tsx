@@ -15,6 +15,7 @@ export default function VerifyCode() {
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState('');
     const [isError, setIsError] = useState(false);
+    const [endTime, setEndTime] = useState(0);
     const loaction = useLocation();
     const {showErrorToast} = Toast();
 
@@ -47,6 +48,8 @@ export default function VerifyCode() {
             } else {
                 lastTime = await sendVerifyCode(email)
             }
+            // @ts-ignore
+            sessionStorage.setItem('EndTime', (new Date()).getTime() + lastTime)
             runTimer(Number((lastTime / 1000).toFixed(0)))
         } catch (e){
             // @ts-ignore
@@ -56,12 +59,36 @@ export default function VerifyCode() {
 
     useEffect(() => {
         initData();
-        // runTimer()
 
         return () => {
             if(loadTimer){
                 clearTimeout(loadTimer)
             }
+        }
+    }, []);
+
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            if(loadTimer){
+                clearTimeout(loadTimer)
+            }
+        } else {
+            const endTime  = sessionStorage.getItem('EndTime')
+            const newDate = Number(((Number(endTime) - (new Date()).getTime())/ 1000).toFixed(0))
+            if(newDate <= 0 ){
+                runTimer(0)
+            } else {
+                runTimer(newDate);
+            }
+        }
+    }
+
+
+    useEffect(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
         }
     }, []);
 

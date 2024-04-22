@@ -35,6 +35,7 @@ export default function SecurityVerifyCode() {
         // resendVerifyCode
         try {
             const lastTime = await resendVerifyCode(email);
+            sessionStorage.setItem('EndTime', (new Date()).getTime() + lastTime)
             runTimer(Number((lastTime / 1000).toFixed(0)))
         }catch (e){
             // @ts-ignore
@@ -50,6 +51,31 @@ export default function SecurityVerifyCode() {
             if(loadTimer){
                 clearTimeout(loadTimer)
             }
+        }
+    }, []);
+
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            if(loadTimer){
+                clearTimeout(loadTimer)
+            }
+        } else {
+            const endTime  = sessionStorage.getItem('EndTime')
+            const newDate = Number(((Number(endTime) - (new Date()).getTime())/ 1000).toFixed(0))
+            if(newDate <= 0 ){
+                runTimer(0)
+            } else {
+                runTimer(newDate);
+            }
+        }
+    }
+
+
+    useEffect(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
         }
     }, []);
 

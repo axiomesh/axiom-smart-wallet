@@ -18,6 +18,7 @@ import Prompt from "@/components/Prompt";
 let loadTimer:any = null;
 const ResetTransfer = (props: any) => {
     const {dispatch} = props;
+    const [isLock, setIsLock] = useState(false);
     const [step, setStep] = useState(0);
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
@@ -70,13 +71,14 @@ const ResetTransfer = (props: any) => {
     const handleSendEmail = () => {
         if(!btnLoading) {
             setBtnLoading(true);
-            sendVerifyCode(email).then((res: any) => {
-                runTimer(Number((res / 1000).toFixed(0)))
-                setStep(1);
+        sendVerifyCode(email).then((res: any) => {
+            sessionStorage.setItem('EndTime', (new Date()).getTime() + res)
+            runTimer(Number((res / 1000).toFixed(0)))
+            setStep(1);
                 setBtnLoading(false);
-            }).catch((error: any) =>{
+        }).catch((error: any) =>{
                 showErrorToast(error);
-            })
+        })
         }
     }
 
@@ -89,6 +91,31 @@ const ResetTransfer = (props: any) => {
         })
     }
 
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            if(loadTimer){
+                clearTimeout(loadTimer)
+            }
+        } else {
+            const endTime  = sessionStorage.getItem('EndTime')
+            const newDate = Number(((Number(endTime) - (new Date()).getTime())/ 1000).toFixed(0))
+            if(newDate <= 0 ){
+                runTimer(0)
+            } else {
+                runTimer(newDate);
+            }
+        }
+    }
+
+
+    useEffect(() => {
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        }
+    }, []);
+
     const handleCallBack = (value: string) => {
         setPassword(value)
     }
@@ -96,35 +123,35 @@ const ResetTransfer = (props: any) => {
     const handleSubmit = async () => {
         if(!btnLoading) {
             setBtnLoading(true);
-            const salt = generateRandomBytes(16);
-            const transferSalt = generateRandomBytes(16);
-            try {
-                const signer = generateSigner();
-                const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
-                const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
-                setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
-                    const userRes = await getUserInfo(email);
-                    if(userRes){
-                        dispatch({
-                            type: 'global/setUser',
-                            payload: userRes,
-                        })
-                    }
-                    setInfo(userRes);
-                    showSuccessToast("Password reset successfully！");
+        const salt = generateRandomBytes(16);
+        const transferSalt = generateRandomBytes(16);
+        try {
+            const signer = generateSigner();
+            const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
+            const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
+            setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
+                const userRes = await getUserInfo(email);
+                if(userRes){
+                    dispatch({
+                        type: 'global/setUser',
+                        payload: userRes,
+                    })
+                }
+                setInfo(userRes);
+                showSuccessToast("Password reset successfully！");
                     setBtnLoading(false);
-                    setMessage("")
-                    setStep(0)
-                }).catch((err: any) => {
+                setMessage("")
+                setStep(0)
+            }).catch((err: any) => {
                     setBtnLoading(false);
-                    showErrorToast(err)
-                })
-            }catch (error) {
-                console.log(error)
+                showErrorToast(err)
+            })
+        }catch (error) {
+            console.log(error)
                 setBtnLoading(false);
-                showErrorToast("failed")
-            }
+            showErrorToast("failed")
         }
+    }
     }
 
     return (
