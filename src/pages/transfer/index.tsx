@@ -47,9 +47,8 @@ interface transferProps {
 }
 
 const customOption: React.FC<{ innerProps: any; data: any; }>  = ({ innerProps, data }) => (
-    <div {...innerProps} className={`${styles.formOption} ${data.isDisabled ? styles.formOptionDisabled : ""}`}>
-        {data.icon?data.icon:null}
-        {data.label}
+    <div {...innerProps} className={`${styles.formOption} ${data.disabled ? styles.formOptionDisabled : ""}`}>
+        <div className={styles.formOptionLabel}>{data.icon?data.icon:null}{data.label}</div>
         {data.balance ? <span className={styles.formOptionBalance}>{data.balance}</span> : null}
     </div>
 );
@@ -111,13 +110,13 @@ const options: any = [
         value: 0,
         label: "Axiomesh",
         icon: <i className={styles.iconAxm}></i>,
-        isDisabled: false
+        disabled: false
     },
     {
         value: 1,
         label: "Ethereum",
         icon: <i className={styles.iconEth}></i>,
-        isDisabled: true
+        disabled: true
     }
 ];
 
@@ -147,6 +146,7 @@ const Transfer = (props: any) => {
     const [isLock, setIsLock] = useState(true);
     const [btnLoading, setBtnLoading] = useState(false);
     const [gasLoading, setGasLoading] = useState(false);
+    const [submitFlag, setSubmitFlag] = useState(false);
     const [isTransfinite, setIsTransfinite] = useState(false);
     const [info, setInfo] = useState<any>();
 
@@ -595,11 +595,10 @@ const Transfer = (props: any) => {
     }
 
     const handleFromChange = async (e: any) => {
-        console.log(e)
-        // if(e.isDisabled) {
-        //     showErrorToast("Coming soon");
-        //     return;
-        // }
+        if(e.disabled) {
+            showErrorToast("Coming soon");
+            return;
+        }
         setForm({...form, chain: e, send: null})
         setIsChangeSend(false)
         handleTokenOption(e.label)
@@ -657,6 +656,7 @@ const Transfer = (props: any) => {
     }
 
     const handleAXMSubmit = async (password: string) => {
+        openResult();
         // @ts-ignore
         const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
         let decimals: any;
@@ -676,7 +676,8 @@ const Transfer = (props: any) => {
                 const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
                 if(string.search(expr) > 0 || string.search(expr2) > 0) {
                     await wrongPassword({email});
-                    const times = await passwordTimes({email})
+                    const times = await passwordTimes({email});
+                    setSubmitFlag(false);
                     if(times > 0) {
                         if(times < 4) {
                             setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
@@ -710,9 +711,15 @@ const Transfer = (props: any) => {
         if(form.send.value === "AXC") {
             try {
                 ev = await handleAXMCTransfer(axiom, value);
+                if(ev?.transactionHash) {
+
+                }else {
+                    setResultStatus("failed");
+                    return;
+                }
             }catch (e: any) {
                 console.log(e)
-                // setResultStatus("failed");
+                setResultStatus("failed");
                 return;
             }
         }else {
@@ -720,7 +727,7 @@ const Transfer = (props: any) => {
                 ev = await handleAXMERC20Transfer(axiom, value);
             }catch (e: any) {
                 console.log(e)
-                // setResultStatus("failed");
+                setResultStatus("failed");
                 return;
             }
         }
@@ -845,7 +852,7 @@ const Transfer = (props: any) => {
 
     return (
         <>
-            {lockTimes && <div className={styles.toast}><img src={require("@/assets/reset/toast.png")} alt=""/><span>Your account has been frozen for 24 hours and transactions cannot be sent normally. {lockTimes}</span></div>}
+            {lockTimes && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account has been frozen for 24 hours and transactions cannot be sent normally. {lockTimes}</span></div>}
             <div className={styles.transfer}>
                 <div className={styles.transferTitle}>
                     <h1>Transfer</h1>
@@ -858,6 +865,7 @@ const Transfer = (props: any) => {
                     <FormControl className={styles.formControl}>
                         <FormLabel className={styles.formTitle}>From</FormLabel>
                         <Select
+                            isSearchable={false}
                             value={form.chain}
                             isDisabled={!isSetPassword}
                             defaultValue={ options [1] }
@@ -874,6 +882,7 @@ const Transfer = (props: any) => {
                                       isInvalid={sendError !== ""}>
                             <FormLabel className={styles.formTitle}>Send</FormLabel>
                             <Select
+                                isSearchable={false}
                                 value={form.send}
                                 options={tokenList}
                                 isDisabled={!isSetPassword}

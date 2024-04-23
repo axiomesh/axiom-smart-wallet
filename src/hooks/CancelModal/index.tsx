@@ -27,7 +27,7 @@ const useCancelModal = () => {
     };
 
     const ModalComponent: React.FC<{children: ChildType, buttonText: string}> = ({ children, buttonText }) => (
-        <Modal isOpen={isOpen} onClose={closeModal}>
+        <Modal isOpen={isOpen} onClose={closeModal} isCentered>
             <ModalOverlay />
             <ModalContent borderRadius="32px" boxShadow="lg" bg="white" padding="0 40px 0 40px" w="500px" maxWidth="none">
                 <ModalHeader padding="45px 0 20px 0" fontSize="24px" maxWidth="260px">{header}</ModalHeader>

@@ -82,8 +82,10 @@ const PersonInfo = (props: any) => {
                     <span className={styles.title}>Address</span>
                     <span className={styles.info}>{exchangeAddress(info.address)}</span>
                 </div>
-                <div className={styles.logoutButton} onClick={handleCopy}><i className={`${styles.copy} ${isCopy ? styles.copyClick : ''}`}></i></div>
-                <div className={styles.logoutButton} onClick={() => openModal('Logout', handleConfirm)}><i className={`${styles.logout}`}></i></div>
+                <div className={styles.logoutInfoBtn}>
+                    <div className={`${styles.logoutButton} ${isCopy ? styles.logoutButtonClick : ''}`} onClick={handleCopy}><i className={`${styles.copy} ${isCopy ? styles.copyClick : ''}`}></i></div>
+                    <div className={styles.logoutButton} onClick={() => openModal('Logout', handleConfirm)}><i className={`${styles.logout}`}></i></div>
+                </div>
             </div>}
             <ModalComponent>
                 Please note that password-free transfer associated with this account will be disabled after logging out！

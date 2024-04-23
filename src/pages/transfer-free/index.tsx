@@ -108,11 +108,14 @@ const TransferFree = (props: any) => {
     const handleChange = (e: any) => {
         setIsSwitch(e.target.checked)
         if(!e.target.checked) {
+            setErrorMessage("");
             setSessionKey("");
             setFreeLimit("");
             setFreeStep("");
             setValue("");
             setOldLimit("");
+            setIsDisabled(false);
+            setIsLimitDisabled(false);
             sessionStorage.removeItem("sk");
             sessionStorage.removeItem("a");
             sessionStorage.removeItem("b");

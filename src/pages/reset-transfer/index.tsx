@@ -158,7 +158,7 @@ const ResetTransfer = (props: any) => {
         <div className={styles.reset}>
             <Prompt message={message} />
             <Back onClick={handleBack} />
-            <div className={styles.resetToast}><img src={require("@/assets/reset/toast.png")} alt=""/><span>{toastMsg}</span></div>
+            <div className={styles.resetToast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>{toastMsg}</span></div>
             <h1>Reset Transfer Password</h1>
             <p className={styles.resetTip}>Please complete the email verification code first .</p>
             {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>

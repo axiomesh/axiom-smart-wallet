@@ -97,7 +97,7 @@ const TransferModal = (props: any) => {
                         <div>Transfer <span className={styles.transferTitleTime}>（{time}s）</span></div>
                         <i className={styles.transferClose} onClick={onClose}></i>
                     </ModalHeader>
-                    <ModalBody padding="20px 40px 0 40px">
+                    <ModalBody padding="20px 40px 40px 40px">
                         {freeStep === "0" && <div className={styles.transferFreeToast}>
                             <img src={require("@/assets/transfer/free-toast.png")} alt="" />
                             <span>Password-free payment will be activated after this transfer transaction.</span>
@@ -106,7 +106,7 @@ const TransferModal = (props: any) => {
                         <ModalInputPassword onSubmit={handleSubmit} isError={error}/>
                         <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p></>}
                         <div className={styles.transferDetail}>
-                            <h1>DETAILS</h1>
+                            <h1 style={{paddingBottom: "8px"}}>DETAILS</h1>
                             <div className={styles.transferSend}>
                                 <div className={styles.transferSendItem}>
                                     <span className={styles.transferSendItemTitle}>Send</span>
@@ -130,12 +130,6 @@ const TransferModal = (props: any) => {
                         </div>
                         {(isFree && freeStep !== "0") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm</Button></div>}
                     </ModalBody>
-                    <ModalFooter>
-                        {/*<Button colorScheme='blue' mr={3} onClick={onClose}>*/}
-                        {/*    Close*/}
-                        {/*</Button>*/}
-                        {/*<Button variant='ghost'>Secondary Action</Button>*/}
-                    </ModalFooter>
                 </ModalContent>
             </Modal>
         </>

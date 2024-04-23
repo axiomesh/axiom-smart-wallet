@@ -57,24 +57,22 @@ const VerifyTransferModal = (props: Props) => {
 
     return (
         <>
-            <Modal isOpen={open} onClose={props.onClose} closeOnOverlayClick={false}>
+            <Modal isOpen={open} onClose={props.onClose} closeOnOverlayClick={false} isCentered>
                 <ModalOverlay />
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
                         <div className={styles.payPassTitle}><span className={styles.payPassTitleBefore}>Verification</span><span className={styles.payPassTitleTime}>（{time}s）</span></div>
                         <i className={styles.payPassClose} onClick={props.onClose}></i>
                     </ModalHeader>
-                    <ModalBody padding="20px 40px 0 40px">
+                    <ModalBody padding="20px 40px 40px 40px">
                         <div className={styles.payPassBody}>
                             <span className={styles.payPassTip}>Transfer password verification</span>
                             <div>
                                 <ModalInputPassword onSubmit={props.onSubmit} isError={error} />
                             </div>
-                            <span className={styles.payPassForget} onClick={toReset}>Forget it?</span>
+                            {/* <span className={styles.payPassForget} onClick={toReset}>Forget it?</span> */}
                         </div>
                     </ModalBody>
-                    <ModalFooter>
-                    </ModalFooter>
                 </ModalContent>
             </Modal>
         </>
