@@ -68,6 +68,13 @@ export default function ResetUnlockPassword() {
         history.push('/security/forget-password')
     }
 
+    const handleKeyDown = (e:any) => {
+        if(e.key === 'Enter'){
+            handleBlurPassWord(e);
+            handleSubmit();
+        }
+    }
+
     // lock-password
   return (
       <Page needBack>
@@ -82,6 +89,7 @@ export default function ResetUnlockPassword() {
                           style={{height: 56, width: 420}}
                           onChange={handleChangePassWord}
                           onBlur={handleBlurPassWord}
+                          onKeyDown={handleKeyDown}
                       />
                       <FormErrorMessage>{errorText}</FormErrorMessage>
                   </FormControl>

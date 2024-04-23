@@ -80,6 +80,13 @@ export default function LoginPassword() {
         history.push('/reset-verify-code')
     }
 
+    const handleKeyDown = (e:any) => {
+        if(e.key === 'Enter'){
+            handleBlurPassWord(e);
+            handleSubmit();
+        }
+    }
+
     // lock-password
   return (
       <div className={styles.loginPage}>
@@ -99,6 +106,7 @@ export default function LoginPassword() {
                                 style={{height: 56}}
                                 onChange={handleChangePassWord}
                                 onBlur={handleBlurPassWord}
+                                onKeyDown={handleKeyDown}
                                 autoFocus
                             />
                             <FormErrorMessage>{errorText}</FormErrorMessage>

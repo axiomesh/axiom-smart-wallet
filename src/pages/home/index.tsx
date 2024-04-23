@@ -40,6 +40,10 @@ const Home = (props:any) => {
     const [priceList, setPriceList] = useState<Array<Item>>([]);
     const [selectList, setSelectList] = useState<Array<Item>>(selectCurrencyList.all);
     const [total, setTotal] = useState<number | string | any>(0);
+    // @ts-ignore
+    const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
+    // @ts-ignore
+    const provider = new ethers.providers.JsonRpcProvider(window.ETH_RPC);
     const handleActiveClick = (value: string) => {
         setActiveKey(value)
     }
@@ -61,9 +65,7 @@ const Home = (props:any) => {
 
     const initBalance = async (type:string | any) => {
         // @ts-ignore
-        const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
-        // @ts-ignore
-        const provider = new ethers.providers.JsonRpcProvider(window.ETH_RPC);
+
         if(type === 'AXCUSD'){
             const balance = await rpc_provider.getBalance(userInfo.address);
             // @ts-ignore
@@ -167,11 +169,12 @@ const Home = (props:any) => {
                     </MenuButton>
 
                     <MenuList borderRadius="20px" p='24px' w="280px">
-                        {currencyList.map((item: CurrentItem) => <MenuItem
+                        {currencyList.map((item: CurrentItem, index: num) => <MenuItem
                             onClick={() => handleActiveClick(item.value)}
                             bg={activeKey === item.value ? 'gray.100' : ''}
                             _hover={{bg: activeKey === item.value ? '' : 'gray.100'}}
                             p="16px"
+                            mb={index !== currencyList.length -1 ? '4px' : '0px'}
                             boxSizing='border-box'
                             borderRadius="12px"
                             value={item.value}

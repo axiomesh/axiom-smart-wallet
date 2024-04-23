@@ -39,7 +39,14 @@ export default function LogoutModal(props: {isOpen: boolean, onClose: closeFunc}
   return (
       <Modal isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
-          <ModalContent className="logout-modal" p="40px" w="500px" maxW="500px" borderRadius="32px" boxSizing="border-box">
+          <ModalContent
+              className="logout-modal"
+              p="40px" w="500px"
+              maxW="500px"
+              borderRadius="32px"
+              boxSizing="border-box"
+              top="calc(50vh - 227px)"
+          >
               <ModalHeader fontSize="24px" lineHeight="36px" fontWeight="700" pl="0px" color="#000" pt="5px" pr="0px" pb="25px">Logout</ModalHeader>
               <ModalCloseButton
                   top="40px"

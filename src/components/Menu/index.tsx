@@ -1,4 +1,4 @@
-import { Link } from 'umi';
+import { Link, useLocation } from 'umi';
 import styles from './index.less';
 import React, { useState } from 'react';
 
@@ -10,6 +10,8 @@ interface MenuItem {
 
 const Menu = () => {
     const [selectedItem, setSelectedItem] = useState(0);
+    const location = useLocation();
+    console.log(location)
 
     const menuItems: MenuItem[] = [
         { name: 'Assets', icon: 'assetIcon', url: '/home' },
@@ -21,9 +23,8 @@ const Menu = () => {
             <ul>
                 {menuItems.map((item:MenuItem, index:Number) => (
                     <li
-                        key={index}
-                        onClick={() => setSelectedItem(index)}
-                        className={selectedItem === index ? styles.active : ''}
+                        key={item.name}
+                        className={location.pathname.includes(item.url) ? styles.active : ''}
                     >
                         <span><Link to={item.url}><i className={styles[item.icon]}></i>{item.name}</Link></span>
                     </li>

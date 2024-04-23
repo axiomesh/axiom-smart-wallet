@@ -60,7 +60,9 @@ export default function Prompt({ message, when }: PromptProps) {
     }
     return <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent className="promot-modal" p="40px" w="500px" maxW="500px" borderRadius="32px" boxSizing="border-box">
+        <ModalContent
+            top="calc(50vh - 227px)"
+            className="promot-modal" p="40px" w="500px" maxW="500px" borderRadius="32px" boxSizing="border-box">
             <ModalHeader fontSize="24px" lineHeight="36px" w="320px" fontWeight="700" pl="0px" color="#000" pt="5px" pr="0px" pb="20px">{message}</ModalHeader>
             <ModalCloseButton
                 top="40px"

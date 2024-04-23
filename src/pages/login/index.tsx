@@ -83,10 +83,17 @@ function HomePage(props: any) {
 
     }
 
+
     const handleBlur = (e: any) => {
         const { value } = e.target;
         validateName(value);
+    }
 
+    const handleKeyDown = (e:any) => {
+        if(e.key === 'Enter'){
+            handleBlur(e);
+            handleSubmit();
+        }
     }
 
     const handleChangeMail = (e:any) => {
@@ -111,6 +118,7 @@ function HomePage(props: any) {
                                   placeholder='Enter your email address'
                                   style={{height: 56}}
                                   onChange={handleChangeMail}
+                                  onKeyDown={handleKeyDown}
                                   onBlur={handleBlur}
                                   autoComplete='off'
                               />

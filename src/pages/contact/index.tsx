@@ -35,7 +35,7 @@ const Contact = () => {
             setIsCopy(true);
             setTimeout(() => {
                 setIsCopy(false)
-            },3000)
+            },300)
         }
     }
 
@@ -45,7 +45,7 @@ const Contact = () => {
         setIsCopy(true);
         setTimeout(() => {
             setIsCopy(false)
-        },3000)
+        },300)
     }
 
     return (

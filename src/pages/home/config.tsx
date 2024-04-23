@@ -30,16 +30,16 @@ interface selectItem{
 
 export const selectCurrencyList: selectItem | any = {
     eth: [{
+        label: 'ETH',
+        icon: eth,
+        type: 'eth',
+        symbol: 'ETHUSD',
+    },{
         label: 'wAXC',
         icon: waxc,
         type: 'eth',
         symbol: 'wAXCUSD',
         contract: window.WAXC_CONTRACT
-    },{
-        label: 'ETH',
-        icon: eth,
-        type: 'eth',
-        symbol: 'ETHUSD',
     },{
         label: 'USDC',
         icon: usdc,
@@ -83,6 +83,11 @@ export const selectCurrencyList: selectItem | any = {
         type: 'axc',
         symbol: 'AXCUSD',
     },{
+        label: 'ETH',
+        icon: eth,
+        type: 'eth',
+        symbol: 'ETHUSD',
+    },{
         label: 'wAXC',
         icon: allWaxc,
         type: 'eth',
@@ -94,11 +99,6 @@ export const selectCurrencyList: selectItem | any = {
         type: 'axc',
         symbol: 'wETHUSD',
         contract: window.WETH_CONTRACT
-    },{
-        label: 'ETH',
-        icon: eth,
-        type: 'eth',
-        symbol: 'ETHUSD',
     },{
         label: 'wUSDC',
         icon: allWusdc,

@@ -182,7 +182,19 @@ export default function SetPassword() {
     }
 
 
+    const handleKeyDown = (e:any) => {
+        if(e.key === 'Enter'){
+            handleBlurPassWord(e);
+            handleSubmit();
+        }
+    }
 
+    const handleRePassWordKeyDown = (e:any) => {
+        if(e.key === 'Enter'){
+            handleBlurRePassWord(e);
+            handleSubmit();
+        }
+    }
     return (
         <div className={styles.loginPage}>
             <div className={styles.loginContainer}>
@@ -199,6 +211,7 @@ export default function SetPassword() {
                                     style={{height: 56}}
                                     onChange={handleChangePassWord}
                                     onBlur={handleBlurPassWord}
+                                    onKeyDown={handleKeyDown}
                                 />
 
                                 {password && !passWordReg.test(password) ? <>
@@ -216,6 +229,7 @@ export default function SetPassword() {
                                     style={{height: 56}}
                                     onChange={handleChangeRePassWord}
                                     onBlur={handleBlurRePassWord}
+                                    onKeyDown={handleRePassWordKeyDown}
                                 />
                                 <FormErrorMessage>{errorText}</FormErrorMessage>
                             </FormControl>
