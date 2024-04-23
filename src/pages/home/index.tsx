@@ -147,14 +147,15 @@ const Home = (props:any) => {
                 <Menu>
                     {/*<MenuButton as={Button} rightIcon={<ChevronDownIcon />}>*/}
                     <MenuButton
-                        bg='#EDF2F7'
+                        bg='#F7FAFC'
                         as={Button}
                         w="150px"
                         rightIcon={<SelectDownIcon className='select_down_icon' w='12px' />}
                         borderRadius="20px"
+                        border="1px solid #EDF2F7"
                         h="40px"
-                        _hover={{bg: '#E2E8F0'}}
-                        _active={{bg: '#CBD5E0'}}
+                        _hover={{bg: 'gray.100', borderColor: 'gray.200'}}
+                        _active={{bg: 'gray.200', borderColor: 'gray.300'}}
                     >
                         <Flex align="center">
                             <Image
@@ -169,7 +170,7 @@ const Home = (props:any) => {
                     </MenuButton>
 
                     <MenuList borderRadius="20px" p='24px' w="280px">
-                        {currencyList.map((item: CurrentItem, index: num) => <MenuItem
+                        {currencyList.map((item: CurrentItem, index: Number) => <MenuItem
                             onClick={() => handleActiveClick(item.value)}
                             bg={activeKey === item.value ? 'gray.100' : ''}
                             _hover={{bg: activeKey === item.value ? '' : 'gray.100'}}
