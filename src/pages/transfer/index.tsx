@@ -216,6 +216,7 @@ const Transfer = (props: any) => {
 
 
     const countdown = (milliseconds: number) => {
+        setLockTimes(msToTime(milliseconds))
         timer = setInterval(() => {
             milliseconds -= 1000;
             if (milliseconds < 0) {
