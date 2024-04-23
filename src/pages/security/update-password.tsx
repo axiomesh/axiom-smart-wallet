@@ -203,7 +203,7 @@ function SecurityUpdatePassword(props: any) {
     return (
         <>
             <Prompt message={message} />
-            <Page needBack>
+            <Page needBack backFn={() => history.push('/security')}>
                 <div>
                     <div className='page-title'>Reset Unlock Password</div>
                     <div className={styles.desc} style={{marginTop: 20, fontSize: 16}}>Please update your unlock password</div>

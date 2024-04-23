@@ -77,7 +77,7 @@ export default function ResetUnlockPassword() {
 
     // lock-password
   return (
-      <Page needBack>
+      <Page needBack backFn={() => history.push('/security')}>
           <div>
               <div className='page-title'>Reset Unlock Password</div>
               <div className={styles.desc}>Please enter the old password for verification</div>

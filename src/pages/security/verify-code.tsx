@@ -6,6 +6,7 @@ import {useEffect, useState} from "react";
 import {resendVerifyCode, checkResendVerifyCode} from '@/services/login';
 import Page from '@/components/Page'
 import Toast from "@/hooks/Toast";
+import Prompt from "@/components/Prompt";
 
 let loadTimer:any = null;
 export default function SecurityVerifyCode() {
@@ -13,6 +14,7 @@ export default function SecurityVerifyCode() {
     const [loading, setLoading] = useState(false);
     const [timer, setTimer] = useState('');
     const [isError, setIsError] = useState(false);
+    const [message, setMessage] = useState('Are you sure to cancel password reset?');
     const {showErrorToast} = Toast();
 
     const runTimer = (cm = 120) => {
@@ -83,7 +85,10 @@ export default function SecurityVerifyCode() {
         try{
             setLoading(true);
             await checkResendVerifyCode({email, verify_code: code})
-            history.replace(`/security/update-reset-password`)
+            setMessage('');
+            setTimeout(() => {
+                history.replace(`/security/update-reset-password`)
+            }, 10)
         } catch (e) {
             setIsError(true)
         } finally {
@@ -92,22 +97,25 @@ export default function SecurityVerifyCode() {
     }
 
   return (
-      <Page needBack>
-          <div>
-              <div className='page-title'>Reset Unlock Password</div>
-              <div className={styles.desc}>Please complete the email verification code first .</div>
-              <div style={{marginTop: 20}}>
-                  <InputPassword
-                      type='text'
-                      loading={loading}
-                      timer={timer}
-                      isError={isError}
-                      onSend={initData}
-                      onVerify={handleVerify}
-                      setIsError={setIsError}
-                  />
+      <>
+          <Prompt message={message} />
+          <Page needBack backFn={() => history.push('/security')}>
+              <div>
+                  <div className='page-title'>Reset Unlock Password</div>
+                  <div className={styles.desc}>Please complete the email verification code first .</div>
+                  <div style={{marginTop: 20}}>
+                      <InputPassword
+                          type='text'
+                          loading={loading}
+                          timer={timer}
+                          isError={isError}
+                          onSend={initData}
+                          onVerify={handleVerify}
+                          setIsError={setIsError}
+                      />
+                  </div>
               </div>
-          </div>
-      </Page>
+          </Page>
+      </>
   );
 }
