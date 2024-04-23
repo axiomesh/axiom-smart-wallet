@@ -37,13 +37,19 @@ const ModalInputPassword = (props: Props) => {
         const newPinValues = [...pinValues];
         newPinValues[index] = value;
         setPinValues(newPinValues);
-
         if (index === newPinValues.length - 1 && value !== "") {
+            console.log(123)
             props.onSubmit(newPinValues.join(""))
         }
     };
 
-    const pinInputStyle = loading ? { opacity: 1, cursor: "not-allowed", background: "#000" } : {};
+    const pinChange = (value: string) => {
+        setError("");
+        if (value.length === 6) {
+            props.onSubmit(value)
+        }
+    }
+
 
     return (
         <div className={styles.PinInput}>
@@ -53,14 +59,15 @@ const ModalInputPassword = (props: Props) => {
                     placeholder="-"
                     focusBorderColor="#718096" 
                     isDisabled={loading}
+                    onChange={pinChange}
                 >
                     {pinValues.map((value: string, index:number) => (
                         <PinInputField
                             key={index}
                             value={value}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                handlePinChange(index, e.target.value)
-                            }
+                            // onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            //     handlePinChange(index, e.target.value)
+                            // }
                             style={{
                                 borderRight: index !== 5 ? "none" : "1px solid #E2E8F0",
                                 borderRadius: index === 5 ? "0 8px 8px 0" : index === 0 ? "8px 0 0 8px" : "0",

@@ -131,6 +131,8 @@ const ResetTransfer = (props: any) => {
             const signer = generateSigner();
             const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
             const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
+            console.log(signer.privateKey);
+            console.log(signer.address);
             setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
                 const userRes = await getUserInfo(email);
                 if(userRes){

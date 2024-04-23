@@ -135,9 +135,10 @@ const TransferFree = (props: any) => {
 
     const handleSubmit = async (password: any) => {
         setPinLoading(true);
+        setMsg("");
         let axiom:any;
         try {
-            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key);
+            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key, info.address);
             setFreeLimit(value)
         }catch (e: any) {
             setBtnLoading(false);
