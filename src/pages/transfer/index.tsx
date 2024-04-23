@@ -821,12 +821,12 @@ const Transfer = (props: any) => {
                 if(ev?.transactionHash) {
 
                 }else {
-                    // setResultStatus("failed");
+                    setResultStatus("failed");
                     return;
                 }
             }catch (e: any) {
                 console.log(e)
-                // setResultStatus("failed");
+                setResultStatus("failed");
                 setPinLoading(false);
                 return;
             }
