@@ -5,7 +5,7 @@ import {
     Input,
     FormErrorMessage,
     InputRightElement,
-    InputGroup
+    InputGroup,
 } from '@chakra-ui/react';
 import Select, {components} from 'react-select';
 import useContinueButton from "@/hooks/ContinueButton";
@@ -283,6 +283,10 @@ const Transfer = (props: any) => {
     }, [form])
 
     const handleValueBlur = () => {
+        if(form.value === "") {
+            setValueError("");
+            return;
+        }
         if(form.value && Number(form.value) > 0) {
             setGasLoading(true);
             setValueError("");
@@ -624,6 +628,10 @@ const Transfer = (props: any) => {
         const value = e.target.value;
         const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
         const isValid = ethAddressRegex.test(value);
+        if(value === "") {
+            setToErrorsText("");
+            return;
+        }
         if(!isValid) {
             setToErrorsText("Invalid address !")
         }else {
@@ -659,6 +667,11 @@ const Transfer = (props: any) => {
         setForm({ ...form, value: e.target.value })
     }
 
+    const handleKeyDown = (e: any) => {
+        if(e.key === "e") e.preventDefault();
+        if(e.key=="-") e.preventDefault();
+    }
+
     const handleMax = async () => {
         const bal = balance.toString().replace(/,/g, "")
         const gas = await getGas(bal, form.send);
@@ -683,7 +696,9 @@ const Transfer = (props: any) => {
     }
 
     const handleToChange = async (e: any) => {
-        setForm({...form, to: e.target.value});
+        let value = e.target.value;
+        if (/[^0-9a-zA-Z]/.test(value)) value = value.replace(/[^0-9a-zA-Z]/g, '');
+        setForm({...form, to: value});
     }
 
     const handleResultClose = () => {
@@ -958,6 +973,7 @@ const Transfer = (props: any) => {
                                         }}
                                         onChange={handleValueChange}
                                         onBlur={handleValueBlur}
+                                        onKeyDown={handleKeyDown}
                                     />
                                     <InputRightElement style={{top: "10px", right: "20px"}}>
                                         <div className={styles.formMax} onClick={handleMax}>MAX</div>
@@ -992,6 +1008,7 @@ const Transfer = (props: any) => {
                             }}
                             onBlur={validateName}
                             onChange={handleToChange}
+                            pattern="^[^\u4e00-\u9fa5]*$"
                         />
                         <FormErrorMessage>{toErrorsText}</FormErrorMessage>
                     </FormControl>

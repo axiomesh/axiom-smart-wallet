@@ -300,7 +300,7 @@ const TransferFree = (props: any) => {
                             </PopoverTrigger>
                             <PopoverContent style={{background: "#171923",color:"#fff",fontSize: "14px",boxShadow:"none"}}>
                                 <PopoverArrow bg="#171923" />
-                                <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after this transfer transaction.":"Password-free payment will be activated after this transfer transaction."}</PopoverBody>
+                                <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after this transfer transaction.":"Password-free payment will be activated after your next successful transfer transaction."}</PopoverBody>
                             </PopoverContent>
                         </Popover></div>}
                     </div>
