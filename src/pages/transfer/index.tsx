@@ -5,7 +5,7 @@ import {
     Input,
     FormErrorMessage,
     InputRightElement,
-    InputGroup
+    InputGroup,
 } from '@chakra-ui/react';
 import Select, {components} from 'react-select';
 import useContinueButton from "@/hooks/ContinueButton";
@@ -95,6 +95,7 @@ const customStyles = (isFirstSelect: boolean) => ({
         ...provided,
         color: "#A0AEC0", // 修改 placeholder 文本颜色
     }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999, width: 516 })
 
 });
 
@@ -149,6 +150,7 @@ const Transfer = (props: any) => {
     const [submitFlag, setSubmitFlag] = useState(false);
     const [isTransfinite, setIsTransfinite] = useState(false);
     const [info, setInfo] = useState<any>();
+    const [isClicked, setIsClicked] = useState(false);
 
     const {Button} = useContinueButton();
     const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
@@ -180,13 +182,14 @@ const Transfer = (props: any) => {
         let arr: any = [];
         token.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
             if(item.network === network) {
+                const balance = await initBalance(item.name);
                 arr.push({
                     value: item.name,
                     label: item.name,
                     decimals: item.decimals,
                     contract: item.contract,
                     symbol: item.symbol,
-                    // balance: await initBalance(item.name),
+                    balance: formatAmount(balance.toString()),
                     icon: <img src={require(`@/assets/token/${item.name}.png`)} />
                 })
             }
@@ -233,12 +236,28 @@ const Transfer = (props: any) => {
             const chainFilter = options.filter((item: any) => item.label === sessionForm.chain.label);
             newForm.chain = chainFilter[0];
             if(sessionForm.send){
-                const sendFilter = tokenList.filter((item: any) => item.symbol === sessionForm.send.symbol);
-                newForm.send = sendFilter[0];
-                setIsChangeSend(true)
-                initBalance(newForm.send.value).then((balance: any) => {
-                    setBalance(formatAmount(balance.toString()))
-                });
+                const sendFilter = token.filter((item: any) => item.symbol === sessionForm.send.symbol);
+                let arr: any = [];
+                sendFilter.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
+                    if(item.network === newForm.chain.label) {
+                        const balance = await initBalance(item.name);
+                        arr.push({
+                            value: item.name,
+                            label: item.name,
+                            decimals: item.decimals,
+                            contract: item.contract,
+                            symbol: item.symbol,
+                            balance: formatAmount(balance.toString()),
+                            icon: <img src={require(`@/assets/token/${item.name}.png`)} />
+                        })
+                        newForm.send = arr[0];
+                        console.log(newForm);
+                        setIsChangeSend(true);
+                        initBalance(newForm.send.value).then((balance: any) => {
+                            setBalance(formatAmount(balance.toString()))
+                        });
+                    }
+                })
             }
             if(sessionForm.value) {
                 newForm.value = sessionForm.value
@@ -264,6 +283,10 @@ const Transfer = (props: any) => {
     }, [form])
 
     const handleValueBlur = () => {
+        if(form.value === "") {
+            setValueError("");
+            return;
+        }
         if(form.value && Number(form.value) > 0) {
             setGasLoading(true);
             setValueError("");
@@ -288,7 +311,7 @@ const Transfer = (props: any) => {
         let erc20Address = "";
         let allow: any;
         let decimals: any = 18;
-        let value: number | BigNumber;
+        let value: number | BigNumber | string = amount;
         if(send.value !== "AXC") {
             // @ts-ignore
             const contract = new ethers.Contract(send.contract, ERC20_ABI, rpc_provider);
@@ -351,7 +374,7 @@ const Transfer = (props: any) => {
                 })
                 return (axcPrice / price) * axcGas;
         }else {
-            value = ethers.utils.parseUnits(amount, decimals);
+            value = ethers.utils.parseUnits(amount, 18);
             if(send.value !== "AXC") {
                 const erc20 = new ethers.Contract(send.contract, ERC20_ABI);
                 calldata = erc20.interface.encodeFunctionData('transfer',[signer.address, value]);
@@ -369,6 +392,7 @@ const Transfer = (props: any) => {
                 erc20Address
             );
             const axcGas: any = ethers.utils.formatEther(res);
+            console.log(send)
             if(send.value === "AXC") {
                 return axcGas;
             }else {
@@ -535,6 +559,13 @@ const Transfer = (props: any) => {
 
 
     const confirmCallback = async () => {
+        setIsClicked(true);
+        setTimeout(() => {
+          setIsClicked(false);
+        }, 3000);
+        if (isClicked) {
+            return;
+        }
         if(btnLoading)
             return;
         if(isLock)
@@ -597,6 +628,10 @@ const Transfer = (props: any) => {
         const value = e.target.value;
         const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
         const isValid = ethAddressRegex.test(value);
+        if(value === "") {
+            setToErrorsText("");
+            return;
+        }
         if(!isValid) {
             setToErrorsText("Invalid address !")
         }else {
@@ -632,6 +667,11 @@ const Transfer = (props: any) => {
         setForm({ ...form, value: e.target.value })
     }
 
+    const handleKeyDown = (e: any) => {
+        if(e.key === "e") e.preventDefault();
+        if(e.key=="-") e.preventDefault();
+    }
+
     const handleMax = async () => {
         const bal = balance.toString().replace(/,/g, "")
         const gas = await getGas(bal, form.send);
@@ -656,17 +696,22 @@ const Transfer = (props: any) => {
     }
 
     const handleToChange = async (e: any) => {
-        setForm({...form, to: e.target.value});
+        let value = e.target.value;
+        if (/[^0-9a-zA-Z]/.test(value)) value = value.replace(/[^0-9a-zA-Z]/g, '');
+        setForm({...form, to: value});
     }
 
     const handleResultClose = () => {
+        setSubmitFlag(false);
         setResultOpen(false);
         setBtnLoading(false);
         window.location.reload();
     }
 
     const handleAXMSubmit = async (password: string) => {
-        openResult();
+        if(submitFlag)
+            return;
+        setSubmitFlag(true);
         // @ts-ignore
         const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
         let decimals: any;
@@ -752,6 +797,7 @@ const Transfer = (props: any) => {
         if(sr === "0") {
             sessionStorage.removeItem("sr");
         }
+        setSubmitFlag(false);
         setResultStatus("success")
 
     }
@@ -867,7 +913,7 @@ const Transfer = (props: any) => {
                 <div className={styles.transferTitle}>
                     <h1>Transfer</h1>
                     <div className={styles.transferHistory} onClick={() => history.push('/transfer-history')}>
-                        <img src={require('@/assets/transfer/history.png')} alt=""/>
+                        <i className={styles.transferHistory}></i>
                         <span>History</span>
                     </div>
                 </div>
@@ -900,6 +946,7 @@ const Transfer = (props: any) => {
                                 placeholder="Select a token"
                                 components={{Option: customOption, ValueContainer: customSingleValue}}
                                 onChange={handleSendChange}
+                                menuPortalTarget={document.body}
                             />
                             <FormErrorMessage>{sendError}</FormErrorMessage>
                         </FormControl>
@@ -926,13 +973,14 @@ const Transfer = (props: any) => {
                                         }}
                                         onChange={handleValueChange}
                                         onBlur={handleValueBlur}
+                                        onKeyDown={handleKeyDown}
                                     />
                                     <InputRightElement style={{top: "10px", right: "20px"}}>
                                         <div className={styles.formMax} onClick={handleMax}>MAX</div>
                                     </InputRightElement>
                                 </InputGroup>
                                 <div>
-                                    {gasLoading ? <span className={styles.formGas}><Loading /></span> : (gasFee && valueError === "") && <span className={styles.formGas}>Gas fee &asymp; {gasFee} {form.send.value}</span>}
+                                    {gasLoading ? <span className={styles.formGas}><Loading /></span> : (gasFee && valueError === "") && <span className={styles.formGas}>Gas fee &asymp; {gasFee} {form.send?.value}</span>}
                                     <span className={styles.formBalance}>Balance:{balance}</span>
                                 </div>
                                 <FormErrorMessage style={{position: "absolute"}}>{valueError}</FormErrorMessage>
@@ -960,6 +1008,7 @@ const Transfer = (props: any) => {
                             }}
                             onBlur={validateName}
                             onChange={handleToChange}
+                            pattern="^[^\u4e00-\u9fa5]*$"
                         />
                         <FormErrorMessage>{toErrorsText}</FormErrorMessage>
                     </FormControl>

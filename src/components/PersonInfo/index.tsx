@@ -56,7 +56,7 @@ const PersonInfo = (props: any) => {
         setIsCopy(true);
         setTimeout(() => {
             setIsCopy(false)
-        },3000)
+        },300)
     }
 
     const handleConfirm = () => {

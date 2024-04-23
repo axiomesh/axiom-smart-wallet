@@ -48,6 +48,7 @@ const TransferModal = (props: any) => {
         setIsOpen(props.open)
         setTime(30)
         if(props.open) {
+            setError("")
             let t = setInterval(countDown, 1000);
             let i = 30
             function countDown() {
@@ -128,7 +129,7 @@ const TransferModal = (props: any) => {
                                 </div>
                             </div>
                         </div>
-                        {(isFree && freeStep !== "0") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm</Button></div>}
+                        {(isFree && freeStep !== "0") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm (Passward-free)</Button></div>}
                     </ModalBody>
                 </ModalContent>
             </Modal>

@@ -32,11 +32,35 @@
   &History {
     display: flex;
     align-items: center;
+    gap: 4px;
+    cursor: pointer;
     span {
       font-family: Inter;
       font-size: 14px;
       font-weight: 600;
       color: #718096;
+    }
+    i {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      background: url("../../assets/transfer/history.png") no-repeat center / cover;
+    }
+    &:hover {
+      span {
+        color: #2D3748;
+      }
+      i {
+        background: url("../../assets/transfer/history-hover.png") no-repeat center / cover;
+      }
+    }
+    &:active {
+      span {
+        color: #171923;
+      }
+      i {
+        background: url("../../assets/transfer/history-active.png") no-repeat center / cover;
+      }
     }
   }
   &Content {
@@ -57,40 +81,6 @@
       font-size: 14px;
       font-weight: 500;
       color: #4B5563;
-    }
-    &Option {
-      display: flex;
-      align-items: center;
-      border-radius: 20px;
-      padding: 16px;
-      background: #fff;
-      color: #292D32;
-      font-size: 14px;
-      font-weight: 500;
-      font-family: Inter;
-      justify-content: space-between;
-      &:hover {
-        background: #EDF2F7
-      }
-      &Disabled {
-        opacity: .3;
-        &:hover {
-          background: #fff;
-        }
-      }
-      &Label {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      &Balance {
-        font-family: Inter;
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 24px;
-        text-align: right;
-        color: #4B5563;
-      }
     }
     &Single {
       display: flex;
@@ -170,4 +160,38 @@
   width: 40px;
   height: 40px;
   background: url("../../assets/transfer/eth-disabled.png") no-repeat center / cover;
+}
+.formOption {
+  display: flex;
+  align-items: center;
+  border-radius: 20px;
+  padding: 16px;
+  background: #fff;
+  color: #292D32;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: Inter;
+  justify-content: space-between;
+  &:hover {
+    background: #EDF2F7
+  }
+  &Disabled {
+    opacity: .3;
+    &:hover {
+      background: #fff;
+    }
+  }
+  &Label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  &Balance {
+    font-family: Inter;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 24px;
+    text-align: right;
+    color: #4B5563;
+  }
 }
