@@ -430,7 +430,7 @@ const Transfer = (props: any) => {
     const handleEntryPoint = async (op: any) => {
         const entryPoint = EntryPoint__factory.connect(window.ENTRY_POINT, rpc_provider);
         try {
-            await entryPoint.callStatic.handleOps([op], userInfo.address);
+            const point = await entryPoint.callStatic.handleOps([op], userInfo.address);
             return false;
         } catch (error: any) {
             const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
@@ -464,17 +464,21 @@ const Transfer = (props: any) => {
                 decimals = await contract.decimals();
             }
             const value = ethers.utils.parseUnits(form.value, decimals);
+            let usrOp: any;
             if(form.send.value === "AXC") {
                 try {
                     const callData = "0x";
-                    const res = await axiom.sendUserOperation(form.to, value, callData, "", "", {
-                        dryRun: false,
-                        onBuild: async (op: any) => {
-                            console.log("Signed UserOperation:", op);
-                            flag = await handleEntryPoint(op)
+                    const resOp = await axiom.sendUserOperation(form.to, value, callData, "", "", {
+                        dryRun: true,
+                        onBuild: (op: any) => {
+                            console.log("Signed UserOperation:", op, '----473');
+                            usrOp = op;
+                            
                         }
                     })
-                    await res.wait();
+                    await resOp.wait();
+                    flag = await handleEntryPoint(usrOp)
+                    console.log(flag)
                 }catch (e: any) {
                     console.log(e);
                     return;
@@ -499,20 +503,26 @@ const Transfer = (props: any) => {
                             erc20.interface.encodeFunctionData("approve", [window.PAYMASTER, ethers.constants.MaxUint256]),
                             erc20.interface.encodeFunctionData("transfer", [form.to, value]),
                         ];
-                        await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
-                            onBuild: async (op: any) => {
+                        const res = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
+                            dryRun: true,
+                            onBuild: (op: any) => {
+                                usrOp = op;
                                 console.log("Signed UserOperation:", op);
-                                flag = await handleEntryPoint(op)
                             }
                         });
+                        await res.wait();
+                        flag = await handleEntryPoint(usrOp)
                     }else {
                         const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
-                        await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
-                            onBuild: async (op: any) => {
+                        const res = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
+                            dryRun: true,
+                            onBuild: (op: any) => {
+                                usrOp = op;
                                 console.log("Signed UserOperation:", op);
-                                flag = await handleEntryPoint(op)  
                             }
                         })
+                        await res.wait();
+                        flag = await handleEntryPoint(usrOp)
                     }
                 }catch (e: any) {
                     console.log(e)
