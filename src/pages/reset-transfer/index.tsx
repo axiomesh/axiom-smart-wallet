@@ -143,7 +143,8 @@ const ResetTransfer = (props: any) => {
                 }
                 setInfo(userRes);
                 showSuccessToast("Password reset successfully！");
-                    setBtnLoading(false);
+                setToastMsg("The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.");
+                setBtnLoading(false);
                 setMessage("")
                 setMessage('')
                 setStep(0)

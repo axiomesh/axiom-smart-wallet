@@ -8,7 +8,7 @@ interface Props {
 const AlertPro = (props: Props) => {
     const { title } = props;
     return (
-        <Alert status='warning' bg='#FEEBCB' borderRadius='8px' h="48px" lineHeight="48px" color='gray.700'>
+        <Alert status='warning' bg='#FEEBCB' borderRadius='8px' color='gray.700'>
             <AlertIcon color="#DD6B20" />
             {title}
         </Alert>
