@@ -24,6 +24,7 @@ import {sha256} from "js-sha256";
 import TransferResultModal from "@/components/TransferResultModal";
 import {msToTime, formatAmount, generateRandomBytes} from "@/utils/utils";
 import { EntryPoint__factory } from "userop/dist/typechain";
+import AlertPro from "@/components/Alert";
 
 function Loading (props: any) {
     return <div className='loader' {...props}></div>

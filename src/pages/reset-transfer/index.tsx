@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import InputPassword from "@/components/InputPassword";
 import TransferPassword from "@/components/TransferPassword";
 import ContinueButton from "@/hooks/ContinueButton";
-import Back from "@/components/Back";
-import {sendVerifyCode, checkVerifyCode, setNewPassword, transferLockTime, passwordTimes} from "@/services/transfer"
+import {sendVerifyCode, checkVerifyCode, setNewPassword, transferLockTime} from "@/services/transfer"
 import {history} from "@@/core/history";
 import {getMail} from "@/utils/help";
 import {connect} from "@@/exports";
@@ -14,6 +13,8 @@ import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 import {getUserInfo} from "@/services/login";
 import Prompt from "@/components/Prompt";
+import Page from '@/components/Page'
+import AlertPro from "@/components/Alert";
 
 let loadTimer:any = null;
 const ResetTransfer = (props: any) => {
@@ -74,6 +75,7 @@ const ResetTransfer = (props: any) => {
         sendVerifyCode(email).then((res: any) => {
             sessionStorage.setItem('EndTime', (new Date()).getTime() + res)
             runTimer(Number((res / 1000).toFixed(0)))
+            setMessage('Are you sure to cancel password reset?')
             setStep(1);
                 setBtnLoading(false);
         }).catch((error: any) =>{
@@ -141,6 +143,7 @@ const ResetTransfer = (props: any) => {
                 showSuccessToast("Password reset successfully！");
                     setBtnLoading(false);
                 setMessage("")
+                setMessage('')
                 setStep(0)
             }).catch((err: any) => {
                     setBtnLoading(false);
@@ -155,21 +158,26 @@ const ResetTransfer = (props: any) => {
     }
 
     return (
-        <div className={styles.reset}>
+        <>
             <Prompt message={message} />
-            <Back onClick={handleBack} />
-            <div className={styles.resetToast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>{toastMsg}</span></div>
-            <h1>Reset Transfer Password</h1>
-            <p className={styles.resetTip}>Please complete the email verification code first .</p>
-            {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>
-                <Button loading={btnLoading}>Send a verify email</Button>
-            </div>}
-            {step === 1 && <div style={{marginTop: "20px"}}><InputPassword isError={isError} setIsError={setIsError} onSend={handleSendEmail} onVerify={handleVerify} needTimer={false} timer={timer}/></div>}
-            {step === 2 && <div style={{marginTop: "20px"}}>
-                <TransferPassword onSubmit={handleCallBack} />
-                <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button loading={btnLoading}>Confirm</Button></div>
-            </div>}
-        </div>
+            <Page needBack backFn={() => history.push('/security')}>
+               <div>
+                   <div style={{marginBottom: 20}}>
+                       <AlertPro title={toastMsg} />
+                   </div>
+                   <div className='page-title'>Reset Transfer Password</div>
+                   <p className={styles.resetTip}>Please complete the email verification code first .</p>
+                   {step === 0 && <div className={styles.resetVerify} onClick={handleSendEmail}>
+                       <Button loading={btnLoading}>Send a verify email</Button>
+                   </div>}
+                   {step === 1 && <div style={{marginTop: "20px"}}><InputPassword isError={isError} setIsError={setIsError} onSend={handleSendEmail} onVerify={handleVerify} needTimer={false} timer={timer}/></div>}
+                   {step === 2 && <div style={{marginTop: "20px"}}>
+                       <TransferPassword onSubmit={handleCallBack} />
+                       <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button loading={btnLoading}>Confirm</Button></div>
+                   </div>}
+               </div>
+            </Page>
+        </>
     )
 }
 

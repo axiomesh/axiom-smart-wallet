@@ -5,7 +5,7 @@ import { BackIcon } from '@/components/Icons';
 type Props = {
     needBack?: boolean;
     children?: JSX.Element;
-    backFn?: () => {};
+    backFn?: () => void;
 };
 const Page: React.FC<Props> = ({needBack, backFn, children}) => {
 

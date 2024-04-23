@@ -1,6 +1,5 @@
 import styles from "./index.less"
 import React, { useState, useEffect } from "react";
-import Back from "@/components/Back";
 import {
     Switch,
     Input,
@@ -14,8 +13,6 @@ import {
     PopoverContent,
     PopoverBody,
     PopoverArrow,
-    PopoverCloseButton,
-    PopoverAnchor,
 } from '@chakra-ui/react'
 import { switchTheme } from "./theme"
 import { extendTheme } from '@chakra-ui/react'
@@ -32,6 +29,7 @@ import {getMail} from "@/utils/help";
 import {generateRandomBytes} from "@/utils/utils";
 import {ethers, Wallet} from "ethers";
 import useCancelModal from "@/hooks/CancelModal";
+import Page from '@/components/Page'
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -241,9 +239,9 @@ const TransferFree = (props: any) => {
 
     return (
         <ChakraProvider theme={theme}>
-            <div className={styles.free}>
-                <Back onClick={() => {history.push('/security')}} />
-                <h1 className={styles.freeTitle}>Password-free transfer</h1>
+            <Page needBack backFn={() => history.push('/security')}>
+                <div>
+                    <h1 className='page-title'>Password-free transfer</h1>
                 <p className={styles.freeTip}>Once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification on <i></i> Other blockchains are coming soon！</p>
                 <div className={styles.freeSwitch}>
                     <span>Password-free transfer switch </span>
@@ -322,7 +320,9 @@ const TransferFree = (props: any) => {
                 </div>}
                 <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
                 <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
+
             </div>
+            </Page>
         </ChakraProvider>
     )
 }
