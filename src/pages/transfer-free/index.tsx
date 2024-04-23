@@ -1,6 +1,5 @@
 import styles from "./index.less"
 import React, { useState, useEffect } from "react";
-import Back from "@/components/Back";
 import {
     Switch,
     Input,
@@ -14,8 +13,6 @@ import {
     PopoverContent,
     PopoverBody,
     PopoverArrow,
-    PopoverCloseButton,
-    PopoverAnchor,
 } from '@chakra-ui/react'
 import { switchTheme } from "./theme"
 import { extendTheme } from '@chakra-ui/react'
@@ -32,6 +29,7 @@ import {getMail} from "@/utils/help";
 import {generateRandomBytes} from "@/utils/utils";
 import {ethers, Wallet} from "ethers";
 import useCancelModal from "@/hooks/CancelModal";
+import Page from '@/components/Page'
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -226,88 +224,90 @@ const TransferFree = (props: any) => {
 
     return (
         <ChakraProvider theme={theme}>
-            <div className={styles.free}>
-                <Back onClick={() => {history.push('/security')}} />
-                <h1 className={styles.freeTitle}>Password-free transfer</h1>
-                <p className={styles.freeTip}>Once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification on <i></i> Other blockchains are coming soon！</p>
-                <div className={styles.freeSwitch}>
-                    <span>Password-free transfer switch </span>
-                    <div><Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} /></div>
+            <Page needBack backFn={() => history.push('/security')}>
+                <div>
+                    <h1 className='page-title'>Password-free transfer</h1>
+                    <p className={styles.freeTip}>Once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification on <i></i> Other blockchains are coming soon！</p>
+                    <div className={styles.freeSwitch}>
+                        <span>Password-free transfer switch </span>
+                        <div><Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} /></div>
+                    </div>
+                    {isSwitch && <div className={styles.freeSetting}>
+                        <div className={styles.freeSettingTop}>
+                            <span className={styles.freeSettingTopTitle}>Settings</span>
+                            <span className={styles.freeSettingTopTip}>Set your password-free transfer limit and validity period</span>
+                        </div>
+                        <div className={styles.freeSettingCenter}>
+                            <span className={styles.freeSettingCenterTitle}>Daily transfer limit</span>
+                            <FormControl isInvalid={errorMessage !== ''}>
+                                <InputGroup width="420px">
+                                    <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px"
+                                                    style={{border: errorMessage !== '' ? "1px solid #E53E3E" : ""}}>
+                                        <span className={styles.freeSettingCenterBefore}>HK$</span>
+                                    </InputLeftAddon>
+                                    <Input
+                                        type='number'
+                                        value={value?value:""}
+                                        placeholder='100-5000'
+                                        fontSize="14px"
+                                        fontWeight="400"
+                                        color="gray.700"
+                                        height="56px"
+                                        borderRadius="12px"
+                                        _placeholder={{
+                                            color: "#A0AEC0"
+                                        }}
+                                        _invalid={{
+                                            border: "1px solid #E53E3E"
+                                        }}
+                                        _disabled={{
+                                            color: "#A0AEC0",
+                                            backgroundColor: "#EDF2F7"
+                                        }}
+                                        onBlur={handleBlur}
+                                        onChange={(e: any) => {
+                                            setValue(e.target.value)
+                                        }}
+                                        disabled={isLimitDisabled}
+                                    />
+                                    {
+                                        !isLimitDisabled && <InputRightElement style={{top: "8px", right: "20px"}}>
+                                            <div className={styles.freeSettingCenterMax} onClick={() => {
+                                                setValue("5000");
+                                                setErrorMessage("");
+                                            }}>MAX
+                                            </div>
+                                        </InputRightElement>
+                                    }
+                                    {
+                                        (isLimitDisabled && freeStep === "") && <InputRightElement style={{top: "8px", right: "16px"}}>
+                                            <div className={styles.freeSettingCenterEdit} onClick={() => {
+                                                setIsLimitDisabled(false);
+                                            }}></div>
+                                        </InputRightElement>
+                                    }
+                                </InputGroup>
+                                <FormErrorMessage style={{marginLeft: "16px"}}>{errorMessage}</FormErrorMessage>
+                            </FormControl>
+                        </div>
+                        <div className={styles.freeSettingBottom}>
+                            {freeStep !== "0" && <Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>}
+                            {freeStep === "0" && <div style={{position: "relative"}}><Popover trigger="hover" placement="top">
+                                <PopoverTrigger>
+                                    <div><Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button></div>
+                                </PopoverTrigger>
+                                <PopoverContent style={{background: "#171923",color:"#fff",fontSize: "14px",boxShadow:"none"}}>
+                                    <PopoverArrow bg="#171923" />
+                                    <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after this transfer transaction.":"Password-free payment will be activated after your next successful transfer transaction."}</PopoverBody>
+                                </PopoverContent>
+                            </Popover></div>}
+                        </div>
+                    </div>}
+                    <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
+                    <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
+
                 </div>
-                {isSwitch && <div className={styles.freeSetting}>
-                    <div className={styles.freeSettingTop}>
-                        <span className={styles.freeSettingTopTitle}>Settings</span>
-                        <span className={styles.freeSettingTopTip}>Set your password-free transfer limit and validity period</span>
-                    </div>
-                    <div className={styles.freeSettingCenter}>
-                        <span className={styles.freeSettingCenterTitle}>Daily transfer limit</span>
-                        <FormControl isInvalid={errorMessage !== ''}>
-                            <InputGroup width="420px">
-                                <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px"
-                                                style={{border: errorMessage !== '' ? "1px solid #E53E3E" : ""}}>
-                                    <span className={styles.freeSettingCenterBefore}>HK$</span>
-                                </InputLeftAddon>
-                                <Input
-                                    type='number'
-                                    value={value?value:""}
-                                    placeholder='100-5000'
-                                    fontSize="14px"
-                                    fontWeight="400"
-                                    color="gray.700"
-                                    height="56px"
-                                    borderRadius="12px"
-                                    _placeholder={{
-                                        color: "#A0AEC0"
-                                    }}
-                                    _invalid={{
-                                        border: "1px solid #E53E3E"
-                                    }}
-                                    _disabled={{
-                                        color: "#A0AEC0",
-                                        backgroundColor: "#EDF2F7"
-                                    }}
-                                    onBlur={handleBlur}
-                                    onChange={(e: any) => {
-                                        setValue(e.target.value)
-                                    }}
-                                    disabled={isLimitDisabled}
-                                />
-                                {
-                                    !isLimitDisabled && <InputRightElement style={{top: "8px", right: "20px"}}>
-                                        <div className={styles.freeSettingCenterMax} onClick={() => {
-                                            setValue("5000");
-                                            setErrorMessage("");
-                                        }}>MAX
-                                        </div>
-                                    </InputRightElement>
-                                }
-                                {
-                                    (isLimitDisabled && freeStep === "") && <InputRightElement style={{top: "8px", right: "16px"}}>
-                                        <div className={styles.freeSettingCenterEdit} onClick={() => {
-                                            setIsLimitDisabled(false);
-                                        }}></div>
-                                    </InputRightElement>
-                                }
-                            </InputGroup>
-                            <FormErrorMessage style={{marginLeft: "16px"}}>{errorMessage}</FormErrorMessage>
-                        </FormControl>
-                    </div>
-                    <div className={styles.freeSettingBottom}>
-                        {freeStep !== "0" && <Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>}
-                        {freeStep === "0" && <div style={{position: "relative"}}><Popover trigger="hover" placement="top">
-                            <PopoverTrigger>
-                                <div><Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button></div>
-                            </PopoverTrigger>
-                            <PopoverContent style={{background: "#171923",color:"#fff",fontSize: "14px",boxShadow:"none"}}>
-                                <PopoverArrow bg="#171923" />
-                                <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after this transfer transaction.":"Password-free payment will be activated after your next successful transfer transaction."}</PopoverBody>
-                            </PopoverContent>
-                        </Popover></div>}
-                    </div>
-                </div>}
-                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
-                <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
-            </div>
+            </Page>
         </ChakraProvider>
     )
 }
