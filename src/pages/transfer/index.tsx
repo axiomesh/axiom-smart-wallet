@@ -71,8 +71,15 @@ const customStyles = (isFirstSelect: boolean) => ({
         borderRadius: "12px",
         padding: "0 12px",
         height: "56px",
-        "&:focus": {},
-        "&:hover": {},
+        "&:focus": {
+            borderColor: "#718096"
+        },
+        "&:hover": {
+            borderColor: "#A0AEC0"
+        },
+        "&:active": {
+            borderColor: "#718096"
+        },
         "&:select": {},
         outline: "none",
         fontSize: "14px",
@@ -81,6 +88,7 @@ const customStyles = (isFirstSelect: boolean) => ({
         backgroundColor: state.isDisabled ? "#E2E8F0" : "white",
         color: state.isDisabled ? "#D1D5DB" : "#292D32",
         width: isFirstSelect ? "100%" : "190px",
+        boxShadow: "none"
         // 添加任何其他所需的样式
     }),
     menu: (provided: any) => ({
@@ -151,6 +159,8 @@ const Transfer = (props: any) => {
     const [isTransfinite, setIsTransfinite] = useState(false);
     const [info, setInfo] = useState<any>();
     const [isClicked, setIsClicked] = useState(false);
+    const [pinLoading, setPinLoading] = useState(false);
+    const [maxFlag, setMaxFlag] = useState(false);
 
     const {Button} = useContinueButton();
     const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
@@ -160,7 +170,13 @@ const Transfer = (props: any) => {
     useEffect(() => {
         if(JSON.stringify(userInfo) !== "{}"){
             setInfo(userInfo);
-            setIsSetPassword(userInfo.pay_password_set_status === 0 ? false : true);
+            if(userInfo.pay_password_set_status === 0) {
+                setIsSetPassword(false);
+                setButtonText('Set transfer password first')
+            }else {
+                setIsSetPassword(true);
+                setButtonText('Transfer')
+            }
         }
     }, [userInfo])
 
@@ -269,11 +285,6 @@ const Transfer = (props: any) => {
             setForm(newForm)
         }
     }, [sessionForm])
-
-    const handleMouseEnter = () => {
-        console.log(isSetPassword)
-        !isSetPassword && setButtonText('Set transfer password first')
-    }
 
     useEffect(() => {
         return () => {
@@ -659,12 +670,22 @@ const Transfer = (props: any) => {
     }
 
     const handlePasswordClose = (isSuccess: Boolean) => {
-        isSuccess && setIsSetPassword(true);
+        if(isSuccess) {
+            setIsSetPassword(true);
+            setButtonText('Transfer');
+        }
         setPasswordOpen(false)
     }
 
     const handleValueChange = async (e: any) => {
-        setForm({ ...form, value: e.target.value })
+        let value = e.target.value;
+        if(value) {
+            value = formatAmount(value.replace(/,/g, ""));
+        }
+        console.log(value)
+        if(/^[0-9,.]*$/.test(value)){
+            setForm({ ...form, value: value })
+        }
     }
 
     const handleKeyDown = (e: any) => {
@@ -673,6 +694,8 @@ const Transfer = (props: any) => {
     }
 
     const handleMax = async () => {
+        if(maxFlag) return;
+        setMaxFlag(true);
         const bal = balance.toString().replace(/,/g, "")
         const gas = await getGas(bal, form.send);
         const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -691,6 +714,7 @@ const Transfer = (props: any) => {
         const max = ethers.utils.formatUnits(maxNumber, decimals);
         console.log(maxNumber)
         console.log(max)
+        setMaxFlag(false)
         // const max = balance - gas;
         setForm({ ...form, value: max.toString() })
     }
@@ -712,6 +736,7 @@ const Transfer = (props: any) => {
         if(submitFlag)
             return;
         setSubmitFlag(true);
+        setPinLoading(true);
         // @ts-ignore
         const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
         let decimals: any;
@@ -728,6 +753,7 @@ const Transfer = (props: any) => {
             try {
                 axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key)
             }catch (e: any) {
+                setPinLoading(false);
                 const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
                 if(string.search(expr) > 0 || string.search(expr2) > 0) {
                     await wrongPassword({email});
@@ -775,6 +801,7 @@ const Transfer = (props: any) => {
             }catch (e: any) {
                 console.log(e)
                 setResultStatus("failed");
+                setPinLoading(false);
                 return;
             }
         }else {
@@ -783,6 +810,7 @@ const Transfer = (props: any) => {
             }catch (e: any) {
                 console.log(e)
                 setResultStatus("failed");
+                setPinLoading(false);
                 return;
             }
         }
@@ -794,10 +822,12 @@ const Transfer = (props: any) => {
             token_name: form.send.value,
             to_address: form.to,
         })
+        setPinLoading(false);
         if(sr === "0") {
             sessionStorage.removeItem("sr");
         }
         setSubmitFlag(false);
+        sessionStorage.removeItem("form");
         setResultStatus("success")
 
     }
@@ -955,7 +985,6 @@ const Transfer = (props: any) => {
                                 <FormLabel className={styles.formTitle}></FormLabel>
                                 <InputGroup>
                                     <Input
-                                        type={"number"}
                                         value={form.value}
                                         isDisabled={!isSetPassword}
                                         fontSize="14px"
@@ -971,9 +1000,18 @@ const Transfer = (props: any) => {
                                         _placeholder={{
                                             color: "#A0AEC0"
                                         }}
+                                        _hover={{
+                                            borderColor: "#A0AEC0"
+                                        }}
+                                        _active={{
+                                            borderColor: "#718096"
+                                        }}
                                         onChange={handleValueChange}
                                         onBlur={handleValueBlur}
                                         onKeyDown={handleKeyDown}
+                                        style={{
+                                            boxShadow: "none"
+                                        }}
                                     />
                                     <InputRightElement style={{top: "10px", right: "20px"}}>
                                         <div className={styles.formMax} onClick={handleMax}>MAX</div>
@@ -1009,12 +1047,21 @@ const Transfer = (props: any) => {
                             onBlur={validateName}
                             onChange={handleToChange}
                             pattern="^[^\u4e00-\u9fa5]*$"
+                            _hover={{
+                                borderColor: "#A0AEC0"
+                            }}
+                            _active={{
+                                borderColor: "#718096"
+                            }}
+                            style={{
+                                boxShadow: "none"
+                            }}
                         />
                         <FormErrorMessage>{toErrorsText}</FormErrorMessage>
                     </FormControl>
-                    <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || form.to === "") ? true : false} onMouseEnter={handleMouseEnter} onMouseLeave={() => {!isSetPassword && setButtonText('Transfer')}}>{buttonText}</Button>
+                    <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
                 </div>
-                <TransferModal open={transferOpen} onSubmit={handleAXMSubmit} onClose={() => {setTransferOpen(false); handleLockTimes();setBtnLoading(false);}} info={transferInfo} errorMsg={passwordError} />
+                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={() => {setTransferOpen(false); handleLockTimes();setBtnLoading(false);setPinLoading(false)}} info={transferInfo} errorMsg={passwordError} />
                 <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
                 <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
             </div>

@@ -5,17 +5,21 @@ import {
     PinInputField,
     FormControl,
     FormErrorMessage,
+    useStyleConfig,
+    background
 } from '@chakra-ui/react';
 
 
 interface Props {
     onSubmit: (password: string) => void;
     isError: any;
+    isLoading: boolean;
 }
 
 const ModalInputPassword = (props: Props) => {
     const [pinValues, setPinValues] = useState<string[]>(["", "", "", "", "", ""]);
-    const [error, setError] = useState("")
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         setPinValues(["", "", "", "", "", ""])
@@ -24,6 +28,10 @@ const ModalInputPassword = (props: Props) => {
     useEffect(() => {
         setError(props.isError)
     }, [props.isError])
+
+    useEffect(() => {
+        setLoading(props.isLoading)
+    }, [props.isLoading])
 
     const handlePinChange = (index: number, value: string) => {
         const newPinValues = [...pinValues];
@@ -35,11 +43,17 @@ const ModalInputPassword = (props: Props) => {
         }
     };
 
+    const pinInputStyle = loading ? { opacity: 1, cursor: "not-allowed", background: "#000" } : {};
 
     return (
         <div className={styles.PinInput}>
             <FormControl isInvalid={error !== ""}>
-                <PinInput mask placeholder="-" focusBorderColor="#718096">
+                <PinInput
+                    mask
+                    placeholder="-"
+                    focusBorderColor="#718096" 
+                    isDisabled={loading}
+                >
                     {pinValues.map((value: string, index:number) => (
                         <PinInputField
                             key={index}
@@ -53,11 +67,17 @@ const ModalInputPassword = (props: Props) => {
                                 borderColor: error && "#E53E3E"
                             }}
                             className={styles.PinModalPin}
+                            _disabled={{
+                                background: "#E2E8F0",
+                                borderColor: "#EDF2F7",
+                                color: "#A0AEC0"
+                            }}
                         />
                     ))}
                 </PinInput>
                 <FormErrorMessage>{error}</FormErrorMessage>
             </FormControl>
+            {loading && <div className={styles.pinLoading}><i></i><span>Verifing</span></div>}
         </div>
     )
 

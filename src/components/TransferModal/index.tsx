@@ -20,6 +20,7 @@ interface transferProps {
     gas: string;
     gasPrice: number;
     isTransfinite: boolean;
+    pinLoading: boolean;
 }
 
 const TransferModal = (props: any) => {
@@ -29,6 +30,7 @@ const TransferModal = (props: any) => {
     const [error, setError] = useState<string>('');
     const [freeStep, setFreeStep] = useState<string>('');
     const [time, setTime] = useState<number>(30);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const {Button} = useContinueButton();
     const {showErrorToast} = Toast();
 
@@ -43,6 +45,10 @@ const TransferModal = (props: any) => {
             setFreeStep(sr)
         }
     },[])
+
+    useEffect(() => {
+        setIsLoading(props.pinLoading)
+    }, [props.pinLoading])
 
     useEffect(() => {
         setIsOpen(props.open)
@@ -104,9 +110,9 @@ const TransferModal = (props: any) => {
                             <span>Password-free payment will be activated after this transfer transaction.</span>
                         </div>}
                         {(!isFree || freeStep === "0") && <><p className={styles.transferTitle}>Transfer password verification</p>
-                        <ModalInputPassword onSubmit={handleSubmit} isError={error}/>
+                        <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}/>
                         <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p></>}
-                        <div className={styles.transferDetail}>
+                        <div className={styles.transferDetail} style={{marginTop: (!isFree || freeStep === "0") ? "32px" : "0"}}>
                             <h1 style={{paddingBottom: "8px"}}>DETAILS</h1>
                             <div className={styles.transferSend}>
                                 <div className={styles.transferSendItem}>

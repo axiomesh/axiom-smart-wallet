@@ -57,6 +57,7 @@ const TransferFree = (props: any) => {
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [isUpdate, setIsUpdate] = useState<boolean>(false);
     const [isLimitDisabled, setIsLimitDisabled] = useState<boolean>(false);
+    const [pinLoading, setPinLoading] = useState<boolean>(false);
 
     const { Button } = ContinueButton();
     const [ModalComponent, openModal, closeModal] = useCancelModal();
@@ -135,12 +136,14 @@ const TransferFree = (props: any) => {
     }
 
     const handleSubmit = async (password: any) => {
+        setPinLoading(true);
         let axiom:any;
         try {
             axiom = await AxiomAccount.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key);
             setFreeLimit(value)
         }catch (e: any) {
             setBtnLoading(false);
+            setPinLoading(false);
             const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
             if(string.search(expr) > 0 || string.search(expr2) > 0) {
                 await wrongPassword({email});
@@ -180,13 +183,24 @@ const TransferFree = (props: any) => {
         showSuccessToast("Password-free transfer has been activated");
         setIsOpen(false);
         setBtnLoading(false);
+        setPinLoading(false);
         if(sessionKey || freeLimit) {
             setIsUpdate(true);
         }
     }
 
     const handleConfirm = () => {
+        if (!value) {
+            setErrorMessage('please enter daily transfer limit');
+            return
+        } else if (Number(value) > maxNumber || Number(value) < 100) {
+            setErrorMessage("Invalid Input");
+            return
+        }
         if(isDisabled) {
+            return;
+        }
+        if(errorMessage !== "") {
             return;
         }
         if(isLock) {
@@ -199,6 +213,7 @@ const TransferFree = (props: any) => {
         if(!btnLoading) {
             setBtnLoading(true);
             openModal('Attention', handlePassword)
+            setBtnLoading(false);
         }
     }
 
@@ -305,7 +320,7 @@ const TransferFree = (props: any) => {
                         </Popover></div>}
                     </div>
                 </div>}
-                <VerifyTransferModal onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
+                <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
                 <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
             </div>
         </ChakraProvider>

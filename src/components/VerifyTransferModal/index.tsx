@@ -17,12 +17,14 @@ interface Props {
     onClose: () => void;
     onSubmit: (password: string) => void;
     errorMsg: string;
+    pinLoading: boolean;
 }
 
 const VerifyTransferModal = (props: Props) => {
     const [open, setOpen] = useState(false);
     const [time, setTime] = useState<number>(30);
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const {showErrorToast} = Toast();
 
     useEffect(() => {
@@ -31,6 +33,10 @@ const VerifyTransferModal = (props: Props) => {
     useEffect(() => {
         setError(props.errorMsg)
     }, [props.errorMsg])
+
+    useEffect(() => {
+        setIsLoading(props.pinLoading)
+    }, [props.pinLoading])
 
     useEffect(() => {
         setTime(30)
@@ -68,7 +74,7 @@ const VerifyTransferModal = (props: Props) => {
                         <div className={styles.payPassBody}>
                             <span className={styles.payPassTip}>Transfer password verification</span>
                             <div>
-                                <ModalInputPassword onSubmit={props.onSubmit} isError={error} />
+                                <ModalInputPassword isLoading={isLoading} onSubmit={props.onSubmit} isError={error} />
                             </div>
                             {/* <span className={styles.payPassForget} onClick={toReset}>Forget it?</span> */}
                         </div>
