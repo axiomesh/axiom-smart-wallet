@@ -35,22 +35,21 @@ const TransferModal = (props: any) => {
     const {showErrorToast} = Toast();
 
     useEffect(() => {
+        setIsLoading(props.pinLoading)
+    }, [props.pinLoading])
+
+    useEffect(() => {
         const sessionKey = sessionStorage.getItem('sessionKey');
         const freeLimit = sessionStorage.getItem('freeLimit');
         const sr = sessionStorage.getItem('sr');
         if(sessionKey || freeLimit){
             setIsFree(true)
+        }else {
+            setIsFree(false)
         }
         if(sr) {
             setFreeStep(sr)
         }
-    },[])
-
-    useEffect(() => {
-        setIsLoading(props.pinLoading)
-    }, [props.pinLoading])
-
-    useEffect(() => {
         setIsOpen(props.open)
         setTime(30)
         if(props.open) {

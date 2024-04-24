@@ -170,6 +170,7 @@ const TransferFree = (props: any) => {
         setFreeStep("0")
         const secretKey = await deriveAES256GCMSecretKey(sha256(skPassword), salt);
         const encryptKey = encrypt(sessionSigner.privateKey, secretKey.toString());
+        console.log(sessionSigner.address, 'sessionSigner.address')
 
         sessionStorage.setItem("ow", axiom.getAddress())
         sessionStorage.setItem("a", sha256(skPassword));

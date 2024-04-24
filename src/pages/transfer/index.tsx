@@ -479,12 +479,15 @@ const Transfer = (props: any) => {
 
     const handleEntryPoint = async (op: any) => {
         const entryPoint = EntryPoint__factory.connect(window.ENTRY_POINT, rpc_provider);
+        console.log(op, userInfo.address, 'entry')
         try {
-            const point = await entryPoint.callStatic.handleOps([op], userInfo.address);
+            await entryPoint.callStatic.handleOps([op], userInfo.address);
             return false;
         } catch (error: any) {
+            console.log(error)
             const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
             if(string.search(expr) > 0) {
+                console.log(1111)
                 return true;
             }
         }
@@ -493,7 +496,7 @@ const Transfer = (props: any) => {
     const handleVerifyLimit = async () => {
         const sessionKey = sessionStorage.getItem("sk");
         const sr = sessionStorage.getItem("sr");
-        let flag = false;
+        let flag = true;
         if(sessionKey && sr !== "0") {
             const skPassword = sessionStorage.getItem("a");
             const salt = sessionStorage.getItem("b");
@@ -501,10 +504,10 @@ const Transfer = (props: any) => {
             const secretKey = await deriveAES256GCMSecretKey(skPassword, salt);
             const decryptKey = decrypt(sessionKey, secretKey.toString());
             const signer = new Wallet(decryptKey);
+            console.log(signer.address)
             const axiom = await AxiomAccount.sessionSmartAccount(
                 signer,
-                ow,
-                userInfo.address
+                ow
             );
             // @ts-ignore
             const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -528,12 +531,13 @@ const Transfer = (props: any) => {
                             
                         }
                     })
+                    console.log(resOp)
                     await resOp.wait();
                     flag = await handleEntryPoint(usrOp)
                     console.log(flag)
                 }catch (e: any) {
                     console.log(e);
-                    return;
+                    return false;
                 }
             }else {
                 try {
@@ -603,8 +607,16 @@ const Transfer = (props: any) => {
         if(isMax) {
             await handleMax()
         }
-        const sendValue = form.value.replace(/,/g, "")
+        const sendValue = form.value.replace(/,/g, "");
+        const addressBalance = balance.replace(/,/g, "")
+        const sessionKey = sessionStorage.getItem("sk");
+        const sr = sessionStorage.getItem("sr");
         if(isSetPassword) {
+            if(Number(sendValue) > Number(addressBalance)) {
+                setValueError("Gas fee is insufficient");
+                setBtnLoading(false);
+                return;
+            }
             try {
                 ethers.utils.getAddress(form.to);
                 setToErrorsText("");
@@ -628,7 +640,8 @@ const Transfer = (props: any) => {
                 return;
             }
             const gas = await getGas(sendValue, form.send);
-            if((Number(gas) + Number(sendValue)) > Number(balance)) {
+            console.log(Number(gas) + Number(sendValue), addressBalance)
+            if((Number(gas) + Number(sendValue)) > Number(addressBalance)) {
                 setValueError("Gas fee is insufficient");
                 setBtnLoading(false)
                 return;
@@ -640,7 +653,10 @@ const Transfer = (props: any) => {
                     price = item.price * gas;
                 }
             })
-            const isLimit = await handleVerifyLimit();
+            let isLimit: boolean = false;
+            if(sessionKey && sr !== "0") {
+                isLimit = await handleVerifyLimit();
+            }
             console.log(isLimit)
             const transfinite: boolean = isLimit;
             setIsTransfinite(transfinite)
@@ -817,8 +833,7 @@ const Transfer = (props: any) => {
                 console.log(signer)
                 axiom = await AxiomAccount.sessionSmartAccount(
                     signer,
-                    ow,
-                    userInfo.address
+                    ow
                 );
             }
         }
@@ -940,6 +955,7 @@ const Transfer = (props: any) => {
             const signer = await handleGetSessionSigner();
             const freeLimit = sessionStorage.getItem("freeLimit");
             const value = freeLimit ? ethers.utils.parseUnits(freeLimit, 18) : "";
+            console.log(signer.address, 'signer.address')
             const setSessionOP = await axiom.setSession(
                 signer,
                 value,
@@ -971,10 +987,11 @@ const Transfer = (props: any) => {
         setPinLoading(false);
         setGasLoading(true);
         const sendValue = form.value.replace(/,/g, "");
+        const addressBalance = balance.replace(/,/g, "")
         getGas(sendValue, form.send).then((res: any) => {
             setGasLoading(false);
             setGasFee(res);
-            if((Number(res) + Number(sendValue)) > Number(balance)) {
+            if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
                 setValueError("Gas fee is insufficient");
             }
         })
