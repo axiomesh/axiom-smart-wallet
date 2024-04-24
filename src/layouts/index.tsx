@@ -35,6 +35,12 @@ export default function Layout() {
                         refreshToken()
                     }
                 });
+
+                stompClient.subscribe(`/topic/lock/${email}`, async function(message: any) {
+                    if(message.body === 'lock'){
+                        history.replace('/lock')
+                    }
+                });
             });
         }
 
@@ -48,7 +54,7 @@ export default function Layout() {
     }, []);
 
     useEffect(() => {
-        const handleBeforeUnload = (event) => {
+        const handleBeforeUnload = () => {
             sessionStorage.removeItem("form");
         };
         window.addEventListener('beforeunload', handleBeforeUnload);

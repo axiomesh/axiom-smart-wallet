@@ -11,8 +11,9 @@ window.ETH_RPC = "https://eth-sepolia.g.alchemy.com/v2/uxsdJERFKDg5pOJ1pFiaebgU1
 // 代币转换
 window.AXC_SYMBOL = 18;
 window.ETH_SYMBOL = 18;
+window.ETH_BROWSER = 'https://sepolia.etherscan.io';
 
-// // 代币合约
+//  132环境配置参数
 window.RPC_URL='http://172.16.13.132:28881';
 window.WETH_CONTRACT = "0xbCF26943C0197d2eE0E5D05c716Be60cc2761508"
 window.USDT_CONTRACT = "0xd6bab5c1078684460673DB9ff600f1c2b0132993"
@@ -23,18 +24,13 @@ window.WAXC_CONTRACT = "0x62B864FbF36c5BAb14bF1EBafE1dA94DAb56e9f8"
 window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
 window.BUNDLER_URL='http://172.16.13.132:4337';
-
-// https://etherscan.io/
-window.ETH_BROWSER = 'https://sepolia.etherscan.io';
-
 window.AXM_BROWSER = 'http://172.16.13.132:8080';
 window.socketUrl = 'http://172.16.13.133:8580/websocket'
 
 
+// 演示环境配置参数
 
-// window.RPC_URL='http://10.2.69.157:8881';
-// window.BUNDLER_URL='http://10.2.69.156:4337';
-
+// window.RPC_URL='http://10.2.69.156:8881';
 // window.WETH_CONTRACT = "0x0116686E2291dbd5e317F47faDBFb43B599786Ef"
 // window.USDT_CONTRACT = "0xC73a66B4074B609E24bB264821e183DC3b9Ef654"
 // window.WUSDT_CONTRACT = "0x9bAaB117304f7D6517048e371025dB8f89a8DbE5"
@@ -43,6 +39,6 @@ window.socketUrl = 'http://172.16.13.133:8580/websocket'
 // window.WAXC_CONTRACT = "0x620A5aaA95608eB4929BDbc069B3105F3347Ccd2"
 // window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 // window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
-
+// window.BUNDLER_URL='http://10.2.69.156:4337';
 // window.AXM_BROWSER = 'http://10.2.69.157:8080';
 // window.socketUrl = 'http://10.2.69.157:8580/websocket'
