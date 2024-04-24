@@ -460,7 +460,6 @@ const Transfer = (props: any) => {
         } else {
             const allList = token;
             const filterData = allList.filter((item: token) => item.name === type)[0];
-            console.log(info)
             const currentProvider = filterData.name === 'ETH' ? provider : rpc_provider;
             // return 0
             const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI);
@@ -484,7 +483,6 @@ const Transfer = (props: any) => {
             await entryPoint.callStatic.handleOps([op], userInfo.address);
             return false;
         } catch (error: any) {
-            console.log(error)
             const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
             if(string.search(expr) > 0) {
                 console.log(1111)

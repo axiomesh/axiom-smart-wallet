@@ -10,13 +10,7 @@ import {
 } from '@chakra-ui/react';
 
 
-interface Props {
-    onSubmit: (password: string) => void;
-    isError: any;
-    isLoading: boolean;
-}
-
-const ModalInputPassword = (props: Props) => {
+const ModalInputPassword = (props: any) => {
     const [pinValues, setPinValues] = useState<string[]>(["", "", "", "", "", ""]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -32,19 +26,9 @@ const ModalInputPassword = (props: Props) => {
     useEffect(() => {
         setLoading(props.isLoading)
     }, [props.isLoading])
-
-    const handlePinChange = (index: number, value: string) => {
-        const newPinValues = [...pinValues];
-        newPinValues[index] = value;
-        setPinValues(newPinValues);
-        if (index === newPinValues.length - 1 && value !== "") {
-            console.log(123)
-            props.onSubmit(newPinValues.join(""))
-        }
-    };
-
+    
     const pinChange = (value: string) => {
-        setError("");
+        props.clearError()
         if (value.length === 6) {
             props.onSubmit(value)
         }
