@@ -4,7 +4,7 @@ import Logo from '@/components/Logo';
 import Menu from '@/components/Menu'
 import PersonInfo from "@/components/PersonInfo";
 import Settings from "@/components/Settings";
-import {getMail, getToken} from "@/utils/help";
+import {clearSessionData, getMail, getToken} from "@/utils/help";
 import {useEffect} from "react";
 import {refreshToken} from "@/services/login";
 
@@ -31,6 +31,7 @@ export default function Layout() {
             stompClient.connect({}, function(frame: any) {
                 stompClient.subscribe(`/topic/logout/${email}`, async function(message: any) {
                     if(message.body === 'logout'){
+                        clearSessionData();
                         refreshToken()
                     }
                 });

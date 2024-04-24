@@ -1,8 +1,8 @@
 import styles from './index.less'
 import React, { useState, useEffect } from 'react';
 import useCancelModal from "@/hooks/CancelModal";
-import {exchangeAddress, getImgFromHash, getMail} from '@/utils/help';
-import {getUserInfo} from "@/services/login";
+import {clearSessionData, exchangeAddress, getImgFromHash, getMail} from '@/utils/help';
+import {getUserInfo, logout} from "@/services/login";
 import { connect, history } from 'umi';
 import handleClipboard from "@/utils/clipboard"
 
@@ -30,6 +30,7 @@ const PersonInfo = (props: any) => {
             }
 
         } catch (e) {
+            clearSessionData();
             history.replace('/login')
         }
     }
@@ -59,12 +60,11 @@ const PersonInfo = (props: any) => {
         },300)
     }
 
-    const handleConfirm = () => {
-        sessionStorage.setItem('Wallet_Token','');
+    const handleConfirm = async () => {
         sessionStorage.removeItem('sessionKey');
-        sessionStorage.removeItem("freeLimit");
         sessionStorage.removeItem("key");
-        history.replace('/login');
+        await logout(email)
+        history.replace('/login')
     }
 
     return (

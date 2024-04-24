@@ -1,4 +1,5 @@
 import request from '@/utils/request';
+import { clearSessionData } from "@/utils/help";
 
 
 export async function sendVerifyCode(email: string | null) {
@@ -119,6 +120,7 @@ export async function logout(email:string) {
         method: 'post',
         data: {email},
     });
+    clearSessionData();
     return res.data;
 }
 

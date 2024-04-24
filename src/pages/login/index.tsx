@@ -8,14 +8,16 @@ import {
     Checkbox,
     useToast
 } from '@chakra-ui/react';
-import { history, connect } from 'umi';
+import { history, connect, Navigate } from 'umi';
 import React, {useEffect, useState} from "react";
 import Right from './componments/right';
 import { sendVerifyCode } from '@/services/login';
 import {clearSessionData, setMail} from "@/utils/help";
+import withAuth from '@/components/withAuth';
 import Toast from "@/hooks/Toast";
+import { getToken } from "@/utils/help";
 
-function HomePage(props: any) {
+function Login(props: any) {
     const { dispatch } = props;
     const toast = useToast();
     const [errorText, setErrorText] = useState('');
@@ -37,23 +39,23 @@ function HomePage(props: any) {
         return true
     }
 
-    useEffect(() => {
-        clearSessionData(dispatch);
-    }, []);
+    // useEffect(() => {
+    //     clearSessionData(dispatch);
+    // }, []);
 
 
-    React.useEffect(() => {
-        // @ts-ignore
-        let unblock =  history.block((tx:any, action:any) => {
-            if (tx.action === 'POP') {
-                return false;
-            } else {
-                unblock();
-                tx.retry()
-            }
-        });
-
-    }, [])
+    // React.useEffect(() => {
+    //     // @ts-ignore
+    //     let unblock =  history.block((tx:any, action:any) => {
+    //         if (tx.action === 'POP') {
+    //             return false;
+    //         } else {
+    //             unblock();
+    //             tx.retry()
+    //         }
+    //     });
+    //
+    // }, [])
 
     const handleSubmit = async () => {
         if(!validateName(mail)) return
@@ -100,6 +102,11 @@ function HomePage(props: any) {
         const { value } = e.target;
         setEmail(value);
         setErrorText('');
+    }
+
+    console.log(getToken())
+    if(getToken()){
+        return <Navigate to="/lock" />
     }
   return (
       <div className={styles.loginPage}>
@@ -152,4 +159,4 @@ function HomePage(props: any) {
 
 export default connect(({ global }) => ({
     userInfo: global.userInfo,
-}))(HomePage)
+}))(Login)

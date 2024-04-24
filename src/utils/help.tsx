@@ -63,24 +63,24 @@ export const changePrice = (num = 0, needSymbol = true) => {
 }
 
 export const setToken = (token: string) => {
-    sessionStorage.setItem('Wallet_Token', token);
+    localStorage.setItem('Wallet_Token', token);
 }
 
 export const getToken = () => {
-    return sessionStorage.getItem('Wallet_Token');
+    return localStorage.getItem('Wallet_Token');
 }
 
 export const setMail = (mail: string) => {
-    sessionStorage.setItem('Wallet_Mail', mail);
+    localStorage.setItem('Wallet_Mail', mail);
 }
 
 export const getMail = () => {
-    return sessionStorage.getItem('Wallet_Mail');
+    return localStorage.getItem('Wallet_Mail');
 }
 
 export const passWordReg = /^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$/;
 
-export const clearSessionData = (dispatch: any) => {
+export const clearSessionData = (dispatch?: any) => {
     setMail('');
     setToken('');
     sessionStorage.removeItem("sk");
@@ -88,10 +88,12 @@ export const clearSessionData = (dispatch: any) => {
     sessionStorage.removeItem("b");
     sessionStorage.removeItem("op");
     sessionStorage.removeItem("freeLimit");
-    dispatch({
-        type: 'global/setUser',
-        payload: {},
-    })
+    if(dispatch){
+        dispatch({
+            type: 'global/setUser',
+            payload: {},
+        })
+    }
 }
 
 export function formatUnits(value: bigint, decimals: number) {
