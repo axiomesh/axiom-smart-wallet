@@ -99,14 +99,6 @@ const SetPayPasswordModal = (props: Props) => {
         }
     }
 
-    const handleBlurPassWord = (e:any) => {
-        if(e.target.value === ""){
-            setErrorTxt('Please enter a password')
-        } else {
-            setErrorTxt('');
-        }
-    }
-
     const handleChangePassWord = (e:any) => {
         setErrorTxt('');
         setPassword(e.target.value);
@@ -136,7 +128,6 @@ const SetPayPasswordModal = (props: Props) => {
                                         fontWeight: "400",
                                         color: "#A0AEC0"
                                     }}
-                                    onBlur={handleBlurPassWord}
                                     onChange={handleChangePassWord}
                                 />
                                 <FormErrorMessage>{errorTxt}</FormErrorMessage>
