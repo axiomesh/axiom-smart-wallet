@@ -8,7 +8,7 @@ import {
 import { history, useLocation } from 'umi';
 import {useEffect, useState} from "react";
 import Right from './componments/right';
-import {checkLoginPassword, sendVerifyCode} from '@/services/login';
+import {checkLoginPassword, checkPassword, sendVerifyCode} from '@/services/login';
 import {getMail, passWordReg, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
 import Toast from "@/hooks/Toast";
@@ -36,13 +36,22 @@ export default function LoginPassword() {
         try{
             setLoading(true)
             const login_password = sha256(password);
-            const res = await checkLoginPassword({
+            const params = {
                 email,
                 login_password,
-                // login_password: password,
-            })
-            setToken(res);
-            history.replace('/home');
+            }
+            if(location.pathname === '/lock-password'){
+                const data = await checkPassword(params)
+                if(data){
+                    history.replace('/home');
+                } else {
+                    setErrorText('Invalid password')
+                }
+            } else {
+                const res = await checkLoginPassword(params)
+                setToken(res);
+                history.replace('/home');
+            }
         } catch (e){
             // @ts-ignore
             showErrorToast(e)
