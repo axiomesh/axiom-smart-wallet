@@ -1,0 +1,610 @@
+
+
+.rc-pagination {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 14px;
+  line-height: 20px;
+  list-style: none;
+}
+
+.rc-pagination::before,.rc-pagination::after {
+  box-sizing: border-box
+}
+
+.rc-pagination [class^=rc-pagination],.rc-pagination [class*=" rc-pagination"] {
+  box-sizing: border-box
+}
+
+.rc-pagination [class^=rc-pagination]::before,.rc-pagination [class*=" rc-pagination"]::before,.rc-pagination [class^=rc-pagination]::after,.rc-pagination [class*=" rc-pagination"]::after {
+  box-sizing: border-box
+}
+
+.rc-pagination ul,.rc-pagination ol {
+  margin: 0;
+  padding: 0;
+  list-style: none
+}
+
+.rc-pagination::after {
+  display: block;
+  clear: both;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  content: ""
+}
+
+.rc-pagination .rc-pagination-total-text {
+  display: inline-block;
+  height: 32px;
+  margin-inline-end:20px;
+  line-height: 30px;
+  vertical-align: middle;
+  color: #CBD5E0;
+}
+
+.rc-pagination .rc-pagination-item {
+  display: inline-block;
+  min-width: 32px;
+  height: 32px;
+  margin-inline-end:8px;
+  line-height: 30px;
+  text-align: center;
+  vertical-align: middle;
+  list-style: none;
+  background-color: transparent;
+  border: 1px solid #CBD5E0;
+  outline: 0;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 12px;
+}
+
+.rc-pagination .rc-pagination-item a {
+  display: block;
+  padding: 0 7px;
+  color: #2D3748;
+}
+
+.rc-pagination .rc-pagination-item a:hover {
+  text-decoration: none
+}
+
+.rc-pagination .rc-pagination-item:not(.rc-pagination-item-active):hover {
+  transition: all 0.2s;
+  background-color: transparent;
+  border-color: #ECC94B;
+}
+
+.rc-pagination .rc-pagination-item-active {
+  font-weight: 500;
+  background: #ECC94B;
+  border-radius: 12px;
+  border-color: #ECC94B;
+}
+
+.rc-pagination .rc-pagination-item-active a {
+  color: #fff;
+}
+
+.rc-pagination .rc-pagination-item-active:hover {
+  background: #ECC94B;
+  border-radius: 12px;
+  border-color: #ECC94B;
+}
+
+.rc-pagination .rc-pagination-item-active:hover a {
+  color: #fff;
+}
+
+.rc-pagination .rc-pagination-jump-prev,.rc-pagination .rc-pagination-jump-next {
+  outline: 0
+}
+
+.rc-pagination .rc-pagination-jump-prev .rc-pagination-item-container,.rc-pagination .rc-pagination-jump-next .rc-pagination-item-container {
+  position: relative
+}
+
+.rc-pagination .rc-pagination-jump-prev .rc-pagination-item-container .rc-pagination-item-link-icon,.rc-pagination .rc-pagination-jump-next .rc-pagination-item-container .rc-pagination-item-link-icon {
+  color: #1677ff;
+  font-size: 14px;
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.rc-pagination .rc-pagination-jump-prev .rc-pagination-item-container .rc-pagination-item-link-icon-svg,.rc-pagination .rc-pagination-jump-next .rc-pagination-item-container .rc-pagination-item-link-icon-svg {
+  top: 0;
+  inset-inline-end: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  margin: auto
+}
+
+.rc-pagination .rc-pagination-jump-prev .rc-pagination-item-container .rc-pagination-item-ellipsis,.rc-pagination .rc-pagination-jump-next .rc-pagination-item-container .rc-pagination-item-ellipsis {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  display: block;
+  margin: auto;
+  color: #CBD5E0;
+  letter-spacing: calc(4px/2);
+  text-align: center;
+  text-indent: .13em;
+  opacity: 1;
+  transition: all 0.2s;
+}
+
+.rc-pagination .rc-pagination-jump-prev:hover .rc-pagination-item-link-icon,.rc-pagination .rc-pagination-jump-next:hover .rc-pagination-item-link-icon {
+  opacity: 1
+}
+
+.rc-pagination .rc-pagination-jump-prev:hover .rc-pagination-item-ellipsis,.rc-pagination .rc-pagination-jump-next:hover .rc-pagination-item-ellipsis {
+  opacity: 0
+}
+
+.rc-pagination .rc-pagination-prev,.rc-pagination .rc-pagination-jump-prev,.rc-pagination .rc-pagination-jump-next {
+  margin-inline-end: 8px
+}
+
+.rc-pagination .rc-pagination-prev,
+  .rc-pagination .rc-pagination-next,
+  .rc-pagination .rc-pagination-jump-prev,
+  .rc-pagination .rc-pagination-jump-next {
+  display: inline-block;
+  min-width: 32px;
+  height: 32px;
+  color: rgba(0, 0, 0, 0.88);
+  line-height:30px;
+  text-align: center;
+  vertical-align: middle;
+  list-style: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s
+}
+
+.rc-pagination .rc-pagination-jump-next{
+  min-width: 40px;
+}
+
+.rc-pagination .rc-pagination-prev,.rc-pagination .rc-pagination-next {
+  outline: 0
+}
+
+.rc-pagination .rc-pagination-prev button,.rc-pagination .rc-pagination-next button {
+  color: rgba(0, 0, 0, 0.88);
+  cursor: pointer;
+  user-select: none
+}
+
+.rc-pagination .rc-pagination-prev .rc-pagination-item-link,
+.rc-pagination .rc-pagination-next .rc-pagination-item-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  //font-size: 14px;
+  text-align: center;
+  background-color: transparent;
+  outline: none;
+  transition: all 0.2s;
+  border: 1px solid #CBD5E0;
+  color: #718096;
+  border-radius: 12px;
+}
+
+.rc-pagination .rc-pagination-prev:hover .rc-pagination-item-link,
+.rc-pagination .rc-pagination-next:hover .rc-pagination-item-link {
+  background-color: #f5f5f5
+}
+
+.rc-pagination .rc-pagination-prev:active .rc-pagination-item-link,
+.rc-pagination .rc-pagination-next:active .rc-pagination-item-link {
+  //background-color: #ECC94B
+  //background-color: transparent;
+  //border-color: #CBD5E0;
+  //color: #718096;
+  //border-radius: 12px;
+  border-color: #ECC94B;
+  background: #ECC94B;
+  color: #fff;
+}
+
+.rc-pagination .rc-pagination-slash {
+  margin-inline-end:4px;
+  margin-inline-start: 4px
+}
+
+.rc-pagination .rc-pagination-options {
+  display: inline-block;
+  margin-inline-start:8px;vertical-align: middle
+}
+
+.rc-pagination .rc-pagination-options-size-changer.-select {
+  display: inline-block;
+  width: auto
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper {
+  display: inline-block;
+  height: 30px;
+  margin-inline-start:8px;
+  line-height:30px;
+  vertical-align: top;
+  color: #718096;
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input {
+  position: relative;
+  display: inline-block;
+  width: 54px;
+  min-width: 0;
+  padding: 4px 11px;
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 14px;
+  line-height: 20px;
+  transition: all 0.2s;
+  background: #fff;
+  border-width: 1px;
+  border-style: solid;
+  height: 32px;
+  box-sizing: border-box;
+  margin: 0;
+  margin-inline-start:8px;
+  margin-inline-end: 8px;
+  border-color: #E2E8F0;
+  border-radius: 12px;
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input::placeholder {
+  color: #E2E8F0;
+  user-select: none
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input:placeholder-shown {
+  text-overflow: ellipsis
+}
+
+textarea.rc-pagination .rc-pagination-options-quick-jumper input {
+  max-width: 100%;
+  height: auto;
+  min-height: 32px;
+  line-height: 32px;
+  vertical-align: bottom;
+  transition: all 0.2s,height 0s;
+  resize: vertical;
+  border-color: #E2E8F0;
+  border-radius: 12px;
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input-lg {
+  padding: 7px 11px;
+  font-size: 16px;
+  line-height: 20px;
+  border-radius: 8px
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input-sm {
+  padding: 0 7px;
+  font-size: 14px;
+  border-radius: 8px
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input-rtl {
+  direction: rtl
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input-textarea-rtl {
+  direction: rtl
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input:hover {
+  border-color: #A0AEC0;
+  background-color: #fff;
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input:focus,
+.rc-pagination .rc-pagination-options-quick-jumper input:focus-within {
+  border-color: #718096;
+  //box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+  outline: 0;
+  background-color: #fff;
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input[disabled] {
+  color: #CBD5E0;
+  background-color: #E2E8F0;
+  border-color: #000;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input[disabled] input[disabled] {
+  cursor: not-allowed
+}
+
+.rc-pagination .rc-pagination-options-quick-jumper input[disabled]:hover:not([disabled]) {
+  border-color: #000;
+  background-color: #E2E8F0
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-prev,.rc-pagination.rc-pagination-simple .rc-pagination-next {
+  height: 24px;
+  line-height: 24px;
+  vertical-align: top
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-prev .rc-pagination-item-link,.rc-pagination.rc-pagination-simple .rc-pagination-next .rc-pagination-item-link {
+  height: 24px;
+  background-color: transparent;
+  border: 0
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-prev .rc-pagination-item-link:hover,.rc-pagination.rc-pagination-simple .rc-pagination-next .rc-pagination-item-link:hover {
+  background-color: #f5f5f5
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-prev .rc-pagination-item-link:active,.rc-pagination.rc-pagination-simple .rc-pagination-next .rc-pagination-item-link:active {
+  background-color: #ECC94B
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-prev .rc-pagination-item-link::after,.rc-pagination.rc-pagination-simple .rc-pagination-next .rc-pagination-item-link::after {
+  height: 24px;
+  line-height: 24px
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-simple-pager {
+  display: inline-block;
+  height: 24px;
+  margin-inline-end:8px}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-simple-pager input {
+  box-sizing: border-box;
+  height: 100%;
+  margin-inline-end:8px;
+  padding: 0 calc(4px * 1.5);
+  text-align: center;
+  background-color: #ffffff;
+  border: 1px solid #000;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+  color: inherit
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-simple-pager input:hover {
+  border-color: #1677ff
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-simple-pager input:focus {
+  border-color: #1677ff;
+  box-shadow: 0 0 1px rgba(5, 145, 255, 0.1);
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-simple-pager input[disabled] {
+  color: #CBD5E0;
+  background-color: #f5f5f5;
+  border-color: #000;
+  cursor: not-allowed
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-total-text,.rc-pagination.rc-pagination-mini .rc-pagination-simple-pager {
+  height: 24px;
+  line-height: 24px
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-item {
+  min-width: 24px;
+  height: 24px;
+  margin: 0;
+  line-height: 22px;
+}
+
+.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-item:not(.rc-pagination-item-active) {
+  background-color: transparent;
+  border-color: transparent
+}
+
+.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-item:not(.rc-pagination-item-active):hover {
+  background-color: #f5f5f5
+}
+
+.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-item:not(.rc-pagination-item-active):active {
+  background-color: #ECC94B
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-prev,.rc-pagination.rc-pagination-mini .rc-pagination-next {
+  min-width: 24px;
+  height: 24px;
+  margin: 0;
+  line-height: 24px
+}
+
+.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-prev:hover .rc-pagination-item-link,.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-next:hover .rc-pagination-item-link {
+  background-color: #f5f5f5
+}
+
+.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-prev:active .rc-pagination-item-link,.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-next:active .rc-pagination-item-link {
+  background-color: #ECC94B
+}
+
+.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-prev.rc-pagination-disabled:hover .rc-pagination-item-link,.rc-pagination.rc-pagination-mini:not(.rc-pagination-disabled) .rc-pagination-next.rc-pagination-disabled:hover .rc-pagination-item-link {
+  background-color: transparent
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-prev .rc-pagination-item-link,.rc-pagination.rc-pagination-mini .rc-pagination-next .rc-pagination-item-link {
+  background-color: transparent;
+  border-color: transparent
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-prev .rc-pagination-item-link::after,.rc-pagination.rc-pagination-mini .rc-pagination-next .rc-pagination-item-link::after {
+  height: 24px;
+  line-height: 24px
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-jump-prev,.rc-pagination.rc-pagination-mini .rc-pagination-jump-next {
+  height: 24px;
+  margin-inline-end:0;
+  line-height:24px
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-options {
+  margin-inline-start:calc(4px/2)}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-options-size-changer {
+  top: 0;
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-options-quick-jumper {
+  height: 24px;
+  line-height: 24px
+}
+
+.rc-pagination.rc-pagination-mini .rc-pagination-options-quick-jumper input {
+  padding: 0 7px;
+  font-size: 14px;
+  border-radius: 8px;
+  width: 54px;
+  height: 32px
+}
+
+.rc-pagination .rc-pagination-disabled,.rc-pagination .rc-pagination-disabled:hover, .rc-pagination .rc-pagination-disabled:active {
+  cursor: not-allowed;
+  border-radius: 12px;
+  background: #EDF2F7;
+  border: 1px solid #CBD5E0;
+  color: #CBD5E0;
+
+  .rc-pagination-item-link{
+    border: 0;
+    background: #EDF2F7;
+    color: #CBD5E0;
+  }
+}
+
+.rc-pagination .rc-pagination-disabled .rc-pagination-item-link,.rc-pagination .rc-pagination-disabled:hover .rc-pagination-item-link {
+  color: #CBD5E0;
+  cursor: not-allowed
+}
+
+.rc-pagination .rc-pagination-disabled:focus-visible {
+  cursor: not-allowed
+}
+
+.rc-pagination .rc-pagination-disabled:focus-visible .rc-pagination-item-link {
+  color: #CBD5E0;
+  cursor: not-allowed
+}
+
+.rc-pagination.rc-pagination-disabled {
+  cursor: not-allowed
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item {
+  cursor: not-allowed
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item:hover,.rc-pagination.rc-pagination-disabled .rc-pagination-item:active {
+  background-color: transparent
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item a {
+  color: #CBD5E0;
+  background-color: transparent;
+  border: none;
+  cursor: not-allowed
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item-active {
+  border-color: #000;
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item-active:hover,.rc-pagination.rc-pagination-disabled .rc-pagination-item-active:active {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item-active a {
+  color: rgba(0, 0, 0, 0.25)
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item-link {
+  color: #CBD5E0;
+  cursor: not-allowed
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-item-link:hover,.rc-pagination.rc-pagination-disabled .rc-pagination-item-link:active {
+  background-color: transparent
+}
+
+.rc-pagination-simple.rc-pagination.rc-pagination-disabled .rc-pagination-item-link {
+  background-color: transparent
+}
+
+.rc-pagination-simple.rc-pagination.rc-pagination-disabled .rc-pagination-item-link:hover,.rc-pagination-simple.rc-pagination.rc-pagination-disabled .rc-pagination-item-link:active {
+  background-color: transparent
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-simple-pager {
+  color: #CBD5E0
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-jump-prev .rc-pagination-item-link-icon,.rc-pagination.rc-pagination-disabled .rc-pagination-jump-next .rc-pagination-item-link-icon {
+  opacity: 0
+}
+
+.rc-pagination.rc-pagination-disabled .rc-pagination-jump-prev .rc-pagination-item-ellipsis,.rc-pagination.rc-pagination-disabled .rc-pagination-jump-next .rc-pagination-item-ellipsis {
+  opacity: 1
+}
+
+.rc-pagination.rc-pagination-simple .rc-pagination-prev.rc-pagination-disabled .rc-pagination-item-link:hover,.rc-pagination.rc-pagination-simple .rc-pagination-next.rc-pagination-disabled .rc-pagination-item-link:hover,.rc-pagination.rc-pagination-simple .rc-pagination-prev.rc-pagination-disabled .rc-pagination-item-link:active,.rc-pagination.rc-pagination-simple .rc-pagination-next.rc-pagination-disabled .rc-pagination-item-link:active {
+  background-color: transparent
+}
+
+@media only screen and (max-width: 992px) {
+  .rc-pagination .rc-pagination-item-after-jump-prev,.rc-pagination .rc-pagination-item-before-jump-next {
+    display:none
+  }
+}
+
+@media only screen and (max-width: 576px) {
+  .rc-pagination .rc-pagination-options {
+    display:none
+  }
+}
+
+.rc-pagination-rtl {
+  direction: rtl
+}
+
+.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-item:focus-visible {
+  //outline: var(--rc-line-width-focus) solid var(--rc-color-primary-border);
+  //outline-offset: 1px;
+  //transition: outline-offset 0s,outline 0s
+}
+
+.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-jump-prev:focus-visible,.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-jump-next:focus-visible {
+  //outline: var(--rc-line-width-focus) solid var(--rc-color-primary-border);
+  //outline-offset: 1px;
+  //transition: outline-offset 0s,outline 0s
+}
+
+.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-jump-prev:focus-visible .rc-pagination-item-link-icon,.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-jump-next:focus-visible .rc-pagination-item-link-icon {
+  opacity: 1
+}
+
+.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-jump-prev:focus-visible .rc-pagination-item-ellipsis,.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-jump-next:focus-visible .rc-pagination-item-ellipsis {
+  opacity: 0
+}
+
+.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-prev:focus-visible .rc-pagination-item-link,.rc-pagination:not(.rc-pagination-disabled) .rc-pagination-next:focus-visible .rc-pagination-item-link {
+  //outline: var(--rc-line-width-focus) solid var(--rc-color-primary-border);
+  //outline-offset: 1px;
+  //transition: outline-offset 0s,outline 0s
+}

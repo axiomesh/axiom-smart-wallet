@@ -1,0 +1,50 @@
+.menu {
+  margin-top: 11px;
+  ul {
+    li {
+      padding:16px 20px;
+      span {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        a {
+          display: flex;
+          align-items: center;
+        }
+      }
+      .assetIcon {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background: url("../../assets/menu-assets.png") no-repeat center / cover;
+        margin-right: 8px;
+      }
+      .transferIcon {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background: url("../../assets/menu-transfer.png") no-repeat center / cover;
+        margin-right: 8px;
+      }
+    }
+    .active {
+      span {
+        color: #ECC94B;
+      }
+      .assetIcon {
+        background: url("../../assets/menu-assets-active.png") no-repeat center / cover;
+      }
+      .transferIcon {
+        background: url("../../assets/menu-transfer-active.png") no-repeat center / cover;
+      }
+    }
+    li:hover {
+      border-radius: 20px;
+      background: #2D3748;
+    }
+
+    .active:hover{
+      background: rgba(0,0,0,0);
+    }
+  }
+}

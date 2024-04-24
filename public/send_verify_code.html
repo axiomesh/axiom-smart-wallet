@@ -1,0 +1,49 @@
+<html lang="en-US" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>email</title>
+    <style>
+        a{
+            color: #ECC94B !important;
+        }
+    </style>
+</head>
+<body style="background-color: white;">
+<div style="width: 640px;height: auto;border-radius: 5px;margin: 0 auto;position: relative; padding-bottom: 80px; padding-top: 20px">
+    <div>
+        <img width="640" src="${header_img}" alt="">
+    </div>
+    <div style="color: rgba(0,0,0,0.86);font-family: 'Roboto','Century Gothic', 'Trebuchet MS', 'Hiragino Sans GB', 微软雅黑, 'Microsoft Yahei', Tahoma, Helvetica, Arial, 'SimSun', sans-serif;font-size: 16px;line-height: 24px;margin: 10px auto 0px">
+        <h2 style="font-size: 20px;font-weight: 600; color: #000">Please verify your email</h2>
+        <div >
+            <p style="margin: 16px 0; ">Please enter the below code into your Axiomesh account to verify your email. Remember, this code is confidential, so don’t share it with anyone else.</p>
+            <p>Hurry though, the code expires in 30 minutes.</p>
+            <p style="margin: 16px 0;font-size: 32px; font-weight: 600; color: #ECC94B;line-height: 38px;">{verification_code}</p>
+            <p>Only enter this code on an axiomesh.io domain.</p>
+            <p>Don't recognize this activity?</p>
+            <p style='margin-bottom: 32px'>Please ignore this email.</p>
+            <div style="background-color: #F7F7F7; padding: 40px; text-align:center;">
+                <p style="font-size: 24px;font-weight: 700; color: #000;  margin-bottom: 24px; margin-top: 0">Axiomesh</p>
+                <p style="margin-bottom: 8px; margin-top: 0">This email was sent to <span style="color: #ECC94B; opacity: 1;">{xxx@gmail.com}</span></p>
+                <p style="margin-bottom: 24px; margin-top: 0; padding: 0 60px;">You’ve received this email because you are using your email
+                    to log in to your Axiomesh smart account.</p>
+                <div>
+                    <a style="color: rgba(0, 0, 0, 0.50); text-decoration: none" href="https://twitter.com/axiomesh">
+                        <img width='32' height='32' src='https://raw.githubusercontent.com/axiomesh/axiom-source/main/axiom-home-source/img/twitter.png' alt=''>
+                    </a>
+                    <a style="color: rgba(0, 0, 0, 0.50); text-decoration: none" href="https://discord.com/invite/jsa3chGSzU">
+                        <img width='32' height='32' src='https://raw.githubusercontent.com/axiomesh/axiom-source/main/axiom-home-source/img/discord.png'/>
+                    </a>
+                    <a style="color: rgba(0, 0, 0, 0.50); text-decoration: none" href="https://axiomesh.io">
+                        <img width='32' height='32' src='https://raw.githubusercontent.com/axiomesh/axiom-source/main/axiom-home-source/img/globe.png' alt=''>
+                    </a>
+                    <a style="color: rgba(0, 0, 0, 0.50); text-decoration: none" href="https://github.com/axiomesh">
+                        <img width='32' height='32'  src='https://raw.githubusercontent.com/axiomesh/axiom-source/main/axiom-home-source/img/github.png' alt=''>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

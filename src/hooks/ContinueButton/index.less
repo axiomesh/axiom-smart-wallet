@@ -1,0 +1,46 @@
+.button {
+  width: 100%;
+  background: #ECC94B;
+  border-radius: 56px;
+  padding: 16px 0;
+  text-align: center;
+  font-family: Inter;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  &:hover {
+    background: #F6E05E;
+  }
+  &:active {
+    background: #D4B443;
+  }
+  &Disabled {
+    background: rgba(236, 201, 75, 0.5);
+    &:hover, &:active {
+      background: rgba(236, 201, 75, 0.5);
+    }
+  }
+  &Loading {
+    background: rgba(236, 201, 75, 0.5);
+    &:hover, &:active {
+      background: rgba(236, 201, 75, 0.5);
+    }
+    &Icon {
+      width: 16px;
+      height: 16px;
+      background: url("../../assets/transfer/btn-loading.png") no-repeat center / cover;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
