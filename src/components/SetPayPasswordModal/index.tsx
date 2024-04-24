@@ -42,6 +42,7 @@ const SetPayPasswordModal = (props: Props) => {
     const {showSuccessToast, showErrorToast} = Toast();
 
     useEffect(() => {
+        setErrorTxt('');
         setOpen(props.isOpen)
     },[props.isOpen])
 

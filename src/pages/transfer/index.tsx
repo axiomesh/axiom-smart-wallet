@@ -501,7 +501,8 @@ const Transfer = (props: any) => {
             const signer = new Wallet(decryptKey);
             const axiom = await AxiomAccount.sessionSmartAccount(
                 signer,
-                ow
+                ow,
+                userInfo.address
             );
             // @ts-ignore
             const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -688,6 +689,7 @@ const Transfer = (props: any) => {
     }
 
     const handlePasswordClose = (isSuccess: Boolean) => {
+        setBtnLoading(false);
         if(isSuccess) {
             setIsSetPassword(true);
             setButtonText('Transfer');
@@ -808,7 +810,8 @@ const Transfer = (props: any) => {
                 console.log(signer)
                 axiom = await AxiomAccount.sessionSmartAccount(
                     signer,
-                    ow
+                    ow,
+                    userInfo.address
                 );
             }
         }
@@ -897,7 +900,6 @@ const Transfer = (props: any) => {
         const allow = parseInt(res, 16);
         console.log(allow)
         if(allow === 0) {
-            console.log(1111112312312312)
             const to = [form.send.contract, form.send.contract];
             const erc20 = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
             const calldata = [
