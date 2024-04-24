@@ -208,8 +208,10 @@ const Transfer = (props: any) => {
                     contract: item.contract,
                     symbol: item.symbol,
                     balance: formatAmount(balance.toString()),
+                    amount: balance,
                     icon: <img src={require(`@/assets/token/${item.name}.png`)} />
                 })
+                arr.sort((a, b) => b.amount - a.amount);
             }
         })
         setTokenList(arr)
@@ -596,6 +598,7 @@ const Transfer = (props: any) => {
             return;
         if(isLock)
             return;
+
         setBtnLoading(true)
         if(isMax) {
             await handleMax()
@@ -607,17 +610,21 @@ const Transfer = (props: any) => {
                 setToErrorsText("");
             }catch (e: any) {
                 setToErrorsText("Invalid address !");
+                setBtnLoading(false);
                 return;
             }
             if(toErrorsText !== "") {
+                setBtnLoading(false);
                 return;
             }
             if(!form.send){
                 setSendError("Please Select a token");
+                setBtnLoading(false);
                 return;
             }
             if(!sendValue || Number(sendValue) <= 0){
                 setValueError("Invalid balance");
+                setBtnLoading(false);
                 return;
             }
             const gas = await getGas(sendValue, form.send);
@@ -717,6 +724,7 @@ const Transfer = (props: any) => {
     const handleMax = async () => {
         if(maxFlag) return;
         setMaxFlag(true);
+        setGasLoading(true);
         setValueError("");
         const bal = balance.toString().replace(/,/g, "")
         const gas = await getGas(bal, form.send);
@@ -735,9 +743,8 @@ const Transfer = (props: any) => {
         const balanceNumber = ethers.utils.parseUnits(bal, decimals);
         const maxNumber = balanceNumber.sub(gasNumber);
         const max = ethers.utils.formatUnits(maxNumber, decimals);
-        console.log(maxNumber)
-        console.log(max)
-        setMaxFlag(false)
+        setMaxFlag(false);
+        setGasLoading(false);
         // const max = balance - gas;
         setIsMax(true);
         setForm({ ...form, value: max.toString() })
