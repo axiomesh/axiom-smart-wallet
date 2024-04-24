@@ -964,6 +964,22 @@ const Transfer = (props: any) => {
         return signer;
     }
 
+    const handleTransferClose = () => {
+        setTransferOpen(false);
+        handleLockTimes();
+        setBtnLoading(false);
+        setPinLoading(false);
+        setGasLoading(true);
+        const sendValue = form.value.replace(/,/g, "");
+        getGas(sendValue, form.send).then((res: any) => {
+            setGasLoading(false);
+            setGasFee(res);
+            if((Number(res) + Number(sendValue)) > Number(balance)) {
+                setValueError("Gas fee is insufficient");
+            }
+        })
+    }
+
     const openResult = () => {
         setTransferOpen(false);
         setResultOpen(true);
@@ -1097,7 +1113,7 @@ const Transfer = (props: any) => {
                     </FormControl>
                     <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
                 </div>
-                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={() => {setTransferOpen(false); handleLockTimes();setBtnLoading(false);setPinLoading(false)}} info={transferInfo} errorMsg={passwordError} />
+                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} />
                 <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
                 <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
             </div>
