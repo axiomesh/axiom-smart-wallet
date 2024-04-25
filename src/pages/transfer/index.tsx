@@ -615,6 +615,11 @@ const Transfer = (props: any) => {
                 setBtnLoading(false);
                 return;
             }
+            if(form.to === userInfo.address){
+                setToErrorsText("Invalid address !");
+                setBtnLoading(false);
+                return;
+            }
             try {
                 ethers.utils.getAddress(form.to);
                 setToErrorsText("");
@@ -801,20 +806,23 @@ const Transfer = (props: any) => {
                 axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address)
             }catch (e: any) {
                 setPinLoading(false);
+                setSubmitFlag(false);
                 const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
                 if(string.search(expr) > 0 || string.search(expr2) > 0) {
-                    await wrongPassword({email});
-                    const times = await passwordTimes({email});
-                    setSubmitFlag(false);
-                    if(times > 0) {
-                        if(times < 4) {
-                            setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                    wrongPassword({email}).then(async () => {
+                        const times = await passwordTimes({email});
+                        if(times > 0) {
+                            if(times < 4) {
+                                setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                            }else {
+                                setPasswordError(`Invalid password`)
+                            }
                         }else {
-                            setPasswordError(`Invalid password`)
+                            setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow !")
                         }
-                    }else {
-                        setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow !")
-                    }
+                    }).catch((err: any) => {
+                        setPasswordError(err)
+                    })
                 }
                 return;
             }
@@ -1128,7 +1136,7 @@ const Transfer = (props: any) => {
                     </FormControl>
                     <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
                 </div>
-                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} />
+                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} clearError={() => {setPasswordError("")}} />
                 <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
                 <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
             </div>

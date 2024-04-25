@@ -93,6 +93,10 @@ const TransferModal = (props: any) => {
         history.push('/reset-transfer')
     }
 
+    const handleClear = () => {
+        props.clearError()
+    }
+
 
     return (
         <>
@@ -109,7 +113,7 @@ const TransferModal = (props: any) => {
                             <span>Password-free payment will be activated after this transfer transaction.</span>
                         </div>}
                         {(!isFree || freeStep === "0") && <><p className={styles.transferTitle}>Transfer password verification</p>
-                        <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={() => {setError("")}}/>
+                        <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
                         <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p></>}
                         <div className={styles.transferDetail} style={{marginTop: (!isFree || freeStep === "0") ? "32px" : "0"}}>
                             <h1 style={{paddingBottom: "8px"}}>DETAILS</h1>

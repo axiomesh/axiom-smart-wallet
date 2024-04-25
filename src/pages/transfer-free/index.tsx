@@ -145,17 +145,20 @@ const TransferFree = (props: any) => {
             setPinLoading(false);
             const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
             if(string.search(expr) > 0 || string.search(expr2) > 0) {
-                await wrongPassword({email});
-                const times = await passwordTimes({email})
-                if(times > 0) {
-                    if(times < 4) {
-                        setMsg(`Invalid password , only ${times} attempts are allowed today!`)
+                wrongPassword({email}).then(async () => {
+                    const times = await passwordTimes({email})
+                    if(times > 0) {
+                        if(times < 4) {
+                            setMsg(`Invalid password , only ${times} attempts are allowed today!`)
+                        }else {
+                            setMsg(`Invalid password`)
+                        }
                     }else {
-                        setMsg(`Invalid password`)
+                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
                     }
-                }else {
-                    setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
-                }
+                }).catch((err: any) => {
+                    setMsg(err)
+                })
             }
             return;
         }
@@ -189,7 +192,7 @@ const TransferFree = (props: any) => {
         }
     }
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (!value) {
             setErrorMessage('please enter daily transfer limit');
             return
@@ -203,7 +206,8 @@ const TransferFree = (props: any) => {
         if(errorMessage !== "") {
             return;
         }
-        if(isLock) {
+        const times = await transferLockTime({email});
+        if(times > 0) {
             showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
             return;
         }

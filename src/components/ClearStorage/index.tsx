@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 
-const ClearStorageAfterTimestamp: React.FC<{targetTimestamp: number | null | undefined}> = ({ targetTimestamp }) => {
+const ClearStorageAfterTimestamp = () => {
+  const targetTimestamp = sessionStorage.getItem("validUntil");
+  if(!targetTimestamp) return;
   useEffect(() => {
     const interval = setInterval(() => {
-      const currentTimestamp = Math.floor(Date.now() / 1000); // 获取当前时间的时间戳（单位：秒）
-      if (currentTimestamp > targetTimestamp) {
+      const currentTimestamp = new Date().getTime(); // 获取当前时间的时间戳（单位：秒）
+      if (currentTimestamp > Number(targetTimestamp)) {
         sessionStorage.removeItem("sk");
         sessionStorage.removeItem("a");
         sessionStorage.removeItem("b");
