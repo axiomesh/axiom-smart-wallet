@@ -610,6 +610,13 @@ const Transfer = (props: any) => {
             const addressBalance = balance.replace(/,/g, "")
             const sessionKey = sessionStorage.getItem("sk");
             const sr = sessionStorage.getItem("sr");
+            const times = await transferLockTime({email});
+            if(times > 0) {
+                setBtnLoading(false);
+                setIsLock(true);
+                countdown(times);
+                return;
+            }
             if(Number(sendValue) > Number(addressBalance)) {
                 setValueError("Gas fee is insufficient");
                 setBtnLoading(false);
