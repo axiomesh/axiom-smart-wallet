@@ -605,11 +605,11 @@ const Transfer = (props: any) => {
         if(isMax) {
             await handleMax()
         }
-        const sendValue = form.value.replace(/,/g, "");
-        const addressBalance = balance.replace(/,/g, "")
-        const sessionKey = sessionStorage.getItem("sk");
-        const sr = sessionStorage.getItem("sr");
         if(isSetPassword) {
+            const sendValue = form.value.replace(/,/g, "");
+            const addressBalance = balance.replace(/,/g, "")
+            const sessionKey = sessionStorage.getItem("sk");
+            const sr = sessionStorage.getItem("sr");
             if(Number(sendValue) > Number(addressBalance)) {
                 setValueError("Gas fee is insufficient");
                 setBtnLoading(false);
