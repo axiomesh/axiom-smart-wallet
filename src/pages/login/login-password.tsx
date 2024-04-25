@@ -123,7 +123,6 @@ export default function LoginPassword() {
                                 onChange={handleChangePassWord}
                                 onBlur={handleBlurPassWord}
                                 onKeyDown={handleKeyDown}
-                                autoFocus
                             />
                             <FormErrorMessage>{errorText}</FormErrorMessage>
                         </FormControl>
