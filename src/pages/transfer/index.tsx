@@ -17,7 +17,7 @@ import {connect, history} from "umi";
 import {transaction, passwordTimes, wrongPassword, transferLockTime} from "@/services/transfer";
 import {getTickerPrice} from "@/services/login";
 import {getMail} from "@/utils/help";
-import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt} from "axiom-smart-account-test";
+import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, AxiomRpcProvider} from "axiom-smart-account-test";
 import {BigNumber, ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
@@ -304,7 +304,12 @@ const Transfer = (props: any) => {
             setValueError("");
             return;
         }
-        const sendValue = form.value.replace(/,/g, "")
+        const sendValue = form.value.replace(/,/g, "");
+        const addressBalance = balance.replace(/,/g, "");
+        if(Number(sendValue) > Number(addressBalance)) {
+            setValueError("Insufficient balance");
+            return;
+        }
         if(sendValue && Number(sendValue) > 0) {
 
             const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -398,7 +403,11 @@ const Transfer = (props: any) => {
                         axcPrice = item.price;
                     }
                 })
-                return (axcPrice / price) * axcGas;
+                const gas = (axcPrice / price) * axcGas;
+                const number = Number(gas);
+                const roundedNum = Math.ceil(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+                const roundedNumber = roundedNum.toFixed(decimals);
+                return roundedNumber;
         }else {
             value = ethers.utils.parseUnits(amount, 18);
             if(send.value !== "AXC") {
@@ -409,7 +418,6 @@ const Transfer = (props: any) => {
                 erc20Address = send.contract;
                 value = 0;
             }
-            console.log(value)
             const res = await axiom.estimateUserOperationGas(
                 targetAddress,
                 value,
@@ -418,7 +426,6 @@ const Transfer = (props: any) => {
                 erc20Address
             );
             const axcGas: any = ethers.utils.formatEther(res);
-            console.log(send)
             if(send.value === "AXC") {
                 return axcGas;
             }else {
@@ -433,7 +440,10 @@ const Transfer = (props: any) => {
                     }
                 })
                 const gas = (axcPrice / price) * axcGas;
-                const roundedNumber = gas.toFixed(6);
+                const number = Number(gas);
+                const roundedNum = Math.ceil(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+                const roundedNumber = roundedNum.toFixed(decimals);
+                console.log(roundedNum, gas)
                 return roundedNumber;
             }
         }
@@ -477,10 +487,19 @@ const Transfer = (props: any) => {
     }
 
     const handleEntryPoint = async (op: any) => {
+        console.log(AxiomRpcProvider(window.RPC_URL))
+        const provider2 = new AxiomRpcProvider(window.RPC_URL);
         const entryPoint = EntryPoint__factory.connect(window.ENTRY_POINT, rpc_provider);
         console.log(op, userInfo.address, 'entry')
         try {
-            await entryPoint.callStatic.handleOps([op], userInfo.address);
+            // await entryPoint.callStatic.handleOps([op], userInfo.address);
+            await provider2.callWithBlockOverride({
+                to: window.ENTRY_POINT,
+                data: entryPoint.interface.encodeFunctionData('handleOps', [
+                    [op],
+                    userInfo.address,
+                ]),
+            }, "latest", {}, {time: Math.round(Date.now() / 1000)})
             return false;
         } catch (error: any) {
             const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
@@ -602,11 +621,8 @@ const Transfer = (props: any) => {
             return;
 
         setBtnLoading(true)
-        if(isMax) {
-            await handleMax()
-        }
         if(isSetPassword) {
-            const sendValue = form.value.replace(/,/g, "");
+            let sendValue:string = form.value.replace(/,/g, "");
             const addressBalance = balance.replace(/,/g, "")
             const sessionKey = sessionStorage.getItem("sk");
             const sr = sessionStorage.getItem("sr");
@@ -618,7 +634,7 @@ const Transfer = (props: any) => {
                 return;
             }
             if(Number(sendValue) > Number(addressBalance)) {
-                setValueError("Gas fee is insufficient");
+                setValueError("Insufficient balance");
                 setBtnLoading(false);
                 return;
             }
@@ -626,6 +642,14 @@ const Transfer = (props: any) => {
                 setToErrorsText("Invalid address !");
                 setBtnLoading(false);
                 return;
+            }
+            if(isMax) {
+                const max: string | undefined = await hanldeGetMax();
+                if(max) {
+                    sendValue = max;
+                }else {
+                    return;
+                }
             }
             try {
                 ethers.utils.getAddress(form.to);
@@ -644,14 +668,24 @@ const Transfer = (props: any) => {
                 setBtnLoading(false);
                 return;
             }
+            console.log(sendValue)
             if(!sendValue || Number(sendValue) <= 0){
                 setValueError("Invalid balance");
                 setBtnLoading(false);
                 return;
             }
+            const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
+            let decimals: any;
+            if(form.send.value === "AXC") {
+                decimals = 18;
+            }else {
+                decimals = await contract.decimals();
+            }
             const gas = await getGas(sendValue, form.send);
+            console.log(ethers.utils.parseUnits(gas, decimals))
             console.log(Number(gas) + Number(sendValue), addressBalance)
             if((Number(gas) + Number(sendValue)) > Number(addressBalance)) {
+                console.log(11111)
                 setValueError("Gas fee is insufficient");
                 setBtnLoading(false)
                 return;
@@ -747,11 +781,7 @@ const Transfer = (props: any) => {
         if(e.key=="-") e.preventDefault();
     }
 
-    const handleMax = async () => {
-        if(maxFlag) return;
-        setMaxFlag(true);
-        setGasLoading(true);
-        setValueError("");
+    const hanldeGetMax = async () => {
         const bal = balance.toString().replace(/,/g, "")
         const gas = await getGas(bal, form.send);
         const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -762,18 +792,33 @@ const Transfer = (props: any) => {
             decimals = await contract.decimals();
         }
         setGasFee(gas)
-        const number = parseFloat(gas);
-        const roundedNum = Math.ceil(number * 1000) / 1000;
-        const roundedNumber = roundedNum.toFixed(6);
-        const gasNumber = ethers.utils.parseUnits(roundedNumber.toString(), decimals);
+        const gasNumber = ethers.utils.parseUnits(gas.toString(), decimals);
         const balanceNumber = ethers.utils.parseUnits(bal, decimals);
         const maxNumber = balanceNumber.sub(gasNumber);
         const max = ethers.utils.formatUnits(maxNumber, decimals);
+        if(Number(max) < 0) {
+            setValueError("Gas fee is insufficient");
+            setMaxFlag(false);
+            setGasLoading(false);
+            return;
+        }
+        return max;
+    }
+
+    const handleMax = async () => {
+        if(maxFlag) return;
+        setMaxFlag(true);
+        setGasLoading(true);
+        setValueError("");
+        const max = await hanldeGetMax();
         setMaxFlag(false);
         setGasLoading(false);
-        // const max = balance - gas;
         setIsMax(true);
-        setForm({ ...form, value: max.toString() })
+        if(max) {
+            setForm({ ...form, value: max.toString() })
+        }else {
+            return;
+        }
     }
 
     const handleToChange = async (e: any) => {
@@ -1000,7 +1045,7 @@ const Transfer = (props: any) => {
         setPinLoading(false);
         setGasLoading(true);
         const sendValue = form.value.replace(/,/g, "");
-        const addressBalance = balance.replace(/,/g, "")
+        const addressBalance = balance.replace(/,/g, "");
         getGas(sendValue, form.send).then((res: any) => {
             setGasLoading(false);
             setGasFee(res);
