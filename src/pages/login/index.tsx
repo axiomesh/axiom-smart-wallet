@@ -25,7 +25,7 @@ function Login() {
     const {showErrorToast} = Toast();
 
     const validateName = (value: string) => {
-        const reg =  /^\w+@([\da-z\.-]+)\.([a-z]+|[\u2E80-\u9FFF]+)$/;
+        const reg =  /^(.+)@(.+)$/;
         if (!value) {
             setErrorText('Please enter your email address');
             return false
