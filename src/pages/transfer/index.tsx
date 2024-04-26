@@ -17,7 +17,8 @@ import {connect, history} from "umi";
 import {transaction, passwordTimes, wrongPassword, transferLockTime} from "@/services/transfer";
 import {getTickerPrice} from "@/services/login";
 import {getMail} from "@/utils/help";
-import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, AxiomRpcProvider} from "axiom-smart-account-test";
+import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt} from "axiom-smart-account-test";
+import {AxiomRpcProvider} from "@/utils/axiom-provider";
 import {BigNumber, ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
@@ -487,21 +488,21 @@ const Transfer = (props: any) => {
     }
 
     const handleEntryPoint = async (op: any) => {
-        console.log(AxiomRpcProvider(window.RPC_URL))
-        const provider2 = new AxiomRpcProvider(window.RPC_URL);
+        // const provider2 = new AxiomRpcProvider(window.RPC_URL);
         const entryPoint = EntryPoint__factory.connect(window.ENTRY_POINT, rpc_provider);
         console.log(op, userInfo.address, 'entry')
         try {
-            // await entryPoint.callStatic.handleOps([op], userInfo.address);
-            await provider2.callWithBlockOverride({
-                to: window.ENTRY_POINT,
-                data: entryPoint.interface.encodeFunctionData('handleOps', [
-                    [op],
-                    userInfo.address,
-                ]),
-            }, "latest", {}, {time: Math.round(Date.now() / 1000)})
+            await entryPoint.callStatic.handleOps([op], userInfo.address);
+            // await provider2.callWithBlockOverride({
+            //     to: window.ENTRY_POINT,
+            //     data: entryPoint.interface.encodeFunctionData('handleOps', [
+            //         [op],
+            //         userInfo.address,
+            //     ]),
+            // }, "latest", {}, {time: Math.round(Date.now() / 1000)})
             return false;
         } catch (error: any) {
+            console.log(error)
             const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
             if(string.search(expr) > 0) {
                 console.log(1111)
