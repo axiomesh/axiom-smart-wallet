@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import { clearSessionData } from "@/utils/help";
+import {clearSessionData, setToken} from "@/utils/help";
 
 
 export async function sendVerifyCode(email: string | null) {
@@ -8,7 +8,7 @@ export async function sendVerifyCode(email: string | null) {
         method: 'post',
         data: { email },
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function resendVerifyCode(email:  string | null) {
@@ -17,7 +17,7 @@ export async function resendVerifyCode(email:  string | null) {
         method: 'post',
         data: { email },
     });
-    return res.data;
+    return res?.data;
 }
 
 
@@ -27,7 +27,7 @@ export async function checkVerifyCode(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function registerUser(data: any) {
@@ -36,7 +36,7 @@ export async function registerUser(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function checkResendVerifyCode(data: any) {
@@ -45,7 +45,7 @@ export async function checkResendVerifyCode(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function resetPassword(data: any) {
@@ -54,7 +54,8 @@ export async function resetPassword(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    setToken(res?.data);
+    return res?.data;
 }
 
 export async function updatePassword(data: any) {
@@ -63,7 +64,7 @@ export async function updatePassword(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 //
@@ -74,7 +75,7 @@ export async function checkLoginPassword(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 // /api/axm-wallet/account/pwd/check
@@ -84,7 +85,7 @@ export async function checkPassword(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 
@@ -94,7 +95,7 @@ export async function lockPage(email: string) {
         method: 'post',
         data: { email },
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function getUserInfo(email: string) {
@@ -103,7 +104,7 @@ export async function getUserInfo(email: string) {
         method: 'get',
         data: { email },
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function getTickerPrice() {
@@ -111,7 +112,7 @@ export async function getTickerPrice() {
         url: `/api/ticker/price`,
         method: 'get',
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function logout(email:string) {
@@ -121,7 +122,7 @@ export async function logout(email:string) {
         data: {email},
     });
     clearSessionData();
-    return res.data;
+    return res?.data;
 }
 
 

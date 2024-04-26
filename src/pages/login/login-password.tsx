@@ -60,6 +60,7 @@ export default function LoginPassword() {
 
             }
         } catch (e){
+            console.log(e);
             // @ts-ignore
             showErrorToast(e)
         } finally {

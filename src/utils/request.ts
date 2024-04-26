@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { history } from 'umi';
-import {getToken} from "@/utils/help";
+import {clearSessionData, getToken} from "@/utils/help";
 
 // 只支持一层简单json格式的对象
 const jsonToUrlEncode = (data:any) =>
@@ -44,24 +44,24 @@ export default async function request(params: any) {
                 ...last,
             },
         );
-
+        console.log(res);
         if (res.status === 200) {
-            if(res.data.code === 0){
+            if(res?.data?.code === 0){
                 return res.data;
             }
-            if(res.data.code === 10102 || res.data.code === 10103 || res.data.code === 10104){
+            if(res?.data?.code === 10102 || res?.data?.code === 10103 || res?.data?.code === 10104){
+                clearSessionData();
                 history.replace('/login')
                 return
             }
 
-            throw new Error(res?.error || res.data.message || 'Error');
+            throw new Error(res?.error || res?.message || res?.data?.message || 'Error');
 
         } else {
-            throw new Error(res?.error || res.data.message || 'Error');
+            throw new Error(res?.error || res?.message  ||  res?.data?.message || 'Error');
             // Promise.reject(res?.error || res.data.message || 'Error')
         }
     } catch (e: any) {
-        console.log(e);
         const err = e.response ? e.response.data : e;
         const msg = err?.message || e.message || err;
         return Promise.reject(msg);

@@ -9,16 +9,14 @@ import {
     useToast
 } from '@chakra-ui/react';
 import { history, connect, Navigate } from 'umi';
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import Right from './componments/right';
 import { sendVerifyCode } from '@/services/login';
-import {clearSessionData, setMail} from "@/utils/help";
-import withAuth from '@/components/withAuth';
+import {setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { getToken } from "@/utils/help";
 
-function Login(props: any) {
-    const { dispatch } = props;
+function Login() {
     const toast = useToast();
     const [errorText, setErrorText] = useState('');
     const [isCheck, setIsCheck] = useState(false);
@@ -44,18 +42,18 @@ function Login(props: any) {
     // }, []);
 
 
-    // React.useEffect(() => {
-    //     // @ts-ignore
-    //     let unblock =  history.block((tx:any, action:any) => {
-    //         if (tx.action === 'POP') {
-    //             return false;
-    //         } else {
-    //             unblock();
-    //             tx.retry()
-    //         }
-    //     });
-    //
-    // }, [])
+    React.useEffect(() => {
+        // @ts-ignore
+        let unblock =  history.block((tx:any, action:any) => {
+            if (tx.action === 'POP') {
+                return false;
+            } else {
+                unblock();
+                tx.retry()
+            }
+        });
+
+    }, [])
 
     const handleSubmit = async () => {
         if(!validateName(mail)) return
@@ -104,7 +102,6 @@ function Login(props: any) {
         setErrorText('');
     }
 
-    console.log(getToken())
     if(getToken()){
         return <Navigate to="/lock" />
     }
