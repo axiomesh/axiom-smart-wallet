@@ -325,7 +325,8 @@ const Transfer = (props: any) => {
             getGas(sendValue, form.send).then((res: any) => {
                 setGasLoading(false);
                 setGasFee(res);
-                if((Number(res) + Number(sendValue)) > Number(balance)) {
+                console.log(res, sendValue)
+                if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
                     setValueError("Gas fee is insufficient");
                 }
             })
@@ -490,16 +491,20 @@ const Transfer = (props: any) => {
     const handleEntryPoint = async (op: any) => {
         // const provider2 = new AxiomRpcProvider(window.RPC_URL);
         const entryPoint = EntryPoint__factory.connect(window.ENTRY_POINT, rpc_provider);
-        console.log(op, userInfo.address, 'entry')
+        // console.log(op, userInfo.address, 'entry')
+        // try {
+        //     await provider2.callWithBlockOverride({
+        //         to: window.ENTRY_POINT,
+        //         data: entryPoint.interface.encodeFunctionData('handleOps', [
+        //             [op],
+        //             userInfo.address,
+        //         ]),
+        //     }, "latest", {}, {time: Math.round(Date.now() / 1000)})
+        // }catch(error: any) {
+
+        // }
         try {
             await entryPoint.callStatic.handleOps([op], userInfo.address);
-            // await provider2.callWithBlockOverride({
-            //     to: window.ENTRY_POINT,
-            //     data: entryPoint.interface.encodeFunctionData('handleOps', [
-            //         [op],
-            //         userInfo.address,
-            //     ]),
-            // }, "latest", {}, {time: Math.round(Date.now() / 1000)})
             return false;
         } catch (error: any) {
             console.log(error)
