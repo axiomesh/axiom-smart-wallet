@@ -248,7 +248,7 @@ const TransferFree = (props: any) => {
             <Page needBack backFn={() => history.push('/security')}>
                 <div>
                     <h1 className='page-title'>Password-free transfer</h1>
-                <p className={styles.freeTip}>Once activated，you can enjoy the quick experience of transferring small amounts without the need for password verification on <i></i> Other blockchains are coming soon！</p>
+                <p className={styles.freeTip}>Once activated, you can enjoy the quick experience of transferring small amounts without the need for password verification on <i></i> Other blockchains are coming soon！</p>
                 <div className={styles.freeSwitch}>
                     <span>Password-free transfer switch </span>
                     <div><Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} /></div>

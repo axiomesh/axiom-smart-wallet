@@ -119,13 +119,13 @@ interface FormProps {
 const options: any = [
     {
         value: 0,
-        label: "Axiomesh",
+        label: "Axiomesh Gemini",
         icon: <i className={styles.iconAxm}></i>,
         disabled: false
     },
     {
         value: 1,
-        label: "Ethereum",
+        label: "Ethereum Sepolia",
         icon: <i className={styles.iconEth}></i>,
         disabled: true
     }
@@ -164,6 +164,7 @@ const Transfer = (props: any) => {
     const [pinLoading, setPinLoading] = useState(false);
     const [maxFlag, setMaxFlag] = useState(false);
     const [isMax, setIsMax] = useState(false);
+    const [maxLength, setMaxLength] = useState(0);
 
     const {Button} = useContinueButton();
     const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
@@ -200,7 +201,7 @@ const Transfer = (props: any) => {
     const handleTokenOption = (network: string) => {
         let arr: any = [];
         token.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
-            if(item.network === network) {
+            if(network.includes(item.network) ) {
                 const balance = await initBalance(item.name);
                 arr.push({
                     value: item.name,
@@ -261,7 +262,7 @@ const Transfer = (props: any) => {
                 const sendFilter = token.filter((item: any) => item.symbol === sessionForm.send.symbol);
                 let arr: any = [];
                 sendFilter.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
-                    if(item.network === newForm.chain.label) {
+                    if(newForm.chain.label.includes(item.network) ) {
                         const balance = await initBalance(item.name);
                         arr.push({
                             value: item.name,
@@ -392,7 +393,7 @@ const Transfer = (props: any) => {
                 0,
                 calldata,
                 window.PAYMASTER,
-                form.send.contract
+                send.contract
             );
             const axcGas: any = ethers.utils.formatEther(res);
             const priceList = await getTickerPrice();
@@ -632,11 +633,8 @@ const Transfer = (props: any) => {
             const addressBalance = balance.replace(/,/g, "")
             const sessionKey = sessionStorage.getItem("sk");
             const sr = sessionStorage.getItem("sr");
-            const times = await transferLockTime({email});
-            if(times > 0) {
+            if(valueError !== "") {
                 setBtnLoading(false);
-                setIsLock(true);
-                countdown(times);
                 return;
             }
             if(Number(sendValue) > Number(addressBalance)) {
@@ -649,11 +647,26 @@ const Transfer = (props: any) => {
                 setBtnLoading(false);
                 return;
             }
+            const times = await transferLockTime({email});
+            if(times > 0) {
+                setBtnLoading(false);
+                setIsLock(true);
+                countdown(times);
+                return;
+            }
+            const gas = await getGas(sendValue, form.send);
             if(isMax) {
                 const max: string | undefined = await hanldeGetMax();
                 if(max) {
                     sendValue = max;
                 }else {
+                    return;
+                }
+            }else {
+                if((Number(gas) + Number(sendValue)) > Number(addressBalance)) {
+                    console.log(11111)
+                    setValueError("Gas fee is insufficient");
+                    setBtnLoading(false)
                     return;
                 }
             }
@@ -686,15 +699,6 @@ const Transfer = (props: any) => {
                 decimals = 18;
             }else {
                 decimals = await contract.decimals();
-            }
-            const gas = await getGas(sendValue, form.send);
-            console.log(ethers.utils.parseUnits(gas, decimals))
-            console.log(Number(gas) + Number(sendValue), addressBalance)
-            if((Number(gas) + Number(sendValue)) > Number(addressBalance)) {
-                console.log(11111)
-                setValueError("Gas fee is insufficient");
-                setBtnLoading(false)
-                return;
             }
             const priceList = await getTickerPrice();
             let price: number = 0;
@@ -753,12 +757,21 @@ const Transfer = (props: any) => {
     }
 
     const handleSendChange = async (e: any) => {
-        setGasFee("")
-        setForm({...form, send: e, value: ""})
+        setValueError("");
+        setGasFee("");
+        setForm({...form, send: e, value: ""});
         const balance = await initBalance(e.value);
-        setBalance(formatAmount(balance.toString()))
-        setSendError("")
-        setIsChangeSend(true)
+        setBalance(formatAmount(balance.toString()));
+        let decimals: any;
+        if(e.value === "AXC") {
+            decimals = 18;
+        }else {
+            const contract = new ethers.Contract(e.contract, ERC20_ABI, rpc_provider);
+            decimals = await contract.decimals();
+        }
+        setMaxLength(decimals);
+        setSendError("");
+        setIsChangeSend(true);
     }
 
     const handlePasswordClose = (isSuccess: Boolean) => {
@@ -770,13 +783,23 @@ const Transfer = (props: any) => {
         setPasswordOpen(false)
     }
 
+    const getDecimalPlaces = (value: string): number => {
+        const parts = value.split(".");
+        if (parts.length === 2) {
+            return parts[1].length;
+        } else {
+            return 0; // 如果没有小数点，则返回 0
+        }
+    }
+
     const handleValueChange = async (e: any) => {
         let value = e.target.value;
         if(value) {
             value = formatAmount(value.replace(/,/g, ""));
         }
-        console.log(value)
-        if(/^[0-9,.]*$/.test(value)){
+        const decimal = getDecimalPlaces(value);
+        console.log(maxLength)
+        if(/^[0-9,.]*$/.test(value) && decimal < maxLength){
             setForm({ ...form, value: value })
         }
     }
