@@ -799,7 +799,7 @@ const Transfer = (props: any) => {
         }
         const decimal = getDecimalPlaces(value);
         console.log(maxLength)
-        if(/^[0-9,.]*$/.test(value) && decimal < maxLength){
+        if(/^[0-9,.]*$/.test(value) && decimal <= maxLength){
             setForm({ ...form, value: value })
         }
     }
