@@ -79,11 +79,17 @@ function Layout(props: any) {
         }
     }
 
+    const handleChange = () => {
+        if (!document.hidden) {
+            initUserInfo();
+        }
+    }
+
     useEffect(() => {
-        document.addEventListener("visibilitychange", initUserInfo);
+        document.addEventListener("visibilitychange", handleChange);
 
         return () => {
-            document.removeEventListener("visibilitychange", initUserInfo);
+            document.removeEventListener("visibilitychange", handleChange);
         }
     }, []);
 
