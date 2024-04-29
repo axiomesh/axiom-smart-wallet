@@ -44,7 +44,6 @@ export default async function request(params: any) {
                 ...last,
             },
         );
-        console.log(res);
         if (res.status === 200) {
             if(res?.data?.code === 0){
                 return res.data;

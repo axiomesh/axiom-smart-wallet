@@ -126,10 +126,11 @@ export async function logout(email:string) {
 }
 
 
-export async function refreshToken() {
+export async function refreshToken(email: string) {
     const res = await request({
         url: `/api/axm-wallet/account/refresh-token`,
         method: 'post',
+        data: {email},
     });
     return res?.data;
 }

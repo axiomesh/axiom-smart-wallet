@@ -7,37 +7,13 @@ import { connect, history } from 'umi';
 import handleClipboard from "@/utils/clipboard"
 
 const PersonInfo = (props: any) => {
-    const {dispatch} = props;
+    const {info} = props;
     const [isHover, setIsHover] = useState(false);
     const [isCopy, setIsCopy] = useState(false);
-    const [info, setInfo] = useState({});
     const email: string | any = getMail();
 
     const [ModalComponent, openModal] = useCancelModal();
 
-    const initUserInfo = async () => {
-        try{
-            const res = await getUserInfo(email);
-            if(res.lock_screen_status){
-                history.replace('/lock')
-            }
-            if(res){
-                setInfo(res);
-                dispatch({
-                    type: 'global/setUser',
-                    payload: res,
-                })
-            }
-
-        } catch (e) {
-            clearSessionData();
-            history.replace('/login')
-        }
-    }
-
-    useEffect(() => {
-        initUserInfo();
-    }, []);
 
     useEffect(() => {
         document.addEventListener('click', handleClickOutside);

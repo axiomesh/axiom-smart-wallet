@@ -25,7 +25,8 @@ window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
 window.BUNDLER_URL='http://172.16.13.132:4337';
 window.AXM_BROWSER = 'http://172.16.13.132:8080';
-window.socketUrl = 'http://172.16.13.133:8580/websocket'
+// window.socketUrl = 'http://172.16.13.133:8580/websocket'
+window.socketUrl='ws://172.16.13.133:8580'
 
 
 // 演示环境配置参数
@@ -41,4 +42,5 @@ window.socketUrl = 'http://172.16.13.133:8580/websocket'
 // window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
 // window.BUNDLER_URL='http://10.2.69.156:4337';
 // window.AXM_BROWSER = 'http://10.2.69.157:8080';
-// window.socketUrl = 'http://10.2.69.157:8580/websocket'
+// // window.socketUrl = 'http://10.2.69.157:8580/websocket'
+// window.socketUrl='ws://172.16.13.133:8580'

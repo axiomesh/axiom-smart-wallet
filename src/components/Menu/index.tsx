@@ -9,9 +9,7 @@ interface MenuItem {
 }
 
 const Menu = () => {
-    const [selectedItem, setSelectedItem] = useState(0);
     const location = useLocation();
-    console.log(location)
 
     const menuItems: MenuItem[] = [
         { name: 'Assets', icon: 'assetIcon', url: '/home' },
