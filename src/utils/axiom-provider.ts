@@ -51,9 +51,6 @@ const errorGas = ["call", "estimateGas"];
 const MAX_CCIP_REDIRECTS = 10;
 
 export class AxiomRpcProvider extends ethers.providers.JsonRpcProvider {
-  constructor(url: string) {
-      super(url); 
-  } 
   async callWithBlockOverride(
     transaction: Deferrable<TransactionRequest>,
     blockTag?: BlockTag | Promise<BlockTag>,
@@ -296,7 +293,8 @@ export class AxiomRpcProvider extends ethers.providers.JsonRpcProvider {
           [
             hexlifyTransaction(params.transaction, { from: true }),
             params.blockTag,
-            {},
+            params.stateOverrides ? params.stateOverrides : {},
+            params.blockOverrides ? params.blockOverrides : {},
           ],
         ];
       }
