@@ -60,6 +60,7 @@ export default function LoginPassword() {
 
             }
         } catch (e){
+            console.log(e);
             // @ts-ignore
             showErrorToast(e)
         } finally {
@@ -123,7 +124,6 @@ export default function LoginPassword() {
                                 onChange={handleChangePassWord}
                                 onBlur={handleBlurPassWord}
                                 onKeyDown={handleKeyDown}
-                                autoFocus
                             />
                             <FormErrorMessage>{errorText}</FormErrorMessage>
                         </FormControl>

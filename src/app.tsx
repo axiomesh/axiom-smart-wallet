@@ -6,7 +6,7 @@ import './app.less'
 
 export const rootContainer = (container: React.ReactNode) => {
     return <ChakraProvider>
-        <ClearStorageAfterTimestamp targetTimestamp={() => validUntil()} />
+        <ClearStorageAfterTimestamp />
         {container}
         </ChakraProvider>
 }

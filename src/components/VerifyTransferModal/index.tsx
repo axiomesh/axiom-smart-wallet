@@ -74,7 +74,7 @@ const VerifyTransferModal = (props: Props) => {
                         <div className={styles.payPassBody}>
                             <span className={styles.payPassTip}>Transfer password verification</span>
                             <div>
-                                <ModalInputPassword isLoading={isLoading} onSubmit={props.onSubmit} isError={error} />
+                                <ModalInputPassword isLoading={isLoading} onSubmit={props.onSubmit} isError={error} clearError={() => {setError("")}} />
                             </div>
                             {/* <span className={styles.payPassForget} onClick={toReset}>Forget it?</span> */}
                         </div>

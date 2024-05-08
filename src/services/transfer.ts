@@ -6,7 +6,7 @@ export async function sendVerifyCode(email: string | null) {
         method: 'post',
         data: { email },
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function checkVerifyCode(email: string | null,  verify_code: string | null) {
@@ -15,7 +15,7 @@ export async function checkVerifyCode(email: string | null,  verify_code: string
         method: 'post',
         data: { email, verify_code },
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function setNewPassword(email: string | null, old_enc_private_key: string | null, enc_private_key: string | null, owner_address: string | null, salt: string | null, transfer_salt: string | null) {
@@ -24,7 +24,7 @@ export async function setNewPassword(email: string | null, old_enc_private_key: 
         method: 'post',
         data: { email, old_enc_private_key, enc_private_key, owner_address, salt, transfer_salt },
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function setFirstPassword(email: string | null, old_enc_private_key: string | null, enc_private_key: string | null, transfer_salt: any) {
@@ -33,7 +33,7 @@ export async function setFirstPassword(email: string | null, old_enc_private_key
         method: 'post',
         data: { email, old_enc_private_key, enc_private_key, transfer_salt },
     });
-    return res.data;
+    return res?.data;
 }
 
 
@@ -43,7 +43,7 @@ export async function getHistoryList(data: any) {
         method: 'get',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function transaction(data: any) {
@@ -52,7 +52,7 @@ export async function transaction(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function passwordTimes(data: any) {
@@ -61,7 +61,7 @@ export async function passwordTimes(data: any) {
         method: 'get',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function wrongPassword(data: any) {
@@ -70,7 +70,7 @@ export async function wrongPassword(data: any) {
         method: 'post',
         data,
     });
-    return res.data;
+    return res?.data;
 }
 
 export async function transferLockTime(data: any) {
@@ -79,5 +79,5 @@ export async function transferLockTime(data: any) {
         method: 'get',
         data,
     });
-    return res.data;
+    return res?.data;
 }

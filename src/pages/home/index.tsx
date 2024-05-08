@@ -6,7 +6,7 @@ import styles from './index.less';
 import {currencyList, selectCurrencyList} from './config';
 import { SelectDownIcon } from '@/components/Icons';
 import TokenList from './componment/tokenList';
-import {changePrice, getImgFromHash} from "@/utils/help";
+import {changePrice, getImgFromHash, changeBalance} from "@/utils/help";
 import {getTickerPrice} from "@/services/login";
 import { ethers } from "ethers";
 // @ts-ignore
@@ -79,16 +79,18 @@ const Home = (props:any) => {
             const filterData = allList.filter((item: Item) => item.symbol === type)[0];
             const currentProvider = filterData.type === 'eth' ? provider : rpc_provider;
             // return 0
-            const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI);
-            const calldata = erc20.interface.encodeFunctionData('balanceOf',[userInfo.address]);
-
-            const res = await currentProvider.call({
-                to: erc20.address,
-                data: calldata,
-            })
-            const decimals = await getSymbol(erc20, currentProvider)
+            const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI, currentProvider);
+            // const calldata = erc20.interface.encodeFunctionData('balanceOf',[userInfo.address]);
+            // const res = await currentProvider.call({
+            //     to: erc20.address,
+            //     data: calldata,
+            // })
+            const balance = await erc20.balanceOf(userInfo.address);
+            const balanceStr = ethers.utils.formatUnits(balance, await erc20.decimals())
+            console.log(balanceStr)
+            // const decimals = await getSymbol(erc20, currentProvider)
             // @ts-ignore
-            return (res === '0x' ? 0 : BigInt(res).toString() / decimals)
+            return balanceStr;
         }
     }
 
@@ -126,7 +128,7 @@ const Home = (props:any) => {
                 const priceDataItem: Item = priceList.filter(li => li.symbol?.toLowerCase() === item.symbol.toLowerCase())[0];
                 return  {
                     ...item,
-                    balance: changePrice(Number(priceDataItem?.balance || 0), false),
+                    balance: changeBalance(priceDataItem?.balance, false),
                     price: changePrice(Number(priceDataItem?.price || 0)),
                     total: changePrice(Number(priceDataItem?.total || 0)),
                     totalValue: Number(priceDataItem?.total || 0),

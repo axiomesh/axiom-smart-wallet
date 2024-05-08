@@ -35,22 +35,21 @@ const TransferModal = (props: any) => {
     const {showErrorToast} = Toast();
 
     useEffect(() => {
+        setIsLoading(props.pinLoading)
+    }, [props.pinLoading])
+
+    useEffect(() => {
         const sessionKey = sessionStorage.getItem('sessionKey');
         const freeLimit = sessionStorage.getItem('freeLimit');
         const sr = sessionStorage.getItem('sr');
         if(sessionKey || freeLimit){
             setIsFree(true)
+        }else {
+            setIsFree(false)
         }
         if(sr) {
             setFreeStep(sr)
         }
-    },[])
-
-    useEffect(() => {
-        setIsLoading(props.pinLoading)
-    }, [props.pinLoading])
-
-    useEffect(() => {
         setIsOpen(props.open)
         setTime(30)
         if(props.open) {
@@ -94,6 +93,10 @@ const TransferModal = (props: any) => {
         history.push('/reset-transfer')
     }
 
+    const handleClear = () => {
+        props.clearError()
+    }
+
 
     return (
         <>
@@ -110,7 +113,7 @@ const TransferModal = (props: any) => {
                             <span>Password-free payment will be activated after this transfer transaction.</span>
                         </div>}
                         {(!isFree || freeStep === "0") && <><p className={styles.transferTitle}>Transfer password verification</p>
-                        <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}/>
+                        <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
                         <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p></>}
                         <div className={styles.transferDetail} style={{marginTop: (!isFree || freeStep === "0") ? "32px" : "0"}}>
                             <h1 style={{paddingBottom: "8px"}}>DETAILS</h1>

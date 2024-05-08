@@ -18,6 +18,7 @@ import {transaction, passwordTimes, wrongPassword, transferLockTime} from "@/ser
 import {getTickerPrice} from "@/services/login";
 import {getMail} from "@/utils/help";
 import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt} from "axiom-smart-account-test";
+import {AxiomRpcProvider} from "@/utils/axiom-provider";
 import {BigNumber, ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
@@ -118,13 +119,13 @@ interface FormProps {
 const options: any = [
     {
         value: 0,
-        label: "Axiomesh",
+        label: "Axiomesh Gemini",
         icon: <i className={styles.iconAxm}></i>,
         disabled: false
     },
     {
         value: 1,
-        label: "Ethereum",
+        label: "Ethereum Sepolia",
         icon: <i className={styles.iconEth}></i>,
         disabled: true
     }
@@ -163,6 +164,7 @@ const Transfer = (props: any) => {
     const [pinLoading, setPinLoading] = useState(false);
     const [maxFlag, setMaxFlag] = useState(false);
     const [isMax, setIsMax] = useState(false);
+    const [maxLength, setMaxLength] = useState(0);
 
     const {Button} = useContinueButton();
     const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
@@ -199,7 +201,7 @@ const Transfer = (props: any) => {
     const handleTokenOption = (network: string) => {
         let arr: any = [];
         token.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
-            if(item.network === network) {
+            if(network.includes(item.network) ) {
                 const balance = await initBalance(item.name);
                 arr.push({
                     value: item.name,
@@ -208,8 +210,10 @@ const Transfer = (props: any) => {
                     contract: item.contract,
                     symbol: item.symbol,
                     balance: formatAmount(balance.toString()),
+                    amount: balance,
                     icon: <img src={require(`@/assets/token/${item.name}.png`)} />
                 })
+                arr.sort((a, b) => b.amount - a.amount);
             }
         })
         setTokenList(arr)
@@ -258,7 +262,7 @@ const Transfer = (props: any) => {
                 const sendFilter = token.filter((item: any) => item.symbol === sessionForm.send.symbol);
                 let arr: any = [];
                 sendFilter.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
-                    if(item.network === newForm.chain.label) {
+                    if(newForm.chain.label.includes(item.network) ) {
                         const balance = await initBalance(item.name);
                         arr.push({
                             value: item.name,
@@ -302,7 +306,12 @@ const Transfer = (props: any) => {
             setValueError("");
             return;
         }
-        const sendValue = form.value.replace(/,/g, "")
+        const sendValue = form.value.replace(/,/g, "");
+        const addressBalance = balance.replace(/,/g, "");
+        if(Number(sendValue) > Number(addressBalance)) {
+            setValueError("Insufficient balance");
+            return;
+        }
         if(sendValue && Number(sendValue) > 0) {
 
             const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -317,7 +326,8 @@ const Transfer = (props: any) => {
             getGas(sendValue, form.send).then((res: any) => {
                 setGasLoading(false);
                 setGasFee(res);
-                if((Number(res) + Number(sendValue)) > Number(balance)) {
+                console.log(res, sendValue)
+                if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
                     setValueError("Gas fee is insufficient");
                 }
             })
@@ -383,7 +393,7 @@ const Transfer = (props: any) => {
                 0,
                 calldata,
                 window.PAYMASTER,
-                form.send.contract
+                send.contract
             );
             const axcGas: any = ethers.utils.formatEther(res);
             const priceList = await getTickerPrice();
@@ -396,7 +406,11 @@ const Transfer = (props: any) => {
                         axcPrice = item.price;
                     }
                 })
-                return (axcPrice / price) * axcGas;
+                const gas = (axcPrice / price) * axcGas;
+                const number = Number(gas);
+                const roundedNum = Math.ceil(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+                const roundedNumber = roundedNum.toFixed(decimals);
+                return roundedNumber;
         }else {
             value = ethers.utils.parseUnits(amount, 18);
             if(send.value !== "AXC") {
@@ -407,7 +421,6 @@ const Transfer = (props: any) => {
                 erc20Address = send.contract;
                 value = 0;
             }
-            console.log(value)
             const res = await axiom.estimateUserOperationGas(
                 targetAddress,
                 value,
@@ -416,7 +429,6 @@ const Transfer = (props: any) => {
                 erc20Address
             );
             const axcGas: any = ethers.utils.formatEther(res);
-            console.log(send)
             if(send.value === "AXC") {
                 return axcGas;
             }else {
@@ -431,7 +443,10 @@ const Transfer = (props: any) => {
                     }
                 })
                 const gas = (axcPrice / price) * axcGas;
-                const roundedNumber = gas.toFixed(6);
+                const number = Number(gas);
+                const roundedNum = Math.ceil(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+                const roundedNumber = roundedNum.toFixed(decimals);
+                console.log(roundedNum, gas)
                 return roundedNumber;
             }
         }
@@ -458,32 +473,49 @@ const Transfer = (props: any) => {
         } else {
             const allList = token;
             const filterData = allList.filter((item: token) => item.name === type)[0];
-            console.log(info)
             const currentProvider = filterData.name === 'ETH' ? provider : rpc_provider;
             // return 0
-            const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI);
-            const calldata = erc20.interface.encodeFunctionData('balanceOf',[info.address]);
-            // const calldata = erc20.interface.encodeFunctionData('balanceOf',[address]);
-
-            const res = await currentProvider.call({
-                to: erc20.address,
-                data: calldata,
-            })
-            const decimals = await getSymbol(erc20, currentProvider)
+            const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI, currentProvider);
+            const balance = await erc20.balanceOf(userInfo.address);
+            const balanceStr = ethers.utils.formatUnits(balance, await erc20.decimals())
             // @ts-ignore
-            return (res === '0x' ? 0 : BigInt(res).toString() / decimals)
+            return balanceStr;
         }
     }
 
-    const handleEntryPoint = async (op: any) => {
+    const handleEntryPoint = async (op: any, isFree: boolean) => {
+        const provider2 = new AxiomRpcProvider(window.RPC_URL);
         const entryPoint = EntryPoint__factory.connect(window.ENTRY_POINT, rpc_provider);
+        // console.log(op, userInfo.address, 'entry')
+        // try {
+            // await provider2.callWithBlockOverride({
+            //     to: window.ENTRY_POINT,
+            //     data: entryPoint.interface.encodeFunctionData('handleOps', [
+            //         [op],
+            //         userInfo.address,
+            //     ]),
+            // }, "latest", {}, {time: Math.round(Date.now() / 1000)})
+        // }catch(error: any) {
+
+        // }
         try {
-            const point = await entryPoint.callStatic.handleOps([op], userInfo.address);
+            // await entryPoint.callStatic.handleOps([op], userInfo.address);
+            await provider2.callWithBlockOverride({
+                to: window.ENTRY_POINT,
+                data: entryPoint.interface.encodeFunctionData('handleOps', [
+                    [op],
+                    userInfo.address,
+                ]),
+            }, "latest", {state: {[ethers.constants.AddressZero]: ethers.constants.HashZero}}, {time: Math.round(Date.now() / 1000)})
             return false;
         } catch (error: any) {
-            const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
-            if(string.search(expr) > 0) {
-                return true;
+            if(isFree) {
+                console.log(error)
+                const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
+                if(string.search(expr) > 0) {
+                    console.log(1111)
+                    return true;
+                }
             }
         }
     }
@@ -491,7 +523,7 @@ const Transfer = (props: any) => {
     const handleVerifyLimit = async () => {
         const sessionKey = sessionStorage.getItem("sk");
         const sr = sessionStorage.getItem("sr");
-        let flag = false;
+        let flag = true;
         if(sessionKey && sr !== "0") {
             const skPassword = sessionStorage.getItem("a");
             const salt = sessionStorage.getItem("b");
@@ -499,10 +531,10 @@ const Transfer = (props: any) => {
             const secretKey = await deriveAES256GCMSecretKey(skPassword, salt);
             const decryptKey = decrypt(sessionKey, secretKey.toString());
             const signer = new Wallet(decryptKey);
+            console.log(signer.address)
             const axiom = await AxiomAccount.sessionSmartAccount(
                 signer,
-                ow,
-                userInfo.address
+                ow
             );
             // @ts-ignore
             const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -526,12 +558,13 @@ const Transfer = (props: any) => {
                             
                         }
                     })
+                    console.log(resOp)
                     await resOp.wait();
-                    flag = await handleEntryPoint(usrOp)
+                    flag = await handleEntryPoint(usrOp, true)
                     console.log(flag)
                 }catch (e: any) {
                     console.log(e);
-                    return;
+                    return false;
                 }
             }else {
                 try {
@@ -543,9 +576,7 @@ const Transfer = (props: any) => {
                         to: form.send.contract,
                         data: calldata,
                     })
-                    console.log(res)
                     const allow = parseInt(res, 16);
-                    console.log(allow)
                     if(allow === 0) {
                         const to = [form.send.contract, form.send.contract];
                         const erc20 = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -561,7 +592,7 @@ const Transfer = (props: any) => {
                             }
                         });
                         await res.wait();
-                        flag = await handleEntryPoint(usrOp)
+                        flag = await handleEntryPoint(usrOp, true)
                     }else {
                         const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
                         const res = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
@@ -572,7 +603,7 @@ const Transfer = (props: any) => {
                             }
                         })
                         await res.wait();
-                        flag = await handleEntryPoint(usrOp)
+                        flag = await handleEntryPoint(usrOp, true)
                     }
                 }catch (e: any) {
                     console.log(e)
@@ -596,35 +627,79 @@ const Transfer = (props: any) => {
             return;
         if(isLock)
             return;
+
         setBtnLoading(true)
-        if(isMax) {
-            await handleMax()
-        }
-        const sendValue = form.value.replace(/,/g, "")
         if(isSetPassword) {
+            let sendValue:string = form.value.replace(/,/g, "");
+            const addressBalance = balance.replace(/,/g, "")
+            const sessionKey = sessionStorage.getItem("sk");
+            const sr = sessionStorage.getItem("sr");
+            if(valueError !== "") {
+                setBtnLoading(false);
+                return;
+            }
+            if(Number(sendValue) > Number(addressBalance)) {
+                setValueError("Insufficient balance");
+                setBtnLoading(false);
+                return;
+            }
+            if(form.to === userInfo.address){
+                setToErrorsText("Invalid address !");
+                setBtnLoading(false);
+                return;
+            }
+            const times = await transferLockTime({email});
+            if(times > 0) {
+                setBtnLoading(false);
+                setIsLock(true);
+                countdown(times);
+                return;
+            }
+            const gas = await getGas(sendValue, form.send);
+            if(isMax) {
+                const max: string | undefined = await hanldeGetMax();
+                if(max) {
+                    sendValue = max;
+                }else {
+                    return;
+                }
+            }else {
+                if((Number(gas) + Number(sendValue)) > Number(addressBalance)) {
+                    console.log(11111)
+                    setValueError("Gas fee is insufficient");
+                    setBtnLoading(false)
+                    return;
+                }
+            }
             try {
                 ethers.utils.getAddress(form.to);
                 setToErrorsText("");
             }catch (e: any) {
                 setToErrorsText("Invalid address !");
+                setBtnLoading(false);
                 return;
             }
             if(toErrorsText !== "") {
+                setBtnLoading(false);
                 return;
             }
             if(!form.send){
                 setSendError("Please Select a token");
+                setBtnLoading(false);
                 return;
             }
+            console.log(sendValue)
             if(!sendValue || Number(sendValue) <= 0){
                 setValueError("Invalid balance");
+                setBtnLoading(false);
                 return;
             }
-            const gas = await getGas(sendValue, form.send);
-            if((Number(gas) + Number(sendValue)) > Number(balance)) {
-                setValueError("Gas fee is insufficient");
-                setBtnLoading(false)
-                return;
+            const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
+            let decimals: any;
+            if(form.send.value === "AXC") {
+                decimals = 18;
+            }else {
+                decimals = await contract.decimals();
             }
             const priceList = await getTickerPrice();
             let price: number = 0;
@@ -633,7 +708,10 @@ const Transfer = (props: any) => {
                     price = item.price * gas;
                 }
             })
-            const isLimit = await handleVerifyLimit();
+            let isLimit: boolean = false;
+            if(sessionKey && sr !== "0") {
+                isLimit = await handleVerifyLimit();
+            }
             console.log(isLimit)
             const transfinite: boolean = isLimit;
             setIsTransfinite(transfinite)
@@ -680,12 +758,21 @@ const Transfer = (props: any) => {
     }
 
     const handleSendChange = async (e: any) => {
-        setGasFee("")
-        setForm({...form, send: e, value: ""})
+        setValueError("");
+        setGasFee("");
+        setForm({...form, send: e, value: ""});
         const balance = await initBalance(e.value);
-        setBalance(formatAmount(balance.toString()))
-        setSendError("")
-        setIsChangeSend(true)
+        setBalance(formatAmount(balance.toString()));
+        let decimals: any;
+        if(e.value === "AXC") {
+            decimals = 18;
+        }else {
+            const contract = new ethers.Contract(e.contract, ERC20_ABI, rpc_provider);
+            decimals = await contract.decimals();
+        }
+        setMaxLength(decimals);
+        setSendError("");
+        setIsChangeSend(true);
     }
 
     const handlePasswordClose = (isSuccess: Boolean) => {
@@ -697,13 +784,23 @@ const Transfer = (props: any) => {
         setPasswordOpen(false)
     }
 
+    const getDecimalPlaces = (value: string): number => {
+        const parts = value.split(".");
+        if (parts.length === 2) {
+            return parts[1].length;
+        } else {
+            return 0; // 如果没有小数点，则返回 0
+        }
+    }
+
     const handleValueChange = async (e: any) => {
         let value = e.target.value;
         if(value) {
             value = formatAmount(value.replace(/,/g, ""));
         }
-        console.log(value)
-        if(/^[0-9,.]*$/.test(value)){
+        const decimal = getDecimalPlaces(value);
+        console.log(maxLength)
+        if(/^[0-9,.]*$/.test(value) && decimal <= maxLength){
             setForm({ ...form, value: value })
         }
     }
@@ -714,10 +811,7 @@ const Transfer = (props: any) => {
         if(e.key=="-") e.preventDefault();
     }
 
-    const handleMax = async () => {
-        if(maxFlag) return;
-        setMaxFlag(true);
-        setValueError("");
+    const hanldeGetMax = async () => {
         const bal = balance.toString().replace(/,/g, "")
         const gas = await getGas(bal, form.send);
         const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -728,19 +822,33 @@ const Transfer = (props: any) => {
             decimals = await contract.decimals();
         }
         setGasFee(gas)
-        const number = parseFloat(gas);
-        const roundedNum = Math.ceil(number * 1000) / 1000;
-        const roundedNumber = roundedNum.toFixed(6);
-        const gasNumber = ethers.utils.parseUnits(roundedNumber.toString(), decimals);
+        const gasNumber = ethers.utils.parseUnits(gas.toString(), decimals);
         const balanceNumber = ethers.utils.parseUnits(bal, decimals);
         const maxNumber = balanceNumber.sub(gasNumber);
         const max = ethers.utils.formatUnits(maxNumber, decimals);
-        console.log(maxNumber)
-        console.log(max)
-        setMaxFlag(false)
-        // const max = balance - gas;
+        if(Number(max) < 0) {
+            setValueError("Gas fee is insufficient");
+            setMaxFlag(false);
+            setGasLoading(false);
+            return;
+        }
+        return max;
+    }
+
+    const handleMax = async () => {
+        if(maxFlag) return;
+        setMaxFlag(true);
+        setGasLoading(true);
+        setValueError("");
+        const max = await hanldeGetMax();
+        setMaxFlag(false);
+        setGasLoading(false);
         setIsMax(true);
-        setForm({ ...form, value: max.toString() })
+        if(max) {
+            setForm({ ...form, value: max.toString() })
+        }else {
+            return;
+        }
     }
 
     const handleToChange = async (e: any) => {
@@ -780,20 +888,23 @@ const Transfer = (props: any) => {
                 axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address)
             }catch (e: any) {
                 setPinLoading(false);
+                setSubmitFlag(false);
                 const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
                 if(string.search(expr) > 0 || string.search(expr2) > 0) {
-                    await wrongPassword({email});
-                    const times = await passwordTimes({email});
-                    setSubmitFlag(false);
-                    if(times > 0) {
-                        if(times < 4) {
-                            setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                    wrongPassword({email}).then(async () => {
+                        const times = await passwordTimes({email});
+                        if(times > 0) {
+                            if(times < 4) {
+                                setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                            }else {
+                                setPasswordError(`Invalid password`)
+                            }
                         }else {
-                            setPasswordError(`Invalid password`)
+                            setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow !")
                         }
-                    }else {
-                        setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow !")
-                    }
+                    }).catch((err: any) => {
+                        setPasswordError(err)
+                    })
                 }
                 return;
             }
@@ -810,8 +921,7 @@ const Transfer = (props: any) => {
                 console.log(signer)
                 axiom = await AxiomAccount.sessionSmartAccount(
                     signer,
-                    ow,
-                    userInfo.address
+                    ow
                 );
             }
         }
@@ -819,6 +929,21 @@ const Transfer = (props: any) => {
         console.log(axiom.getOwnerAddress())
         console.log(axiom.getEncryptedPrivateKey(), "getEncryptedPrivateKey")
         if(form.send.value === "AXC") {
+            const callData = "0x";
+            let userop: any;
+            try {
+                const res = await axiom.sendUserOperation(form.to, value, callData, "", "", {
+                    dryRun: true,
+                    onBuild: (op: any) => {
+                        userop = op;
+                        console.log("Signed UserOperation:", op);
+                    }
+                })
+                await res.wait();
+                await handleEntryPoint(userop, false);
+            }catch(err: any) {
+                console.log("axc111111111", err);
+            }
             try {
                 ev = await handleAXMCTransfer(axiom, value);
                 if(ev?.transactionHash) {
@@ -837,7 +962,7 @@ const Transfer = (props: any) => {
             try {
                 ev = await handleAXMERC20Transfer(axiom, value);
             }catch (e: any) {
-                console.log(e)
+                console.log(e, "erc20trans")
                 setResultStatus("failed");
                 setPinLoading(false);
                 return;
@@ -896,9 +1021,7 @@ const Transfer = (props: any) => {
             to: form.send.contract,
             data: calldata,
         })
-        console.log(res)
         const allow = parseInt(res, 16);
-        console.log(allow)
         if(allow === 0) {
             const to = [form.send.contract, form.send.contract];
             const erc20 = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
@@ -906,6 +1029,18 @@ const Transfer = (props: any) => {
                 erc20.interface.encodeFunctionData("approve", [window.PAYMASTER, ethers.constants.MaxUint256]),
                 erc20.interface.encodeFunctionData("transfer", [form.to, value]),
             ];
+
+            const callData = "0x";
+            let userop: any;
+            const resOp = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
+                dryRun: true,
+                onBuild: (op: any) => {
+                    userop = op;
+                    console.log("Signed UserOperation:", op);
+                }
+            })
+            await resOp.wait();
+            await handleEntryPoint(userop, false);
             const res = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
                 onBuild: (op: any) => {
                     console.log("Signed UserOperation:", op);
@@ -914,7 +1049,17 @@ const Transfer = (props: any) => {
             const ev = await res.wait();
             return ev;
         }else {
-            const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value])
+            const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value]);
+            let userop: any;
+            const resOp = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
+                dryRun: true,
+                onBuild: (op: any) => {
+                    userop = op;
+                    console.log("Signed UserOperation:", op);
+                }
+            })
+            await resOp.wait();
+            await handleEntryPoint(userop, false);
             const res = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
                 onBuild: (op: any) => {
                     console.log("Signed UserOperation:", op);
@@ -933,6 +1078,7 @@ const Transfer = (props: any) => {
             const signer = await handleGetSessionSigner();
             const freeLimit = sessionStorage.getItem("freeLimit");
             const value = freeLimit ? ethers.utils.parseUnits(freeLimit, 18) : "";
+            console.log(signer.address, 'signer.address')
             const setSessionOP = await axiom.setSession(
                 signer,
                 value,
@@ -955,6 +1101,23 @@ const Transfer = (props: any) => {
         const decryptKey = decrypt(sessionKey, secretKey.toString("utf-8"))
         const signer = new Wallet(decryptKey);
         return signer;
+    }
+
+    const handleTransferClose = () => {
+        setTransferOpen(false);
+        handleLockTimes();
+        setBtnLoading(false);
+        setPinLoading(false);
+        setGasLoading(true);
+        const sendValue = form.value.replace(/,/g, "");
+        const addressBalance = balance.replace(/,/g, "");
+        getGas(sendValue, form.send).then((res: any) => {
+            setGasLoading(false);
+            setGasFee(res);
+            if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
+                setValueError("Gas fee is insufficient");
+            }
+        })
     }
 
     const openResult = () => {
@@ -1090,7 +1253,7 @@ const Transfer = (props: any) => {
                     </FormControl>
                     <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
                 </div>
-                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={() => {setTransferOpen(false); handleLockTimes();setBtnLoading(false);setPinLoading(false)}} info={transferInfo} errorMsg={passwordError} />
+                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} clearError={() => {setPasswordError("")}} />
                 <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
                 <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
             </div>

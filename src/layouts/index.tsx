@@ -1,56 +1,100 @@
-import { Outlet, history, useLocation } from 'umi';
+import { Outlet, history, connect} from 'umi';
 import styles from './index.less';
 import Logo from '@/components/Logo';
 import Menu from '@/components/Menu'
 import PersonInfo from "@/components/PersonInfo";
 import Settings from "@/components/Settings";
-import {clearSessionData, getMail, getToken} from "@/utils/help";
-import {useEffect} from "react";
-import {refreshToken} from "@/services/login";
+import {clearSessionData, getMail} from "@/utils/help";
+import {useEffect, useState} from "react";
+import {getUserInfo, refreshToken} from "@/services/login";
 
-export default function Layout() {
+
+function Layout(props: any) {
+    const {dispatch } = props;
     const email: string | any = getMail();
-    const location = useLocation();
+    const [info, setInfo] = useState({});
     useEffect(() => {
         if(!email) history.replace('/login')
     }, [])
 
+    const initUserInfo = async () => {
+        try{
+            const res = await getUserInfo(email);
+            if(res.lock_screen_status){
+                history.replace('/lock')
+            }
+            if(res){
+                setInfo(res);
+                dispatch({
+                    type: 'global/setUser',
+                    payload: res,
+                })
+            }
+
+        } catch (e) {
+            clearSessionData();
+            history.replace('/login')
+        }
+    }
+
     useEffect(() => {
-        // @ts-ignore
-        if(!window.SockJS){
-            return
-        }
-        // @ts-ignore
-        const socket_js = new window.SockJS(window.socketUrl)
-        // @ts-ignore
-        let stompClient = window.Stomp.over(socket_js);
-        if(stompClient && stompClient.connected){
-            stompClient.disconnect();
-        }
-        if(stompClient){
-            stompClient.connect({}, function(frame: any) {
-                stompClient.subscribe(`/topic/logout/${email}`, async function(message: any) {
-                    if(message.body === 'logout'){
-                        clearSessionData();
-                        refreshToken()
-                    }
-                });
+        initUserInfo();
+    }, []);
 
-                stompClient.subscribe(`/topic/lock/${email}`, async function(message: any) {
-                    if(message.body === 'lock'){
-                        history.replace('/lock')
-                    }
-                });
-            });
+    const initSocket = () => {
+        // @ts-ignore
+        const ws = new WebSocket(`${window.socketUrl}/axm-wallet/notice/${email}`);
+
+        console.log('ws连接状态21：' + ws.readyState);
+        if(ws.readyState){
+            ws.close();
         }
 
-        return () => {
-            if (stompClient !== null && socket_js.readyState) {
-                stompClient.disconnect(); // 关闭连接
-                stompClient = null;
+        ws.onopen = function () {
+            console.log('ws连接状态：' + ws.readyState);
+            ws.send('我们建立连接啦');
+        }
+        // 接听服务器发回的信息并处理展示
+        ws.onmessage = function (message) {
+            //完成通信后关闭WebSocket连接
+            // ws.close();
+            console.log('message.data:', message.data)
+            if(message.data){
+                const res = JSON.parse(message.data || '{}');
+                if(res?.noticeType === 0){
+                    refreshToken(email)
+                }
+                if(res?.noticeType === 1){
+                    history.replace('/lock');
+                }
             }
         }
 
+        ws.onerror = function () {
+            // 监听整个过程中websocket的状态
+            console.log('ws连接状态47：' + ws.readyState);
+            setTimeout(function(){
+                initSocket();
+            },5000);
+        }
+    }
+
+    const handleChange = () => {
+        if (!document.hidden) {
+            initUserInfo();
+        }
+    }
+
+    useEffect(() => {
+        document.addEventListener("visibilitychange", handleChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleChange);
+        }
+    }, []);
+
+    useEffect(() => {
+        initSocket();
     }, []);
 
     useEffect(() => {
@@ -66,7 +110,7 @@ export default function Layout() {
   return (
     <div className={styles.layout}>
       <div className={styles.navs}>
-        <PersonInfo />
+        <PersonInfo info={info} />
         <Menu />
         <Settings />
         <Logo />
@@ -77,3 +121,7 @@ export default function Layout() {
     </div>
   );
 }
+
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(Layout)

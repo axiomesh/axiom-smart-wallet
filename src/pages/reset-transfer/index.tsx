@@ -123,6 +123,9 @@ const ResetTransfer = (props: any) => {
     }
 
     const handleSubmit = async () => {
+        if(password === ""){
+            return;
+        }
         if(!btnLoading) {
             setBtnLoading(true);
         const salt = generateRandomBytes(16);

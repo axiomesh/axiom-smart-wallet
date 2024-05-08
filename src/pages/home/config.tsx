@@ -59,7 +59,7 @@ export const selectCurrencyList: selectItem | any = {
         type: 'axc',
         symbol: 'AXCUSD',
     },{
-        label: 'WETH',
+        label: 'wETH',
         icon: weth,
         type: 'axc',
         symbol: 'WETHUSD',

@@ -12,6 +12,7 @@ const TransferPassword = (props: Props) => {
     const [error, setError] = useState<string>("");
 
     const getSecondValue = (e: string) => {
+        setError("")
         if(firstValue === e) {
             setError("")
             props.onSubmit(e)
@@ -27,9 +28,9 @@ const TransferPassword = (props: Props) => {
     return (
         <div>
             <div className={styles.setPassTitle}><span className={styles.setPassText}>Transfer password</span><span className={styles.setPassTip}>（Supports numbers from 0 to 9）</span></div>
-            <ModalInputPassword onSubmit={getFirstValue} />
+            <ModalInputPassword onSubmit={getFirstValue} clearError={() => {setError("")}}/>
             <div className={styles.setPassTitle}><span className={styles.setPassText}>Transfer password</span></div>
-            <ModalInputPassword onSubmit={getSecondValue} isError={error} />
+            <ModalInputPassword onSubmit={getSecondValue} isError={error} clearError={() => {setError("")}} />
         </div>
     )
 }

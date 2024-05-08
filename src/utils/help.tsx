@@ -23,6 +23,46 @@ const formatNumberWithCommas = (number: string) => {
     return number.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+export const changeBalance = (num: string, needSymbol = true) => {
+    const str = num ? String(num) : '0';
+    const balanceNumber = Number(str)
+    const strList = str.split('.')
+    // @ts-ignore
+    if(balanceNumber === 0) return `${needSymbol ? window.symbol : ''}0`;
+    if(balanceNumber > 1){
+        if(strList.length > 1) {
+            if(strList[1].length > 2){
+                const strNum = strList[1].substring(0, 2)
+                return <Tooltip hasArrow label={`${formatNumberWithCommas(strList[0])}.${strList[1]}`} bg='#171923' color='#fff' placement="top">
+                    {/*@ts-ignore*/}
+                    {`${needSymbol ? window.symbol : ''}${formatNumberWithCommas(strList[0])}.${strNum}`}
+                </Tooltip>
+            }
+            // @ts-ignore
+            return `${needSymbol ? window.symbol : ''}${formatNumberWithCommas(strList[0])}.${strList[1]}`
+        }
+        // @ts-ignore
+        return `${needSymbol ? window.symbol : ''}${formatNumberWithCommas(str)}`;
+    } else {
+        if(strList.length > 1){
+            if(strList[1].length > 5) {
+                const strNum = strList[1].substring(0, 5)
+                return  <Tooltip hasArrow label={`${formatNumberWithCommas(strList[0])}.${strList[1]}`} bg='#171923' color='#fff' placement="top">
+                    {/*@ts-ignore*/}
+                    { `${needSymbol ? window.symbol : ''} ${formatNumberWithCommas(strList[0])}.${strNum}`}
+                </Tooltip>
+            }
+            // @ts-ignore
+           return `${needSymbol ? window.symbol : ''} ${formatNumberWithCommas(strList[0])}.${strList[1]}`
+
+        } else {
+            // @ts-ignore
+            return `${needSymbol ? window.symbol : ''}${formatNumberWithCommas(strList[0])}`
+        }
+    }
+
+}
+
 export const changePrice = (num = 0, needSymbol = true) => {
     const str = num ? String(num) : '0';
     const strList = str.split('.')
