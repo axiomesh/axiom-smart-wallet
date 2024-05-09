@@ -505,11 +505,11 @@ const Transfer = (props: any) => {
                     [op],
                     userInfo.address,
                 ]),
-            }, "latest", {state: {[ethers.constants.AddressZero]: ethers.constants.HashZero}}, {time: Math.round(Date.now() / 1000)})
+            }, "latest", undefined, {time: "0x" + Math.round(Date.now() / 1000).toString(16)})
             return false;
         } catch (error: any) {
+            console.log(error)
             if(isFree) {
-                console.log(error)
                 const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
                 if(string.search(expr) > 0) {
                     console.log(1111)
