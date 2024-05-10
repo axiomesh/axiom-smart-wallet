@@ -25,6 +25,7 @@ import TransferResultModal from "@/components/TransferResultModal";
 import {msToTime, formatAmount, generateRandomBytes} from "@/utils/utils";
 import { EntryPoint__factory } from "userop/dist/typechain";
 import AlertPro from "@/components/Alert";
+import { FunctionFragment } from 'ethers/lib/utils';
 
 function Loading (props: any) {
     return <div className='loader' {...props}></div>
@@ -113,6 +114,31 @@ interface FormProps {
     to: string;
     value: string;
     send: any;
+}
+
+interface EntryPointInterface extends ethers.utils.Interface {
+    functions: {
+      "SIG_VALIDATION_FAILED()": FunctionFragment;
+      "_validateSenderAndPaymaster(bytes,address,bytes)": FunctionFragment;
+      "addStake(uint32)": FunctionFragment;
+      "balanceOf(address)": FunctionFragment;
+      "depositTo(address)": FunctionFragment;
+      "deposits(address)": FunctionFragment;
+      "getDepositInfo(address)": FunctionFragment;
+      "getNonce(address,uint192)": FunctionFragment;
+      "getSenderAddress(bytes)": FunctionFragment;
+      "getUserOpHash((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes))": FunctionFragment;
+      "handleAggregatedOps(((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],address,bytes)[],address)": FunctionFragment;
+      "handleOps((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],address)": FunctionFragment;
+      "incrementNonce(uint192)": FunctionFragment;
+      "innerHandleOp(bytes,((address,uint256,uint256,uint256,uint256,address,uint256,uint256),bytes32,uint256,uint256,uint256),bytes)": FunctionFragment;
+      "nonceSequenceNumber(address,uint192)": FunctionFragment;
+      "simulateHandleOp((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),address,bytes)": FunctionFragment;
+      "simulateValidation((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes))": FunctionFragment;
+      "unlockStake()": FunctionFragment;
+      "withdrawStake(address)": FunctionFragment;
+      "withdrawTo(address,uint256)": FunctionFragment;
+    };
 }
 
 const options: any = [
@@ -497,15 +523,16 @@ const Transfer = (props: any) => {
         // }catch(error: any) {
 
         // }
+        const result = await provider2.callWithBlockOverride({
+            to: window.ENTRY_POINT,
+            data: entryPoint.interface.encodeFunctionData('handleOps', [
+                [op],
+                userInfo.address,
+            ]),
+        }, "latest", undefined, {time: "0x" + Math.round(Date.now() / 1000).toString(16)})
         try {
+            entryPoint.interface.decodeFunctionResult("handleOps", result);
             // await entryPoint.callStatic.handleOps([op], userInfo.address);
-            await provider2.callWithBlockOverride({
-                to: window.ENTRY_POINT,
-                data: entryPoint.interface.encodeFunctionData('handleOps', [
-                    [op],
-                    userInfo.address,
-                ]),
-            }, "latest", undefined, {time: "0x" + Math.round(Date.now() / 1000).toString(16)})
             return false;
         } catch (error: any) {
             console.log(error)
@@ -554,7 +581,7 @@ const Transfer = (props: any) => {
                         onBuild: (op: any) => {
                             console.log("Signed UserOperation:", op, '----473');
                             usrOp = op;
-                            
+
                         }
                     })
                     console.log(resOp)
@@ -714,7 +741,7 @@ const Transfer = (props: any) => {
             console.log(isLimit)
             const transfinite: boolean = isLimit;
             setIsTransfinite(transfinite)
-            
+
             console.log(transfinite)
             setTransferInfo({
                 send: form.send.value,
@@ -967,7 +994,7 @@ const Transfer = (props: any) => {
                 return;
             }
         }
-        
+
         await transaction({
             email,
             transaction_hash: ev.transactionHash,
