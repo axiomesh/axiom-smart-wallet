@@ -96,6 +96,7 @@ function SecurityUpdatePassword(props: any) {
                     }
                     params.old_login_password = oldPassword;
                     params.old_enc_private_key = userInfo.enc_private_key;
+                    params.enc_private_key = userInfo.enc_private_key;
                     await updatePassword(params);
                     setMessage('');
                     setTimeout(() => {

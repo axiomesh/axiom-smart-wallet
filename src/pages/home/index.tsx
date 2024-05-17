@@ -69,7 +69,8 @@ const Home = (props:any) => {
         if(type === 'AXCUSD'){
             const balance = await rpc_provider.getBalance(userInfo.address);
             // @ts-ignore
-            return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
+            // return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
+            return ethers.utils.formatUnits(balance, window.AXC_SYMBOL)
         } else if(type === 'ETHUSD'){
             let balance = await provider.getBalance(userInfo.address);
             // @ts-ignore

@@ -2,10 +2,14 @@ export default {
   namespace: 'global',
   state: {
     userInfo: {},
+    transferForm: {}
   },
   effects: {
     *setUser({ payload }, { put }) {
       yield put({ type: 'putUser', payload});
+    },
+    *setForm({ payload }, { put }) {
+      yield put({ type: 'putForm', payload});
     },
   },
 
@@ -16,5 +20,12 @@ export default {
         userInfo: payload,
       };
     },
+    putForm(state, { payload }) {
+      return {
+        ...state,
+        transferForm: payload,
+      };
+    },
   },
+  
 };
