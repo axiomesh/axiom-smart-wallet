@@ -166,9 +166,14 @@ const TransferFree = (props: any) => {
         const salt = generateRandomBytes(16);
         const limit = ethers.utils.parseUnits(value, 18);
         let currentDate = new Date();
+        // prod 0
         currentDate.setHours(23, 59, 59, 999)
         const validAfter = Math.round(Date.now() / 1000);
         const validUntil = currentDate.getTime();
+        // test 5min
+        // let currentTimestamp: number = currentDate.getTime();
+        // const validUntil: number = currentTimestamp + (5 * 60 * 1000);
+
         const sessionSigner = generateSigner();
         setFreeStep("0")
         const secretKey = await deriveAES256GCMSecretKey(sha256(skPassword), salt);
