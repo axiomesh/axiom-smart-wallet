@@ -659,6 +659,21 @@ const Transfer = (props: any) => {
 
         setBtnLoading(true)
         if(isSetPassword) {
+            if(!form.send){
+                setSendError("Please Select a token!");
+                setBtnLoading(false);
+                return;
+            }
+            if(form.value === "") {
+                setValueError("Invalid balance!");
+                setBtnLoading(false);
+                return;
+            }
+            if(form.to === "") {
+                setToErrorsText("Invalid address !");
+                setBtnLoading(false);
+                return;
+            }
             let sendValue:string = form.value.replace(/,/g, "");
             const addressBalance = balance.replace(/,/g, "")
             const sessionKey = sessionStorage.getItem("sk");
@@ -709,11 +724,6 @@ const Transfer = (props: any) => {
                 return;
             }
             if(toErrorsText !== "") {
-                setBtnLoading(false);
-                return;
-            }
-            if(!form.send){
-                setSendError("Please Select a token");
                 setBtnLoading(false);
                 return;
             }
