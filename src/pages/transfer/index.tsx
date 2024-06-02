@@ -540,8 +540,8 @@ const Transfer = (props: any) => {
         } catch (error: any) {
             console.log(error)
             if(isFree) {
-                const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
-                if(string.search(expr) > 0) {
+                const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/, expr2 = /transfer value exceeds 128 bits, would cause overflow/;
+                if(string.search(expr) > 0 || string.search(expr2) > 0) {
                     console.log(1111)
                     return true;
                 }
