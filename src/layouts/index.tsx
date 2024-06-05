@@ -18,8 +18,9 @@ function Layout(props: any) {
     }, [])
 
     const initUserInfo = async () => {
+        const deviceId = localStorage.getItem('visitorId');
         try{
-            const res = await getUserInfo(email);
+            const res = await getUserInfo(email, deviceId);
             if(res.lock_screen_status){
                 history.replace('/lock')
             }

@@ -79,3 +79,81 @@
   color: #718096;
   margin-top: 4px;
 }
+.key {
+  &Title {
+    font-family: Inter;
+    font-size: 40px;
+    font-weight: 700;
+    color: #000;
+  }
+  &Mail {
+    font-family: Inter;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 28.8px;
+    text-align: left;
+    color: #000;
+    margin-top: 20px;
+  }
+  &Btn {
+    width: 320px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(91.33deg, #EBCF3E -26.54%, #FC9468 140.68%);
+    border-radius: 56px;
+    margin-top: 40px;
+    cursor: pointer;
+    span {
+      font-family: Inter;
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 24px;
+      text-align: left;
+      color: #fff;
+    }
+  }
+  &Icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: url("../../assets/login/scan.png") no-repeat center / cover;
+  }
+}
+.passkey {
+  &Content {
+    display: flex;
+    gap: 8px;
+  }
+  &Item {
+    border-radius: 20px;
+    border: 1px solid rgba(236, 201, 75, 0.5);
+    background: rgba(236, 201, 75, 0.1);
+    padding: 34.5px 20px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    img {
+      width: 18px;
+      height: 20px;
+      margin-bottom: 24px;
+    }
+    &Tip {
+      font-family: Inter;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 20px;
+      color: #000;
+      margin-bottom: 9px;
+    }
+    &Scan {
+      font-family: Inter;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 14px;
+      color: #2D3748;
+    }
+  }
+}

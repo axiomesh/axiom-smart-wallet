@@ -17,7 +17,7 @@ import TransferPassword from "@/components/TransferPassword";
 import { setFirstPassword } from '@/services/transfer';
 import Toast from "@/hooks/Toast";
 import {passWordReg, getMail} from "@/utils/help";
-import {checkPassword, getUserInfo} from "@/services/login";
+import {checkPassword, getUserInfo, getPrivateKey} from "@/services/login";
 import {connect} from "@@/exports";
 const {crypto} = require("crypto-js")
 import {generateRandomBytes} from "@/utils/utils";
@@ -36,6 +36,7 @@ const SetPayPasswordModal = (props: Props) => {
     const { userInfo, dispatch } = props;
     const [open, setOpen] = useState<Boolean>(props.isOpen);
     const [isVerify, setIsVerify] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [errorTxt, setErrorTxt] = useState('');
     const [password, setPassword] = useState('');
     const {Button}  = useContinueButton();
@@ -51,24 +52,30 @@ const SetPayPasswordModal = (props: Props) => {
     }
 
     const handleSubmit = async (e: string) => {
-        const token = sha256(password);
+        if(!loading) 
+            setLoading(true);
         const salt = generateRandomBytes(16);
         try {
-            const secretKey = await deriveAES256GCMSecretKey(token, userInfo.user_salt);
+            const tokenInfo = await getPrivateKey(email);
+            const token = sha256(tokenInfo.verify_code);
+            const secretKey = await deriveAES256GCMSecretKey(token, tokenInfo.user_salt);
             const decryptKey = decrypt(userInfo.enc_private_key, secretKey.toString());
             const paySecretKey = await deriveAES256GCMSecretKey(sha256(e), salt);
             const encryptKey = encrypt(decryptKey, paySecretKey.toString());
             await setFirstPassword(email, userInfo.enc_private_key, encryptKey, salt);
-            const userRes = await getUserInfo(email);
+            const deviceId = localStorage.getItem('visitorId');
+            const userRes = await getUserInfo(email, deviceId);
             if(userRes){
                 dispatch({
                     type: 'global/setUser',
                     payload: userRes,
                 })
             }
+            setLoading(false);
             showSuccessToast("Password set successfully!");
             props.onClose(true);
         }catch (error) {
+            setLoading(false);
             console.log(error)
         }
     }
@@ -114,27 +121,7 @@ const SetPayPasswordModal = (props: Props) => {
                         <i className={styles.payPassClose} onClick={onClose}></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">
-                        {!isVerify && <div>
-                            <span className={styles.payPassTip}>Please enter your unlock password to complete the verification</span>
-                            <FormControl isInvalid={errorTxt !==''} style={{marginBottom: "40px"}}>
-                                <Input
-                                    type='password'
-                                    value={password}
-                                    placeholder='Unlock password'
-                                    style={{height: "56px", marginTop: "8px"}}
-                                    _placeholder={{
-                                        fontSize: "14px",
-                                        fontFamily: "Inter",
-                                        fontWeight: "400",
-                                        color: "#A0AEC0"
-                                    }}
-                                    onChange={handleChangePassWord}
-                                />
-                                <FormErrorMessage>{errorTxt}</FormErrorMessage>
-                            </FormControl>
-                            <Button onClick={handleVerify}>Verify</Button>
-                        </div>}
-                        {isVerify && <TransferPassword onSubmit={handleSubmit} />}
+                        <div><TransferPassword type="set" btnLoading={loading} onSubmit={handleSubmit} /></div>
                     </ModalBody>
                     <ModalFooter>
                     </ModalFooter>

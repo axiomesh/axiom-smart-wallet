@@ -11,7 +11,7 @@ import {
 import { history, connect, Navigate } from 'umi';
 import React, {useState} from "react";
 import Right from './componments/right';
-import { sendVerifyCode } from '@/services/login';
+import { sendVerifyCode, checkUser } from '@/services/login';
 import {setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { getToken } from "@/utils/help";
@@ -68,17 +68,24 @@ function Login() {
             })
             return
         }
+        setLoading(true)
         setMail(mail);
-        try{
-            setLoading(true)
-            await sendVerifyCode(mail)
-            history.push(`/verify-code`);
-        } catch (e){
-            console.log(e);
-            // @ts-ignore
-            showErrorToast(e);
-        } finally {
+        const userType = await checkUser(mail);
+        if(userType === 0) {
+            try{
+                setLoading(true)
+                await sendVerifyCode(mail)
+                history.push(`/verify-code`);
+            } catch (e){
+                console.log(e);
+                // @ts-ignore
+                showErrorToast(e);
+            } finally {
+                setLoading(false)
+            }
+        }else {
             setLoading(false)
+            history.push(`/login-passkey`);
         }
 
     }

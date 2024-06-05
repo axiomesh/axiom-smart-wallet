@@ -70,6 +70,7 @@
     border: 1px solid rgba(236, 201, 75, 0.3);
     background: #fff;
     margin-top: 20px;
+    box-shadow: 0px 4px 35px 0px rgba(82, 93, 107, 0.03);
   }
   .form {
     &Control {
@@ -193,5 +194,38 @@
     line-height: 24px;
     text-align: right;
     color: #4B5563;
+  }
+}
+
+.noPassword {
+  margin: auto;
+  position: relative;
+  &Title {
+      font-family: Inter;
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 58.09px;
+      letter-spacing: 0.05em;
+      text-align: center;
+      color: #000;
+      position: absolute;
+      top: 334px;
+  }
+  &Desc {
+    width: 100%;
+    font-family: DM Sans;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 23px;
+    text-align: center;
+    color: rgba(156, 163, 175, 1);
+    position: absolute;
+    top: 474px;
+  }
+  &Icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: url("../../assets/transfer/arrow.png") no-repeat center / cover;
   }
 }

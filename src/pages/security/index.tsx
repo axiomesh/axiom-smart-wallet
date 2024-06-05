@@ -1,8 +1,9 @@
 import styles from './index.less'
 import React, {useState, useEffect} from "react";
 import { ReactComponent as Free } from '@/assets/security/free.svg'
-import { ReactComponent as Unlock } from '@/assets/security/unlock.svg'
 import { ReactComponent as Transfer } from '@/assets/security/transfer.svg'
+import { ReactComponent as Passkey } from '@/assets/security/passkey.svg'
+import { ReactComponent as Bio } from '@/assets/security/bio.svg'
 import { history } from 'umi';
 import {lockPage} from "@/services/login";
 import {getMail} from "@/utils/help";
@@ -16,8 +17,8 @@ interface listItem {
 
 const primitiveList: listItem[] = [
     {
-        label: "unlock",
-        tip: "Reset Unlock Password"
+        label: "passkey",
+        tip: "Passkey security"
     },
     {
         label: "transfer",
@@ -26,6 +27,10 @@ const primitiveList: listItem[] = [
     {
         label: "free",
         tip: "Password-free Transfer"
+    },
+    {
+        label: "bio",
+        tip: "Bio Payment"
     }
 ]
 
@@ -38,7 +43,7 @@ const Security = (props: any) => {
 
     useEffect(() => {
         if(userInfo.pay_password_set_status === 0) {
-            let arr = [];
+            let arr: any = [];
             primitiveList.map((item: listItem, index: number) => {
                 if(index === 0){
                     arr.push(item)
@@ -53,7 +58,7 @@ const Security = (props: any) => {
     const handleClickItem = async (i: number) => {
         if(i === 0){
             try{
-                history.push('/security/reset-unlock-password')
+                history.push('/passkey-security')
             } catch (e){
                 // @ts-ignore
                 showErrorToast(e)
@@ -66,6 +71,9 @@ const Security = (props: any) => {
         if(i === 2) {
             history.push('/transfer-free')
         }
+        if(i === 3) {
+            history.push('/bio-payment')
+        }
     }
 
 
@@ -77,7 +85,12 @@ const Security = (props: any) => {
                     list.map((item: listItem, index: number) => (
                         <div className={styles.securityListItem} onClick={() => handleClickItem(index)} onMouseEnter={() => {setIsHover(index)}} onMouseLeave={() => {setIsHover(null)}}>
                             {index === isHover ? <div className={styles.securityListItemHover}></div> : null}
-                            {item.label === "unlock" ? <Unlock fill={index === isHover ? "#ECC94B" : "#171923"}/> : item.label === "transfer" ? <Transfer stroke={index === isHover ? "#ECC94B" : "#171923"}/> : <Free fill={index === isHover ? "#ECC94B" : "#171923"}/>}
+                            {
+                                item.label === "passkey" ? <Passkey fill={index === isHover ? "#ECC94B" : "#171923"}/> 
+                                : item.label === "transfer" ? <Transfer stroke={index === isHover ? "#ECC94B" : "#171923"}/> 
+                                : item.label === "free" ? <Free fill={index === isHover ? "#ECC94B" : "#171923"}/>
+                                : <Bio fill={index === isHover ? "#ECC94B" : "#171923"}/>
+                            }
                             <span>{item.tip}</span>
                         </div>
                     ))

@@ -39,7 +39,8 @@ const PersonInfo = (props: any) => {
     const handleConfirm = async () => {
         sessionStorage.removeItem('sessionKey');
         sessionStorage.removeItem("key");
-        await logout(email)
+        const deviceId: string | null = localStorage.getItem('visitorId');
+        await logout(email, deviceId)
         history.replace('/login')
     }
 

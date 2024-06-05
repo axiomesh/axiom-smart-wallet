@@ -26,6 +26,9 @@ import {msToTime, formatAmount, generateRandomBytes} from "@/utils/utils";
 import { EntryPoint__factory } from "userop/dist/typechain";
 import AlertPro from "@/components/Alert";
 import { FunctionFragment } from 'ethers/lib/utils';
+import SetBioPayModal from "@/components/setBioPayModal";
+import BioResultModal from '@/components/BioResultModal';
+import { bioPay } from '@/utils/bio'
 
 function Loading (props: any) {
     return <div className='loader' {...props}></div>
@@ -165,11 +168,14 @@ const Transfer = (props: any) => {
     const [isChangeSend, setIsChangeSend] = useState(false);
     const [passwordOpen, setPasswordOpen] = useState(false);
     const [transferOpen, setTransferOpen] = useState(false);
+    const [bioOpen, setBioOpen] = useState(false);
+    const [bioResultOpen, setBioResultOpen] = useState(false);
     const [resultOpen, setResultOpen] = useState(false);
     const [toErrorsText, setToErrorsText] = useState("");
     const [sendError, setSendError] = useState("");
     const [valueError, setValueError] = useState("");
     const [resultStatus, setResultStatus] = useState("");
+    const [bioStatus, setBioStatus] = useState("");
     const [resultName, setResultName] = useState("");
     const [form, setForm] = useState<FormProps>({chain: options[0], to: "", value: "", send: null});
     const [sessionForm, setSessionForm] = useState<FormProps>();
@@ -806,6 +812,7 @@ const Transfer = (props: any) => {
         if(isSuccess) {
             setIsSetPassword(true);
             setButtonText('Transfer');
+            setBioOpen(true);
         }
         setPasswordOpen(false)
     }
@@ -888,6 +895,10 @@ const Transfer = (props: any) => {
         setResultOpen(false);
         setBtnLoading(false);
         window.location.reload();
+    }
+
+    const handleBioPay = async () => {
+        await bioPay(email, "", "");
     }
 
     const handleAXMSubmit = async (password: string) => {
@@ -1157,7 +1168,7 @@ const Transfer = (props: any) => {
     return (
         <>
             {lockTimes && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account has been frozen for 24 hours and transactions cannot be sent normally. {lockTimes}</span></div>}
-            <div className={styles.transfer}>
+            {isSetPassword ? <div className={styles.transfer}>
                 <div className={styles.transferTitle}>
                     <h1>Transfer</h1>
                     <div className={styles.transferHistory} onClick={() => history.push('/transfer-history')}>
@@ -1279,10 +1290,20 @@ const Transfer = (props: any) => {
                     </FormControl>
                     <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
                 </div>
-                <TransferModal open={transferOpen} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} clearError={() => {setPasswordError("")}} />
-                <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
-                <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
-            </div>
+            </div> : 
+            <div className={styles.noPassword}>
+                <img style={{width: "800px"}} src={require('@/assets/transfer/set-transfer-bg.png')} alt="" />
+                <p className={styles.noPasswordTitle}>Transfer to any address on Axiomesh & Ethereum</p>
+                <p className={styles.noPasswordDesc}>Set a transfer password to use</p>
+                <div style={{width: "320px", margin: "0 auto"}}><Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >Set transfer password first <i className={styles.noPasswordIcon}></i></Button></div>
+            </div> 
+            }
+
+            <TransferModal open={transferOpen} onBioPay={handleBioPay} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} clearError={() => {setPasswordError("")}} />
+            <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
+            <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
+            <SetBioPayModal isOpen={bioOpen} onClose={() => {setBioOpen(false)}} />
+            <BioResultModal status={bioStatus} isOpen={bioResultOpen} />
         </>
     )
 }

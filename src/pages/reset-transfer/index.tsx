@@ -21,7 +21,6 @@ const ResetTransfer = (props: any) => {
     const {dispatch} = props;
     const [isLock, setIsLock] = useState(false);
     const [step, setStep] = useState(0);
-    const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
     const [timer, setTimer] = useState('');
     const [info, setInfo] = useState<any>({});
@@ -118,11 +117,7 @@ const ResetTransfer = (props: any) => {
         }
     }, []);
 
-    const handleCallBack = (value: string) => {
-        setPassword(value)
-    }
-
-    const handleSubmit = async () => {
+    const handleSubmit = async (password: string) => {
         if(password === ""){
             return;
         }
@@ -177,9 +172,9 @@ const ResetTransfer = (props: any) => {
                        <Button loading={btnLoading}>Send a verify email</Button>
                    </div>}
                    {step === 1 && <div style={{marginTop: "20px"}}><InputPassword isError={isError} setIsError={setIsError} onSend={handleSendEmail} onVerify={handleVerify} needTimer={false} timer={timer}/></div>}
-                   {step === 2 && <div style={{marginTop: "20px"}}>
-                       <TransferPassword onSubmit={handleCallBack} />
-                       <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button loading={btnLoading}>Confirm</Button></div>
+                   {step === 2 && <div style={{marginTop: "20px",width: "390px"}}>
+                       <TransferPassword type="reset" onSubmit={handleSubmit} btnLoading={btnLoading} />
+                       {/* <div style={{width: "320px",marginTop: "40px"}} onClick={handleSubmit}><Button loading={btnLoading}>Confirm</Button></div> */}
                    </div>}
                </div>
             </Page>

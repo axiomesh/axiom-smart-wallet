@@ -81,3 +81,39 @@ export async function transferLockTime(data: any) {
     });
     return res?.data;
 }
+
+export async function bioCreate(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/bio-payment/enable-creat`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function bioCheck(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/bio-payment/enable-save`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function bioClose(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/bio-payment/close`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function passkeySecurityInfo(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/passkey-security`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}

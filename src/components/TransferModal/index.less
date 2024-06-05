@@ -52,7 +52,7 @@
     padding: 20px;
     border-radius: 20px;
     background: rgba(217, 217, 217, 0.2);
-    margin-top: 32px;
+    margin-bottom: 32px;
     h1 {
       font-family: Inter;
       font-size: 14px;
@@ -111,5 +111,44 @@
         text-align: right;
       }
     }
+  }
+  &Bio {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+    &Button {
+      padding: 16px 0;
+      background: linear-gradient(91.33deg, #EBCF3E -26.54%, #FC9468 140.68%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      border-radius: 56px;
+      span {
+        font-family: Inter;
+        font-size: 16px;
+        font-weight: 500;
+        color: #fff;
+      }
+      img {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+}
+.transferBioText {
+  font-family: Inter;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ECC94B;
+  margin-top: 20px;
+  text-align: center;
+  &:hover {
+    color: #F6E05E;
+  }
+  &:active {
+    color: #D4B443;
   }
 }

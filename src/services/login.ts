@@ -98,11 +98,11 @@ export async function lockPage(email: string) {
     return res?.data;
 }
 
-export async function getUserInfo(email: string) {
+export async function getUserInfo(email: string, device_id: string | null) {
     const res = await request({
         url: `/api/axm-wallet/account/info`,
         method: 'get',
-        data: { email },
+        data: { email, device_id },
     });
     return res?.data;
 }
@@ -115,11 +115,11 @@ export async function getTickerPrice() {
     return res?.data;
 }
 
-export async function logout(email:string) {
+export async function logout(email:string, device_id: string | null) {
     const res = await request({
         url: `/api/axm-wallet/account/logout`,
         method: 'post',
-        data: {email},
+        data: {email, device_id},
     });
     clearSessionData();
     return res?.data;
@@ -135,6 +135,92 @@ export async function refreshToken(email: string) {
     return res?.data;
 }
 
+export async function checkUser(email: string) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/check-user`,
+        method: 'get',
+        data: {email},
+    });
+    return res?.data;
+}
 
+export async function addPrivateKey(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/private-key/add`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
 
+export async function getPrivateKey(email: string) {
+    const res = await request({
+        url: `/api/axm-wallet/account/private-key/get`,
+        method: 'get',
+        data: {email},
+    });
+    return res?.data;
+}
 
+export async function registerAddress(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/register-address`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function registerPasskey(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/passkey/register-creat`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function registerPasskeySave(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/passkey/register-save`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function checkPasskeyCreate(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/passkey/check-creat`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function checkPasskey(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/passkey/check`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function checkUnlockPasskeyCreate(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/unlock/check-creat`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function checkUnlockPasskey(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/unlock/check`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}

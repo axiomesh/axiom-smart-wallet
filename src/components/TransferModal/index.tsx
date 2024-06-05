@@ -10,8 +10,9 @@ import {
 } from '@chakra-ui/react';
 import ModalInputPassword from '@/components/ModalInputPassword';
 import useContinueButton from "@/hooks/ContinueButton";
-import {history} from "umi";
-import Toast from "@/hooks/Toast"
+import Toast from "@/hooks/Toast";
+import {connect} from "umi";
+import { bioCreate, bioCheck } from "@/services/transfer";
 interface transferProps {
     send: string;
     to: string;
@@ -24,6 +25,7 @@ interface transferProps {
 }
 
 const TransferModal = (props: any) => {
+    const { userInfo } = props;
     const [isOpen, setIsOpen] = useState<Boolean>(props.open);
     const [isFree, setIsFree] = useState<Boolean>(false);
     const [info, setInfo] = useState<transferProps>();
@@ -31,8 +33,17 @@ const TransferModal = (props: any) => {
     const [freeStep, setFreeStep] = useState<string>('');
     const [time, setTime] = useState<number>(30);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isBio, setIsBio] = useState<boolean>(false);
     const {Button} = useContinueButton();
     const {showErrorToast} = Toast();
+
+    useEffect(() => {
+        if(userInfo.bio_payment_status === 1) {
+            setIsBio(true)
+        }else {
+            setIsBio(false)
+        }
+    }, [])
 
     useEffect(() => {
         setIsLoading(props.pinLoading)
@@ -61,7 +72,7 @@ const TransferModal = (props: any) => {
                 if (i === 0){
                     clearInterval(t);
                     showErrorToast("Password verification timeout");
-                    props.onClose();
+                    // props.onClose();
                 }
                 i--;
             }
@@ -81,6 +92,10 @@ const TransferModal = (props: any) => {
         }
     },[props.info])
 
+    const handleBioPay = () => {
+        props.onBioPay()
+    }
+
     const onClose = () => {
         props.onClose()
     }
@@ -89,9 +104,7 @@ const TransferModal = (props: any) => {
         props.onSubmit(value)
     }
 
-    const handleToReset = () => {
-        history.push('/reset-transfer')
-    }
+    
 
     const handleClear = () => {
         props.clearError()
@@ -112,10 +125,7 @@ const TransferModal = (props: any) => {
                             <img src={require("@/assets/transfer/free-toast.png")} alt="" />
                             <span>Password-free payment will be activated after this transfer transaction.</span>
                         </div>}
-                        {(!isFree || freeStep === "0") && <><p className={styles.transferTitle}>Transfer password verification</p>
-                        <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
-                        <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p></>}
-                        <div className={styles.transferDetail} style={{marginTop: (!isFree || freeStep === "0") ? "32px" : "0"}}>
+                        <div className={styles.transferDetail}>
                             <h1 style={{paddingBottom: "8px"}}>DETAILS</h1>
                             <div className={styles.transferSend}>
                                 <div className={styles.transferSendItem}>
@@ -138,6 +148,14 @@ const TransferModal = (props: any) => {
                                 </div>
                             </div>
                         </div>
+                        {(isBio && (isFree && freeStep === "0")) && <div className={styles.transferBio}>
+                            <div className={styles.transferBioButton} onClick={handleBioPay}><img src={require("@/assets/transfer/bio.png")} alt="" /><span>Confirm</span></div>
+                            <div className={styles.transferBioText} onClick={() => setIsBio(false)}>Confirm with password</div>
+                        </div>}
+                        {(!isBio && (!isFree || freeStep === "0")) && <><p className={styles.transferTitle}>Transfer password verification</p>
+                            <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
+                            {userInfo.bio_payment_status === 1 && <div className={styles.transferBioText} onClick={() => setIsBio(true)}>Confirm with password</div>}
+                        </>}
                         {(isFree && freeStep !== "0") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm (Passward-free)</Button></div>}
                     </ModalBody>
                 </ModalContent>
@@ -146,4 +164,6 @@ const TransferModal = (props: any) => {
     )
 };
 
-export default TransferModal;
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(TransferModal)

@@ -4,7 +4,7 @@ import {history, useLocation} from 'umi';
 import {getMail, getQueryParam} from '@/utils/help';
 import Right from "./componments/right";
 import {useEffect, useState} from "react";
-import {sendVerifyCode, checkVerifyCode, resendVerifyCode, checkResendVerifyCode} from '@/services/login';
+import {sendVerifyCode, checkVerifyCode, resendVerifyCode, checkResendVerifyCode, checkUser} from '@/services/login';
 import Toast from "@/hooks/Toast";
 
 let loadTimer:any = null;
@@ -100,11 +100,13 @@ export default function VerifyCode() {
                 history.replace(`/reset-password`)
             } else {
                 const data = await checkVerifyCode({email, verify_code: code})
+                const userType = await checkUser(email);
                 //0未注册，1已注册
-                if(data === 0) {
-                     history.replace(`/set-password`)
+                if(userType === 0) {
+                    localStorage.setItem('verify_code', code)
+                    history.replace(`/register-passkey`)
                 } else {
-                    history.replace(`/login-password`)
+                    history.replace(`/login-passkey`)
                 }
             }
         } catch (e) {

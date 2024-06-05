@@ -26,7 +26,8 @@ export default function LogoutModal(props: {isOpen: boolean, onClose: closeFunc}
         try{
             setLoading(true)
             onClose();
-            await logout(email)
+            const deviceId: string | null = localStorage.getItem('visitorId');
+            await logout(email, deviceId)
             history.replace('/login')
         } catch (e) {
             // @ts-ignore

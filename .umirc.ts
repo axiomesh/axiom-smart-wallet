@@ -86,6 +86,16 @@ export default defineConfig({
       layout: false,
     },
     {
+      path: '/login-passkey',
+      component: '@/pages/login/login-passkey',
+      layout: false,
+    },
+    {
+      path: '/register-passkey',
+      component: '@/pages/login/login-passkey',
+      layout: false,
+    },
+    {
       path: '/lock-password',
       component: '@/pages/login/login-password',
       layout: false,
@@ -137,6 +147,14 @@ export default defineConfig({
     {
       path: '/transfer-free',
       component: '@/pages/transfer-free',
+    },
+    {
+      path: '/bio-payment',
+      component: '@/pages/bio-payment',
+    },
+    {
+      path: '/passkey-security',
+      component: '@/pages/passkey-security',
     },
     { path: '/*', component: '@/pages/404', layout: false }
   ],
