@@ -160,7 +160,7 @@ const options: any = [
 ];
 
 const Transfer = (props: any) => {
-    const { userInfo } = props;
+    const { userInfo, dispatch, transferForm } = props;
     const email: string | any = getMail();
     const [isSetPassword, setIsSetPassword] = useState(true);
     const [buttonText, setButtonText] = useState("Transfer");
@@ -177,7 +177,7 @@ const Transfer = (props: any) => {
     const [resultStatus, setResultStatus] = useState("");
     const [bioStatus, setBioStatus] = useState("");
     const [resultName, setResultName] = useState("");
-    const [form, setForm] = useState<FormProps>({chain: options[0], to: "", value: "", send: null});
+    const [form, setForm] = useState<FormProps>(transferForm.value ? transferForm : {chain: options[0], to: "", value: "", send: null});
     const [sessionForm, setSessionForm] = useState<FormProps>();
     const {showSuccessToast, showErrorToast} = Toast();
     const [gasFee, setGasFee] = useState("");
@@ -202,6 +202,15 @@ const Transfer = (props: any) => {
 
     let timer: any = null;
 
+
+
+    useEffect(() => {
+        dispatch({
+            type: 'global/setForm',
+            payload: form,
+        })
+    }, [form])
+
     useEffect(() => {
         if(JSON.stringify(userInfo) !== "{}"){
             setInfo(userInfo);
@@ -217,12 +226,10 @@ const Transfer = (props: any) => {
 
     useEffect(() => {
         if(info) {
-            const formInfo = sessionStorage.getItem("form");
-            let formParse;
+            const formInfo = transferForm;
             if(formInfo) {
-                formParse = JSON.parse(formInfo);
-                handleTokenOption(formParse.chain.label)
-                setSessionForm(formParse)
+                handleTokenOption(formInfo.chain.label)
+                setSessionForm(formInfo)
             }else {
                 handleTokenOption("Axiomesh");
             }
@@ -292,28 +299,31 @@ const Transfer = (props: any) => {
             if(sessionForm.send){
                 const sendFilter = token.filter((item: any) => item.symbol === sessionForm.send.symbol);
                 let arr: any = [];
-                sendFilter.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
-                    if(newForm.chain.label.includes(item.network) ) {
-                        const balance = await initBalance(item.name);
-                        arr.push({
-                            value: item.name,
-                            label: item.name,
-                            decimals: item.decimals,
-                            contract: item.contract,
-                            symbol: item.symbol,
-                            balance: formatAmount(balance.toString()),
-                            icon: <img src={require(`@/assets/token/${item.name}.png`)} />
-                        })
-                        newForm.send = arr[0];
-                        console.log(newForm);
-                        setIsChangeSend(true);
-                        initBalance(newForm.send.value).then((balance: any) => {
-                            setBalance(formatAmount(balance.toString()))
-                        });
-                    }
-                })
+                newForm.send = sessionForm.send;
+                initBalance(newForm.send.value).then((balance: any) => {
+                    setBalance(formatAmount(balance.toString()))
+                });
+                setIsChangeSend(true);
+                // sendFilter.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
+                //     if(newForm.chain.label.includes(item.network) ) {
+                //         const balance = await initBalance(item.name);
+                //         arr.push({
+                //             value: item.name,
+                //             label: item.name,
+                //             decimals: item.decimals,
+                //             contract: item.contract,
+                //             symbol: item.symbol,
+                //             balance: formatAmount(balance.toString()),
+                //             icon: <img src={require(`@/assets/token/${item.name}.png`)} />
+                //         })
+                //         newForm.send = arr[0];
+                //         console.log(newForm);
+                //         setIsChangeSend(true);
+                //     }
+                // })
             }
             if(sessionForm.value) {
+                console.log(sessionForm)
                 newForm.value = sessionForm.value;
                 const sendValue = sessionForm.value.replace(/,/g, "")
                 getGas(sendValue, sessionForm.send).then((res: any) => {
@@ -324,13 +334,6 @@ const Transfer = (props: any) => {
             setForm(newForm)
         }
     }, [sessionForm])
-
-    useEffect(() => {
-        return () => {
-            if(form.value)
-            sessionStorage.setItem("form", JSON.stringify(form))
-        }
-    }, [form])
 
     const handleValueBlur = async () => {
         if(form.value === "") {
@@ -376,8 +379,8 @@ const Transfer = (props: any) => {
         let erc20Address = "";
         let allow: any;
         let decimals: any = 18;
-        let value: number | BigNumber | string = amount;
-        if(send.value !== "AXC") {
+        let value: any = amount;
+        if(send && send.value !== "AXC") {
             // @ts-ignore
             const contract = new ethers.Contract(send.contract, ERC20_ABI, rpc_provider);
             decimals = await contract.decimals();
@@ -444,7 +447,7 @@ const Transfer = (props: any) => {
                 return roundedNumber;
         }else {
             value = ethers.utils.parseUnits(amount, 18);
-            if(send.value !== "AXC") {
+            if(send?.value !== "AXC") {
                 const erc20 = new ethers.Contract(send.contract, ERC20_ABI);
                 calldata = erc20.interface.encodeFunctionData('transfer',[signer.address, value]);
                 targetAddress = send.contract;
@@ -924,6 +927,7 @@ const Transfer = (props: any) => {
             try {
                 axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address)
             }catch (e: any) {
+                console.log(e)
                 setPinLoading(false);
                 setSubmitFlag(false);
                 const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
@@ -1310,4 +1314,5 @@ const Transfer = (props: any) => {
 
 export default connect(({ global }) => ({
     userInfo: global.userInfo,
+    transferForm: global.transferForm
 }))(Transfer)

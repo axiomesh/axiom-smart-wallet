@@ -98,16 +98,6 @@ function Layout(props: any) {
         initSocket();
     }, []);
 
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            sessionStorage.removeItem("form");
-        };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    },[])
-
   return (
     <div className={styles.layout}>
       <div className={styles.navs}>
