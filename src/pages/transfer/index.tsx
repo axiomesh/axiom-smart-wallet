@@ -497,7 +497,8 @@ const Transfer = (props: any) => {
             const balance = await rpc_provider.getBalance(info.address);
             // const balance = await rpc_provider.getBalance(address);
             // @ts-ignore
-            return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
+            // return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
+            return ethers.utils.formatUnits(balance, window.AXC_SYMBOL)
         } else {
             const allList = token;
             const filterData = allList.filter((item: token) => item.name === type)[0];
