@@ -46,7 +46,7 @@ window.ETH_BROWSER = 'https://sepolia.etherscan.io';
 
 // 预发布环境配置参数
 
-window.RPC_URL='http://10.2.69.65:8881';
+window.RPC_URL='http://10.2.69.65:18881';
 window.WETH_CONTRACT = "0xf571bc60e886f4b02399bd71d29dcf0dcda0675e"
 window.USDT_CONTRACT = "0xC73a66B4074B609E24bB264821e183DC3b9Ef654"
 window.WUSDT_CONTRACT = "0xe50eec9a5425444b90544983b4c4029a57f1d336"
