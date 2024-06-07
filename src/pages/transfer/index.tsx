@@ -503,7 +503,8 @@ const Transfer = (props: any) => {
             const balance = await rpc_provider.getBalance(info.address);
             // const balance = await rpc_provider.getBalance(address);
             // @ts-ignore
-            return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
+            // return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
+            return ethers.utils.formatUnits(balance, window.AXC_SYMBOL)
         } else {
             const allList = token;
             const filterData = allList.filter((item: token) => item.name === type)[0];
@@ -546,8 +547,8 @@ const Transfer = (props: any) => {
         } catch (error: any) {
             console.log(error)
             if(isFree) {
-                const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/;
-                if(string.search(expr) > 0) {
+                const string = error.toString(), expr = /post user op reverted: execution reverted errdata spent amount exceeds session spending limit/, expr2 = /transfer value exceeds 128 bits, would cause overflow/;
+                if(string.search(expr) > 0 || string.search(expr2) > 0) {
                     console.log(1111)
                     return true;
                 }
@@ -665,6 +666,21 @@ const Transfer = (props: any) => {
 
         setBtnLoading(true)
         if(isSetPassword) {
+            if(!form.send){
+                setSendError("Please Select a token!");
+                setBtnLoading(false);
+                return;
+            }
+            if(form.value === "") {
+                setValueError("Invalid balance!");
+                setBtnLoading(false);
+                return;
+            }
+            if(form.to === "") {
+                setToErrorsText("Invalid address !");
+                setBtnLoading(false);
+                return;
+            }
             let sendValue:string = form.value.replace(/,/g, "");
             const addressBalance = balance.replace(/,/g, "")
             const sessionKey = sessionStorage.getItem("sk");
@@ -715,11 +731,6 @@ const Transfer = (props: any) => {
                 return;
             }
             if(toErrorsText !== "") {
-                setBtnLoading(false);
-                return;
-            }
-            if(!form.send){
-                setSendError("Please Select a token");
                 setBtnLoading(false);
                 return;
             }

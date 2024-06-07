@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  GO_VERSION: 1.20.5
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Release binary on Linux and Macos
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node-version: [v18.x]
+        
+    outputs:
+      status: ${{ steps.check.outputs.status }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Installing Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Installing
+        run: npm install --legacy-peer-deps && npm run build
+        
+      - name: Build
+        run: npm run build
+
+      - name: Extract version from tag
+        run: echo "APP_VERSION=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_ENV
+        
+      - name: Get Project Name
+        id: project_name
+        run: echo "PROJECT_NAME=$(basename $(dirname $(pwd)))" >> $GITHUB_ENV
+
+      - name: Zip
+        run: tar -czvf ${{env.PROJECT_NAME}}_${{env.APP_VERSION}}.tar.gz build
+
+      - name: Release Binary
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./**.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "If failure"
+        id: check
+        if: failure()
+        run: echo "::set-output name=status::failure"
+
+
+  notify:
+   name: "dingtalk notify"
+   runs-on: ubuntu-20.04
+   if: ${{ always() }}
+   needs: build-and-release
+   steps:
+     - name: dingtalk notify
+       uses: axiomesh/release-notify-action@master
+       with:
+         users: ${{ secrets.USERS }}
+         webhook: ${{ secrets.WEBHOOK }}
+         status: ${{ needs.build-and-release.outputs.status }}
