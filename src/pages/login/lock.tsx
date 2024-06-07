@@ -55,13 +55,17 @@ export default function LockPage() {
     }
 
     const handlePasskeyClick = async() => {
-        const verifyRes = JSON.parse(auth);
+        const verifyRes = JSON.parse(auth.credentials_json);
         const visitorId = localStorage.getItem('visitorId');
         const authentication = await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
-            allowCredentials: verifyRes.publicKey.allowCredentials
+            allowCredentials: [{
+                "type": "public-key",
+                "id": auth.credential_id
+            }]
         })
+        localStorage.setItem("allowCredentials", auth.credential_id)
         let token: any;
         try {
             token = await checkUnlockPasskey({

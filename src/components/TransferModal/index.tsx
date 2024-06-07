@@ -38,12 +38,15 @@ const TransferModal = (props: any) => {
     const {showErrorToast} = Toast();
 
     useEffect(() => {
-        if(userInfo.bio_payment_status === 1) {
-            setIsBio(true)
-        }else {
-            setIsBio(false)
+        if(props.open) {
+            console.log(userInfo.bio_payment_status ,'userInfo')
+            if(userInfo.bio_payment_status === 1) {
+                setIsBio(true)
+            }else {
+                setIsBio(false)
+            }
         }
-    }, [])
+    }, [props.open])
 
     useEffect(() => {
         setIsLoading(props.pinLoading)
@@ -148,13 +151,13 @@ const TransferModal = (props: any) => {
                                 </div>
                             </div>
                         </div>
-                        {(isBio && (isFree && freeStep === "0")) && <div className={styles.transferBio}>
+                        {(isBio && (!isFree || freeStep === "0")) && <div className={styles.transferBio}>
                             <div className={styles.transferBioButton} onClick={handleBioPay}><img src={require("@/assets/transfer/bio.png")} alt="" /><span>Confirm</span></div>
                             <div className={styles.transferBioText} onClick={() => setIsBio(false)}>Confirm with password</div>
                         </div>}
                         {(!isBio && (!isFree || freeStep === "0")) && <><p className={styles.transferTitle}>Transfer password verification</p>
-                            <ModalInputPassword isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
-                            {userInfo.bio_payment_status === 1 && <div className={styles.transferBioText} onClick={() => setIsBio(true)}>Confirm with password</div>}
+                            <ModalInputPassword isForget={true} isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
+                            {userInfo.bio_payment_status === 1 && <div className={styles.transferBioText} onClick={() => setIsBio(true)}>Confirm with passkey</div>}
                         </>}
                         {(isFree && freeStep !== "0") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm (Passward-free)</Button></div>}
                     </ModalBody>

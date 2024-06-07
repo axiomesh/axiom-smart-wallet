@@ -11,20 +11,16 @@ import {
 import ModalInputPassword from "@/components/ModalInputPassword";
 import {history} from "umi";
 import Toast from "@/hooks/Toast"
+import { isOpenBio } from "@/services/login";
 
-interface Props {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmit: (password: string) => void;
-    errorMsg: string;
-    pinLoading: boolean;
-}
 
-const VerifyTransferModal = (props: Props) => {
+const VerifyTransferModal = (props: any) => {
     const [open, setOpen] = useState(false);
     const [time, setTime] = useState<number>(30);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [openBio, setOpenBio] = useState<boolean | undefined>(false);
+    const [showBio, setShowBio] = useState(false);
     const {showErrorToast} = Toast();
 
     useEffect(() => {
@@ -33,6 +29,13 @@ const VerifyTransferModal = (props: Props) => {
     useEffect(() => {
         setError(props.errorMsg)
     }, [props.errorMsg])
+
+    useEffect(() => {
+        setOpenBio(props.isOpenBio)
+        if(props.isOpenBio) {
+            setShowBio(true)
+        }
+    }, [props.isOpenBio])
 
     useEffect(() => {
         setIsLoading(props.pinLoading)
@@ -48,7 +51,7 @@ const VerifyTransferModal = (props: Props) => {
                 setTime(i)
                 if (i === 0){
                     clearInterval(t);
-                    showErrorToast("Password verification timeout");
+                    showErrorToast("Confirm timeout !");
                     props.onClose();
                 }
                 i--;
@@ -57,8 +60,13 @@ const VerifyTransferModal = (props: Props) => {
         }
     },[props.isOpen])
 
-    const toReset = () => {
-        history.push("/reset-transfer")
+    const handleClose = () => {
+        showErrorToast("Confirm failed !");
+        props.onClose();
+    }
+
+    const handleBio = () => {
+        props.bioPay()
     }
 
     return (
@@ -68,15 +76,24 @@ const VerifyTransferModal = (props: Props) => {
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
                         <div className={styles.payPassTitle}><span className={styles.payPassTitleBefore}>Verification</span><span className={styles.payPassTitleTime}>（{time}s）</span></div>
-                        <i className={styles.payPassClose} onClick={props.onClose}></i>
+                        <i className={styles.payPassClose} onClick={handleClose}></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 40px 40px">
                         <div className={styles.payPassBody}>
-                            <span className={styles.payPassTip}>Transfer password verification</span>
-                            <div>
-                                <ModalInputPassword isLoading={isLoading} onSubmit={props.onSubmit} isError={error} clearError={() => {setError("")}} />
-                            </div>
-                            {/* <span className={styles.payPassForget} onClick={toReset}>Forget it?</span> */}
+                            <span className={styles.payPassTip}>{props.tip ? props.tip : "Transfer password verification"}</span>
+                            {!openBio ? <div>
+                                <ModalInputPassword isForget={false} isLoading={isLoading} onSubmit={props.onSubmit} isError={error} clearError={() => {setError("")}} />
+                            </div> : <div>
+                                {
+                                    showBio ? <div>
+                                        <div className={styles.payPassBio} onClick={handleBio}><i className={styles.payPassBioIcon}></i><span className={styles.payPassBioTitle}>I understand, proceed to confirm</span></div>
+                                        <div className={styles.payPassSwitch} onClick={() => {setShowBio(false)}}>Confirm with password</div>
+                                    </div> : <div>
+                                        <ModalInputPassword isForget={false} isLoading={isLoading} onSubmit={props.onSubmit} isError={error} clearError={() => {setError("")}} />
+                                        <div className={styles.payPassSwitch} onClick={() => {setShowBio(true)}}>Confirm with passkey</div>
+                                    </div>
+                                }
+                            </div>}
                         </div>
                     </ModalBody>
                 </ModalContent>

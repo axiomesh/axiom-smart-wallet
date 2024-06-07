@@ -10,17 +10,27 @@ import {
 import { startRegistration } from '@simplewebauthn/browser';
 import { getDeviceType } from "@/utils/utils";
 import BioResultModal from "@/components/BioResultModal";
-import {bioCreate, bioCheck} from "@/services/transfer";
+import {bioCreate, bioCheck, wrongPassword, passwordTimes} from "@/services/transfer";
 import {getMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { connect } from "@@/exports";
 import { getUserInfo } from "@/services/login";
+import VerifyTransferModal from '../VerifyTransferModal';
+import BioAxiomResultModal from "@/components/BioAxiomResultModal";
+import {AxiomAccount} from "axiom-smart-account-test";
+import { sha256 } from "js-sha256";
 
 const SetBioPayModal = (props: any) => {
     const { userInfo, dispatch } = props;
     const [open, setOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     const [resultOpen, setResultOpen] = useState(false);
+    const [axiomResultOpen, setAxiomResultOpen] = useState(false);
+    const [axiomResultStatus, setAxiomResultStatus] = useState<any>({});
     const [resultStatus, setResultStatus] = useState("");
+    const [pinLoading, setPinLoading] = useState<boolean>(false);
+    const [msg, setMsg] = useState<string>("");
+    const [publicKey, setPublicKey] = useState<any>({});
     const email: string | any = getMail();
     const { showErrorToast } = Toast();
 
@@ -63,7 +73,9 @@ const SetBioPayModal = (props: any) => {
         }
         let publicKeyCredential: any;
         try{
-            publicKeyCredential = await startRegistration(registerObj)
+            publicKeyCredential = await startRegistration(registerObj);
+            setPublicKey(publicKeyCredential);
+            setResultStatus("opened");
         }catch (error: any) {
             console.log(error)
             const string = error.toString(), expr = /The operation either timed out or was not allowed/;
@@ -74,8 +86,48 @@ const SetBioPayModal = (props: any) => {
             }
             return;
         }
+    }
+
+    const handleSubmit = async (password: any) => {
+        setPinLoading(true);
+        setMsg("");
+        let axiom:any;
         try {
-            await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKeyCredential)});
+            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address);
+        }catch (e: any) {
+            setPinLoading(false);
+            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
+            if(string.search(expr) > 0 || string.search(expr2) > 0) {
+                wrongPassword({email}).then(async () => {
+                    const times = await passwordTimes({email})
+                    if(times > 0) {
+                        if(times < 4) {
+                            setMsg(`Invalid password , only ${times} attempts are allowed today!`)
+                        }else {
+                            setMsg(`Invalid password`)
+                        }
+                    }else {
+                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
+                    }
+                }).catch((err: any) => {
+                    setMsg(err)
+                })
+            }
+            return;
+        }
+        setAxiomResultOpen(true);
+        setIsOpen(false);
+        setAxiomResultStatus("loading");
+        try {
+            await axiom.updatePasskey({response: publicKey, expectedChallenge: "", expectedOrigin: ""}, {})
+            setAxiomResultStatus("success");
+        }catch(err: any) {
+            setAxiomResultStatus("failed");
+            return;
+        }
+        const visitorId = userInfo.device_id;
+        try {
+            await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKey)});
             const deviceId = localStorage.getItem('visitorId');
             const userRes = await getUserInfo(email, deviceId);
             if(userRes){
@@ -84,11 +136,16 @@ const SetBioPayModal = (props: any) => {
                     payload: userRes,
                 })
             }
-            setResultStatus("opened");
         }catch (error: any) {
             showErrorToast(error);
+            setResultStatus("failed");
             return;
         }
+    }
+
+    const handleVerifyOpen = () => {
+        setResultOpen(false);
+        setIsOpen(true);
     }
 
     return (
@@ -111,7 +168,9 @@ const SetBioPayModal = (props: any) => {
                     </ModalBody>
                 </ModalContent>
             </Modal>
-            <BioResultModal isOpen={resultOpen} status={resultStatus} onClose={handleResultClose} loadingTip="Only use it on a safety device" />
+            <BioResultModal isOpen={resultOpen} status={resultStatus} onVerify={handleVerifyOpen} onClose={handleResultClose} loadingTip="Only use it on a safety device" />
+            <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);}} errorMsg={msg} />
+            <BioAxiomResultModal isOpen={axiomResultOpen} onClose={() => {setAxiomResultOpen(false)}} status={axiomResultStatus} name={""} />
         </>
     )
 };

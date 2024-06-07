@@ -44,7 +44,7 @@ export const validUntil = () => {
 
 
 export const getDeviceType = () => {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const userAgent = navigator.userAgent || navigator.vendor;
    
     if (userAgent.includes('Mac')) {
       return 'Mac';

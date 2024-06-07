@@ -1,0 +1,54 @@
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 80px;
+  img {
+    width: 110px;
+    height: 110px;
+    animation: spin 1s linear infinite;
+  }
+  span {
+    font-family: Inter;
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+  }
+}
+
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 40px;
+  &Icon {
+    width: 110px;
+    height: 110px;
+    background: url("../../assets/transfer/success.png");
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  span {
+    font-family: Inter;
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+  }
+}
+
+.failed {
+  &Icon {
+    background: url("../../assets/transfer/failed.png");
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

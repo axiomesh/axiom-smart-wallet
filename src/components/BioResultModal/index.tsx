@@ -32,7 +32,7 @@ const BioResultModal = (props: any) => {
 
     useEffect(() => {
         setStatus(props.status)
-        if(props.status === 'success' || props.status === 'failed' || props.status === 'opened') {
+        if(props.status === 'success' || props.status === 'failed') {
             let t = setInterval(countDown, 1000);
             let i = 1
             function countDown() {
@@ -48,6 +48,10 @@ const BioResultModal = (props: any) => {
 
     const onClose = () => {
         props.onClose()
+    }
+
+    const onVerify = () => {
+        props.onVerify()
     }
 
     return (
@@ -72,7 +76,8 @@ const BioResultModal = (props: any) => {
                                     <span>Welcome Back</span>
                                 </div> : status === "opened" ? <div className={styles.success}>
                                     <div className={styles.successIcon}><img src={require("@/assets/transfer/bio-success.png")} alt=""/></div>
-                                    <span>Bio-Payment opened</span>
+                                    <span>Authentication success</span>
+                                    <div className={styles.successText}>Open Bio-Payment for password-free transfer</div>
                                 </div> : status === "failed" ? <div className={styles.success}>
                                     <div className={`${styles.successIcon} ${styles.failedIcon}`}><img style={{width: '110px', height: '110px'}} src={require("@/assets/transfer/bio-failed.png")} alt=""/></div>
                                     <span>Authentication failed</span>
@@ -85,8 +90,14 @@ const BioResultModal = (props: any) => {
                                     <div className={styles.successBtn} onClick={onClose}>Dismiss</div>
                                 </div> : null
                             }
-                            {tip && <div className={styles.tip}>{tip}</div>}
+                            {(tip && status === "loading") && <div className={styles.tip}>{tip}</div>}
                         </div>
+                        {
+                            status === "opened" && <div>
+                                <div style={{margin: "20px 0"}}><Button onClick={onVerify}>Verify transfer password</Button></div>
+                                <div className={styles.successBtn} onClick={onClose}>Cancel</div>
+                            </div>
+                        }
                     </ModalBody>
                 </ModalContent>
             </Modal>

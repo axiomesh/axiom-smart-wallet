@@ -17,7 +17,7 @@ import {connect, history} from "umi";
 import {transaction, passwordTimes, wrongPassword, transferLockTime} from "@/services/transfer";
 import {getTickerPrice} from "@/services/login";
 import {getMail} from "@/utils/help";
-import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, AxiomRpcProvider} from "axiom-smart-account-test";
+import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, AxiomRpcProvider, isoBase64URL} from "axiom-smart-account-test";
 import {BigNumber, ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
@@ -28,7 +28,7 @@ import AlertPro from "@/components/Alert";
 import { FunctionFragment } from 'ethers/lib/utils';
 import SetBioPayModal from "@/components/setBioPayModal";
 import BioResultModal from '@/components/BioResultModal';
-import { bioPay } from '@/utils/bio'
+import { startAuthentication } from '@simplewebauthn/browser';
 
 function Loading (props: any) {
     return <div className='loader' {...props}></div>
@@ -897,11 +897,282 @@ const Transfer = (props: any) => {
         setSubmitFlag(false);
         setResultOpen(false);
         setBtnLoading(false);
-        window.location.reload();
+        // window.location.reload();
     }
 
     const handleBioPay = async () => {
-        await bioPay(email, "", "");
+        setBioResultOpen(true);
+        setBioStatus("loading");
+        const axiom = await AxiomAccount.fromPasskey(userInfo.address)
+        const transactionHash = await bioPay(email, axiom, form, userInfo);
+        if(transactionHash === "failed") {
+            setResultStatus("failed");
+            return;
+        }else {
+            await transaction({
+                email,
+                transaction_hash: transactionHash,
+                value: form.value,
+                chain_type: Number(form.chain.value),
+                token_name: form.send.value,
+                to_address: form.to,
+            })
+            setSubmitFlag(false);
+            sessionStorage.removeItem("form");
+            setResultStatus("success");
+        }
+    }
+
+    const bioPay = async (email: string, axiom: any, form: any, userInfo: any) => {
+        const contract = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
+        let decimals: any;
+        if(form.send.value === "AXC") {
+            decimals = 18;
+        }else {
+            decimals = await contract.decimals();
+        }
+        const sendValue = form.value.replace(/,/g, "")
+        const value = ethers.utils.parseUnits(sendValue, decimals);
+        if(form.send.value === "AXC") {
+            try {
+                const res = await axcBioPay(axiom, form, value);
+                if(res === "failed") {
+                    return "failed";
+                }else {
+                    return res;
+                }
+            }catch(err) {
+                return "failed";
+            }
+        }else {
+            try {
+                const res = await erc20BioPay(axiom, form, value, userInfo);
+                if(res === "failed") {
+                    return "failed";
+                }else {
+                    return res;
+                }
+            }catch(err) {
+                return "failed";
+            }
+        }
+    }
+    
+    const axcBioPay = async (axiom: any, form: any, value: any) => {
+        const allowCredentials = localStorage.getItem("allowCredentials");
+        const ev = await axiom.sendUserOperation(form.to, value, "0x", "", "", {} , {
+            onRequestSigning: async (useropHash: any) => {
+                const obj: any = {
+                    challenge: isoBase64URL.fromBuffer(useropHash),
+                    rpId: "localhost",
+                    allowCredentials: [{
+                        "id": allowCredentials,
+                        "type": "public-key"
+                    }]
+                }
+                let auth: any;
+                try {
+                    auth =  await startAuthentication(obj);
+                }catch(error: any) {
+                    const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+                    if(string.search(expr) > 0) {
+                        setBioStatus("cancel");
+                    }else {
+                        setBioStatus("failed");
+                    }
+                    return;
+                }
+                return {
+                    response: auth,
+                    expectedChallenge: "",
+                    expectedOrigin: ""
+                }
+            }
+        })
+        const res = await ev.wait();
+        if(res?.transactionHash) {
+            return res.transactionHash;
+        }else {
+            return "failed"
+        }
+    }
+    
+    const erc20BioPay = async (axiom: any, form: any, value: any, userInfo: any) => {
+        const allowCredentials = localStorage.getItem("allowCredentials");
+        // @ts-ignore
+        const erc20 = new ethers.Contract(window.PAYMASTER, ERC20_ABI);
+            // @ts-ignore
+        const calldata = erc20.interface.encodeFunctionData('allowance',[userInfo.address, window.PAYMASTER]);
+        const res = await rpc_provider.call({
+            to: form.send.contract,
+            data: calldata,
+        })
+        const allow = parseInt(res, 16);
+        if(allow === 0) {
+            const to = [form.send.contract, form.send.contract];
+            const erc20 = new ethers.Contract(form.send.contract, ERC20_ABI, rpc_provider);
+            const calldata = [
+                erc20.interface.encodeFunctionData("approve", [window.PAYMASTER, ethers.constants.MaxUint256]),
+                erc20.interface.encodeFunctionData("transfer", [form.to, value]),
+            ];
+    
+            const callData = "0x";
+            let userop: any;
+            const resOp = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
+                dryRun: true,
+                onBuild: (op: any) => {
+                    userop = op;
+                }
+            }, {
+                onRequestSigning: async (useropHash: any) => {
+                    const obj: any = {
+                        challenge: isoBase64URL.fromBuffer(useropHash),
+                        rpId: "localhost",
+                        allowCredentials: [{
+                            "id": allowCredentials,
+                            "type": "public-key"
+                        }]
+                    }
+                    let auth: any;
+                    try {
+                        auth =  await startAuthentication(obj);
+                    }catch(error: any) {
+                        const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+                        if(string.search(expr) > 0) {
+                            setBioStatus("cancel");
+                        }else {
+                            setBioStatus("failed");
+                        }
+                        return;
+                    }
+                    return {
+                        response: auth,
+                        expectedChallenge: "",
+                        expectedOrigin: ""
+                    }
+                }
+            })
+            await resOp.wait();
+            await handleEntryPoint(userop, userInfo);
+            const res = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
+                onBuild: (op: any) => {
+                    console.log("Signed UserOperation:", op);
+                },
+            }, {
+                onRequestSigning: async (useropHash: any) => {
+                    const obj: any = {
+                        challenge: isoBase64URL.fromBuffer(useropHash),
+                        rpId: "localhost",
+                        allowCredentials: [{
+                            "id": allowCredentials,
+                            "type": "public-key"
+                        }]
+                    }
+                    let auth: any;
+                    try {
+                        auth =  await startAuthentication(obj);
+                    }catch(error: any) {
+                        const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+                        if(string.search(expr) > 0) {
+                            setBioStatus("cancel");
+                        }else {
+                            setBioStatus("failed");
+                        }
+                        return;
+                    }
+                    return {
+                        response: auth,
+                        expectedChallenge: "",
+                        expectedOrigin: ""
+                    }
+                }
+            });
+            const ev = await res.wait();
+            if(ev?.transactionHash) {
+                return ev.transactionHash;
+            }else {
+                return "failed"
+            }
+        }else {
+            const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value]);
+            let userop: any;
+            const resOp = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
+                dryRun: true,
+                onBuild: (op: any) => {
+                    userop = op;
+                    console.log("Signed UserOperation:", op);
+                }
+            }, {
+                onRequestSigning: async (useropHash: any) => {
+                    const obj: any = {
+                        challenge: isoBase64URL.fromBuffer(useropHash),
+                        rpId: "localhost",
+                        allowCredentials: [{
+                            "id": allowCredentials,
+                            "type": "public-key"
+                        }]
+                    }
+                    let auth: any;
+                    try {
+                        auth =  await startAuthentication(obj);
+                    }catch(error: any) {
+                        const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+                        if(string.search(expr) > 0) {
+                            setBioStatus("cancel");
+                        }else {
+                            setBioStatus("failed");
+                        }
+                        return;
+                    }
+                    return {
+                        response: auth,
+                        expectedChallenge: "",
+                        expectedOrigin: ""
+                    }
+                }
+            })
+            await resOp.wait();
+            await handleEntryPoint(userop, userInfo);
+            const res = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
+                onBuild: (op: any) => {
+                    console.log("Signed UserOperation:", op);
+                }
+            }, {
+                onRequestSigning: async (useropHash: any) => {
+                    const obj: any = {
+                        challenge: isoBase64URL.fromBuffer(useropHash),
+                        rpId: "localhost",
+                        allowCredentials: [{
+                            "id": allowCredentials,
+                            "type": "public-key"
+                        }]
+                    }
+                    let auth: any;
+                    try {
+                        auth =  await startAuthentication(obj);
+                    }catch(error: any) {
+                        const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+                        if(string.search(expr) > 0) {
+                            setBioStatus("cancel");
+                        }else {
+                            setBioStatus("failed");
+                        }
+                        return;
+                    }
+                    return {
+                        response: auth,
+                        expectedChallenge: "",
+                        expectedOrigin: ""
+                    }
+                }
+            })
+            const ev = await res.wait();
+            if(ev?.transactionHash) {
+                return ev.transactionHash;
+            }else {
+                return "failed"
+            }
+        }
     }
 
     const handleAXMSubmit = async (password: string) => {
@@ -1024,7 +1295,7 @@ const Transfer = (props: any) => {
         }
         setSubmitFlag(false);
         sessionStorage.removeItem("form");
-        setResultStatus("success")
+        setResultStatus("success");
 
     }
 

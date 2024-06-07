@@ -43,6 +43,7 @@ function Layout(props: any) {
     }, []);
 
     const initSocket = () => {
+        const deviceId = localStorage.getItem('visitorId');
         // @ts-ignore
         const ws = new WebSocket(`${window.socketUrl}/axm-wallet/notice/${email}`);
 
@@ -63,7 +64,7 @@ function Layout(props: any) {
             if(message.data){
                 const res = JSON.parse(message.data || '{}');
                 if(res?.noticeType === 0){
-                    refreshToken(email)
+                    refreshToken(email, deviceId)
                 }
                 if(res?.noticeType === 1){
                     history.replace('/lock');

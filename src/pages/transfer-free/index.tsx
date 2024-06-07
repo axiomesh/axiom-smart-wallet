@@ -20,7 +20,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import ContinueButton from "@/hooks/ContinueButton";
 import VerifyTransferModal from "@/components/VerifyTransferModal";
 import { history } from 'umi';
-import { AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt } from "axiom-smart-account-test";
+import { AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, isoBase64URL } from "axiom-smart-account-test";
 import { sha256 } from "js-sha256";
 import {connect} from "@@/exports";
 import Toast from "@/hooks/Toast";
@@ -30,6 +30,8 @@ import {generateRandomBytes} from "@/utils/utils";
 import {ethers, Wallet} from "ethers";
 import useCancelModal from "@/hooks/CancelModal";
 import Page from '@/components/Page'
+import { startAuthentication } from "@simplewebauthn/browser";
+import BioResultModal from "@/components/BioResultModal";
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -56,6 +58,9 @@ const TransferFree = (props: any) => {
     const [isUpdate, setIsUpdate] = useState<boolean>(false);
     const [isLimitDisabled, setIsLimitDisabled] = useState<boolean>(false);
     const [pinLoading, setPinLoading] = useState<boolean>(false);
+    const [isOpenBio, setIsOpenBio] = useState<boolean>(false);
+    const [bioResultOpen, setBioResultOpen] = useState<boolean>(false);
+    const [bioStatus, setBioStatus] = useState<string>("");
 
     const { Button } = ContinueButton();
     const [ModalComponent, openModal, closeModal] = useCancelModal();
@@ -87,6 +92,11 @@ const TransferFree = (props: any) => {
 
     useEffect(() => {
         setInfo(userInfo)
+        if(userInfo?.bio_payment_status === 1) {
+            setIsOpenBio(true)
+        }else {
+            setIsOpenBio(false)
+        }
     }, [userInfo])
 
     useEffect(() => {
@@ -133,35 +143,7 @@ const TransferFree = (props: any) => {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    const handleSubmit = async (password: any) => {
-        setPinLoading(true);
-        setMsg("");
-        let axiom:any;
-        try {
-            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key, info.address);
-            setFreeLimit(value)
-        }catch (e: any) {
-            setBtnLoading(false);
-            setPinLoading(false);
-            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
-            if(string.search(expr) > 0 || string.search(expr2) > 0) {
-                wrongPassword({email}).then(async () => {
-                    const times = await passwordTimes({email})
-                    if(times > 0) {
-                        if(times < 4) {
-                            setMsg(`Invalid password , only ${times} attempts are allowed today!`)
-                        }else {
-                            setMsg(`Invalid password`)
-                        }
-                    }else {
-                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
-                    }
-                }).catch((err: any) => {
-                    setMsg(err)
-                })
-            }
-            return;
-        }
+    const handleSaveFree = async (axiom: any) => {
         const skPassword = generateRandomSixDigits().toString();
         const salt = generateRandomBytes(16);
         const limit = ethers.utils.parseUnits(value, 18);
@@ -195,6 +177,67 @@ const TransferFree = (props: any) => {
         if(sessionKey || freeLimit) {
             setIsUpdate(true);
         }
+    }
+
+    const handleSubmit = async (password: any) => {
+        setPinLoading(true);
+        setMsg("");
+        let axiom:any;
+        try {
+            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key, info.address);
+            setFreeLimit(value)
+        }catch (e: any) {
+            setBtnLoading(false);
+            setPinLoading(false);
+            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
+            if(string.search(expr) > 0 || string.search(expr2) > 0) {
+                wrongPassword({email}).then(async () => {
+                    const times = await passwordTimes({email})
+                    if(times > 0) {
+                        if(times < 4) {
+                            setMsg(`Invalid password , only ${times} attempts are allowed today!`)
+                        }else {
+                            setMsg(`Invalid password`)
+                        }
+                    }else {
+                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
+                    }
+                }).catch((err: any) => {
+                    setMsg(err)
+                })
+            }
+            return;
+        }
+        handleSaveFree(axiom);
+    }
+
+    const handleBioPay = async() => {
+        setBioResultOpen(true);
+        setBioStatus("loading");
+        const allowCredentials = localStorage.getItem("allowCredentials");
+        const randomChallange = new Uint8Array(32);
+        const obj: any = {
+            challenge: isoBase64URL.fromBuffer(randomChallange),
+            rpId: "localhost",
+            allowCredentials: [{
+                "id": allowCredentials,
+                "type": "public-key"
+            }]
+        }
+        try {
+            await startAuthentication(obj);
+            setBioStatus("success");
+        }catch(error: any) {
+            const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+            if(string.search(expr) > 0) {
+                setBioStatus("cancel");
+            }else {
+                setBioStatus("failed");
+            }
+            return;
+        }
+        const axiom = await AxiomAccount.fromPasskey(userInfo.address);
+        await handleSaveFree(axiom);
     }
 
     const handleConfirm = async () => {
@@ -329,9 +372,9 @@ const TransferFree = (props: any) => {
                         </Popover></div>}
                     </div>
                 </div>}
-                <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
+                <VerifyTransferModal bioPay={handleBioPay} tip="Password-free payment will be activated after your next successful transfer transaction." isOpenBio={isOpenBio} pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
                 <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
-
+                <BioResultModal status={bioStatus} isOpen={bioResultOpen} onClose={() => {setBioResultOpen(false)}} />
             </div>
             </Page>
         </ChakraProvider>

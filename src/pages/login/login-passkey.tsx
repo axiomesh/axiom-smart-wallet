@@ -12,10 +12,9 @@ import {
 import { history, useLocation } from 'umi';
 import {useEffect, useState} from "react";
 import Right from './componments/right';
-import {addPrivateKey, registerAddress, registerPasskey, registerPasskeySave, checkPasskeyCreate, checkPasskey} from '@/services/login';
+import {addPrivateKey, registerAddress, registerPasskey, registerPasskeySave, checkPasskeyCreate, checkPasskey, isOpenBio} from '@/services/login';
 import {getMail, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
-import { client } from '@passwordless-id/webauthn';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import BioResultModal from '@/components/BioResultModal';
 import { AxiomAccount, generateSigner } from 'axiom-smart-account-test'
@@ -25,13 +24,12 @@ import { register } from '@passwordless-id/webauthn/dist/esm/client';
 import Toast from "@/hooks/Toast";
 
 
-const fpPromise = import('@/utils/v3')
-.then(FingerprintJS => FingerprintJS.load())
 
 const LoginPasskey: React.FC = () => {
     const email: string | any = getMail();
     const [open, setOpen] = useState(false);
     const [isRegister, setIsRegister] = useState(false);
+    const [isBioOpen, setIsBioOpen] = useState(0);
     const [openBioResult, setOpenBioResult] = useState(false);
     const [bioResultStatus, setBioResultStatus] = useState('');
     const [deviceId, setDeviceId] = useState('');
@@ -39,10 +37,13 @@ const LoginPasskey: React.FC = () => {
     const {showErrorToast} = Toast();
 
     useEffect(() => {
+        const fpPromise = import('@/utils/v3')
+        .then(FingerprintJS => FingerprintJS.load())
         fpPromise.then(fp => fp.get()).then(async (result) => {
             const visitorId = result.visitorId;
             setDeviceId(visitorId);
             localStorage.setItem('visitorId', visitorId);
+            await hanldeIsOpenBio(visitorId);
         })
         if(location.pathname === '/register-passkey'){
             setIsRegister(true)
@@ -50,6 +51,14 @@ const LoginPasskey: React.FC = () => {
             setIsRegister(false)
         }
     }, [])
+
+    const hanldeIsOpenBio = async (deviceId: string) => {
+        const isOpen = await isOpenBio({
+            email: email,
+            device_id: deviceId,
+        });
+        setIsBioOpen(isOpen);
+    }
 
     const handleBack = () =>{
         if(location.pathname === '/lock-password'){
@@ -181,11 +190,15 @@ const LoginPasskey: React.FC = () => {
             email: email,
             device_id: deviceId,
         })
-        const verifyRes = JSON.parse(res);
+        const verifyRes = JSON.parse(res.credentials_json);
+        localStorage.setItem("allowCredentials", res.credential_id)
         const authentication = await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
-            allowCredentials: verifyRes.publicKey.allowCredentials
+            allowCredentials: [{
+                "type": "public-key",
+                "id": res.credential_id
+            }]
         })
         let token: any;
         try {
@@ -230,7 +243,7 @@ const LoginPasskey: React.FC = () => {
                     <a className='a_link' onClick={handleBack} style={{marginTop: 8, fontSize: 14}}>
                         Use a different account
                     </a>
-                    <Popover trigger="hover" strategy="fixed" placement="bottom-start">
+                    {isBioOpen === 0 ? <Popover trigger="hover" strategy="fixed" placement="bottom-start">
                         <PopoverTrigger><div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyIcon}></i><span>{isRegister ? "Sign in with phone" : "Continue with phone"}</span></div></PopoverTrigger>
                         <PopoverContent style={{borderRadius: "32px", padding: "20px"}} width="auto">
                             <PopoverArrow />
@@ -249,7 +262,9 @@ const LoginPasskey: React.FC = () => {
                                 </div>
                             </PopoverBody>
                         </PopoverContent>
-                    </Popover>
+                    </Popover> : <div>
+                        <div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyBioIcon}></i><span>Continue</span></div>
+                    </div>}
                 </div>
             </div>
             <Right />

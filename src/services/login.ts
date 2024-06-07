@@ -126,11 +126,11 @@ export async function logout(email:string, device_id: string | null) {
 }
 
 
-export async function refreshToken(email: string) {
+export async function refreshToken(email: string, device_id: string | null) {
     const res = await request({
         url: `/api/axm-wallet/account/refresh-token`,
         method: 'post',
-        data: {email},
+        data: {email, device_id},
     });
     return res?.data;
 }
@@ -220,6 +220,15 @@ export async function checkUnlockPasskey(data: any) {
     const res = await request({
         url: `/api/axm-wallet/account/unlock/check`,
         method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function isOpenBio(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/is-open-bio-payment`,
+        method: 'get',
         data,
     });
     return res?.data;

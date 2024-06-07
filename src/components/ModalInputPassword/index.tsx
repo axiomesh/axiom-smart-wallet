@@ -57,7 +57,7 @@ const ModalInputPassword = (props: any) => {
                 />
                 <FormErrorMessage>{error}</FormErrorMessage>
             </FormControl>
-            <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p>
+            {props.isForget && <p className={styles.transferForget} onClick={handleToReset}>Forget it?</p>}
             <div style={{marginTop: "20px"}}><Button loading={loading} onClick={handleSubmit}>Confirm</Button></div>
         </div>
     )
