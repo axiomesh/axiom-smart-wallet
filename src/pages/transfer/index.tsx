@@ -908,11 +908,12 @@ const Transfer = (props: any) => {
         setSubmitFlag(false);
         setResultOpen(false);
         setBtnLoading(false);
-        // window.location.reload();
+        window.location.reload();
     }
 
     const handleBioPay = async () => {
         setBioResultOpen(true);
+        setTransferOpen(false);
         setBioStatus("loading");
         const axiom = await AxiomAccount.fromPasskey(userInfo.address)
         const transactionHash = await bioPay(email, axiom, form, userInfo);
@@ -984,6 +985,7 @@ const Transfer = (props: any) => {
                 let auth: any;
                 try {
                     auth =  await startAuthentication(obj);
+                    setBioStatus("success");
                 }catch(error: any) {
                     const string = error.toString(), expr = /The operation either timed out or was not allowed/;
                     if(string.search(expr) > 0) {
@@ -1047,6 +1049,7 @@ const Transfer = (props: any) => {
                     let auth: any;
                     try {
                         auth =  await startAuthentication(obj);
+                        setBioStatus("success");
                     }catch(error: any) {
                         const string = error.toString(), expr = /The operation either timed out or was not allowed/;
                         if(string.search(expr) > 0) {
