@@ -37,14 +37,19 @@ const LoginPasskey: React.FC = () => {
     const {showErrorToast} = Toast();
 
     useEffect(() => {
-        const fpPromise = import('@/utils/v3')
-        .then(FingerprintJS => FingerprintJS.load())
-        fpPromise.then(fp => fp.get()).then(async (result) => {
-            const visitorId = result.visitorId;
-            setDeviceId(visitorId);
-            localStorage.setItem('visitorId', visitorId);
-            await hanldeIsOpenBio(visitorId);
-        })
+        const deviceId = localStorage.getItem('visitorId');
+        if(deviceId) {
+            hanldeIsOpenBio(deviceId);
+        }else {
+            const fpPromise = import('@/utils/v3')
+            .then(FingerprintJS => FingerprintJS.load())
+            fpPromise.then(fp => fp.get()).then(async (result) => {
+                const visitorId = result.visitorId;
+                setDeviceId(visitorId);
+                localStorage.setItem('visitorId', visitorId);
+                await hanldeIsOpenBio(visitorId);
+            })
+        }
         if(location.pathname === '/register-passkey'){
             setIsRegister(true)
         }else {
@@ -110,6 +115,7 @@ const LoginPasskey: React.FC = () => {
                     history.replace('/home');
                 }, 1000)
             }catch (error: any) {
+                console.log(error, '------verify')
                 setOpenBioResult(true);
                 const string = error.toString(), expr = /The operation either timed out or was not allowed/;
                 if(string.search(expr) > 0) {
@@ -154,6 +160,7 @@ const LoginPasskey: React.FC = () => {
             publicKeyCredential = await startRegistration(registerObj)
             console.log(JSON.stringify(publicKeyCredential, null, 2))
         }catch (error: any) {
+            console.log(error, '------------register')
             const string = error.toString(), expr = /The operation either timed out or was not allowed/;
             if(string.search(expr) > 0) {
                 setBioResultStatus("cancel");

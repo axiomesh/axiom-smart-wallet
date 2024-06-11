@@ -7,7 +7,7 @@ export default defineConfig({
   proxy: {
     '/api/axm-wallet': {
       // target: 'http://10.2.69.157:8580',
-      target: 'http://172.16.13.133:8580',
+      target: 'http://10.2.69.208:8580',
       changeOrigin: true,
     },
     '/api/ticker': {
