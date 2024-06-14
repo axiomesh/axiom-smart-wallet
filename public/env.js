@@ -26,8 +26,8 @@ window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
 window.BUNDLER_URL='/api/bundler/';
 window.AXM_BROWSER = 'http://10.2.69.208:8080';
-// window.socketUrl='wss://axmwallet.io/api/ws'
-window.socketUrl='ws://localhost:8000/api/ws'
+window.socketUrl='wss://axmwallet.io/api/ws'
+// window.socketUrl='ws://localhost:8000/api/ws'
 
 
 // 演示环境配置参数
