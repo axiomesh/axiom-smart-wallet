@@ -13,12 +13,13 @@ import {
     PopoverBody,
     PopoverArrow,
 } from '@chakra-ui/react';
-import { checkUnlockPasskeyCreate, checkUnlockPasskey } from "@/services/login";
+import { checkUnlockPasskeyCreate, checkUnlockPasskey, isOpenBio } from "@/services/login";
 import { startAuthentication } from '@simplewebauthn/browser';
 
 export default function LockPage() {
     const email: string | any = getMail();
     const [open, setOpen] = useState(false);
+    const [isBioOpen, setIsBioOpen] = useState(0);
     const [auth, setAuth] = useState<any>("");
     const {showErrorToast} = Toast();
 
@@ -45,8 +46,17 @@ export default function LockPage() {
                 tx.retry()
             }
         });
-
+        const deviceId = localStorage.getItem('visitorId');
+        hanldeIsOpenBio(deviceId)
     }, [])
+
+    const hanldeIsOpenBio = async (deviceId: string | null) => {
+        const isOpen = await isOpenBio({
+            email: email,
+            device_id: deviceId,
+        });
+        setIsBioOpen(isOpen);
+    }
 
     const handleGetAuth = async () => {
         const visitorId = localStorage.getItem('visitorId');
@@ -93,7 +103,7 @@ export default function LockPage() {
                         Use a different account
                     </a>
                     {/* <ButtonPro mt="20px" onClick={handleSubmit}>Continue</ButtonPro> */}
-                    <Popover trigger="hover" strategy="fixed" placement="bottom-start">
+                    {isBioOpen === 0 ? <Popover trigger="hover" strategy="fixed" placement="bottom-start">
                         <PopoverTrigger><div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyIcon}></i><span>Continue with phone</span></div></PopoverTrigger>
                         <PopoverContent style={{borderRadius: "32px", padding: "20px"}} width="auto">
                             <PopoverArrow />
@@ -112,7 +122,9 @@ export default function LockPage() {
                                 </div>
                             </PopoverBody>
                         </PopoverContent>
-                    </Popover>
+                    </Popover> : <div>
+                        <div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyBioIcon}></i><span>Continue</span></div>
+                    </div>}
                 </div>
             </div>
             <Right />

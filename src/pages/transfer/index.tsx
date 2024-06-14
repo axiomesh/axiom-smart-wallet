@@ -17,13 +17,12 @@ import {connect, history} from "umi";
 import {transaction, passwordTimes, wrongPassword, transferLockTime} from "@/services/transfer";
 import {getTickerPrice} from "@/services/login";
 import {getMail} from "@/utils/help";
-import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, AxiomRpcProvider, isoBase64URL} from "axiom-smart-account-test";
+import {ERC20_ABI, AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, AxiomRpcProvider, isoBase64URL, EntryPoint__factory} from "axiom-smart-account-test";
 import {BigNumber, ethers, Wallet} from "ethers";
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 import TransferResultModal from "@/components/TransferResultModal";
 import {msToTime, formatAmount, generateRandomBytes} from "@/utils/utils";
-import { EntryPoint__factory } from "userop/dist/typechain";
 import AlertPro from "@/components/Alert";
 import { FunctionFragment } from 'ethers/lib/utils';
 import SetBioPayModal from "@/components/setBioPayModal";
@@ -181,6 +180,7 @@ const Transfer = (props: any) => {
     const [sessionForm, setSessionForm] = useState<FormProps>();
     const {showSuccessToast, showErrorToast} = Toast();
     const [gasFee, setGasFee] = useState("");
+    const [passord, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [balance, setBalance] = useState(0);
     const [transferInfo, setTransferInfo] = useState<transferProps>();
@@ -821,12 +821,13 @@ const Transfer = (props: any) => {
         setIsChangeSend(true);
     }
 
-    const handlePasswordClose = (isSuccess: Boolean) => {
+    const handlePasswordClose = (isSuccess: Boolean, password: string) => {
         setBtnLoading(false);
         if(isSuccess) {
             setIsSetPassword(true);
             setButtonText('Transfer');
             setBioOpen(true);
+            setPassword(password)
         }
         setPasswordOpen(false)
     }
@@ -915,8 +916,13 @@ const Transfer = (props: any) => {
         setBioResultOpen(true);
         setTransferOpen(false);
         setBioStatus("loading");
-        const axiom = await AxiomAccount.fromPasskey(userInfo.address)
-        const transactionHash = await bioPay(email, axiom, form, userInfo);
+        const axiom = await AxiomAccount.fromPasskey(userInfo.address);
+        let transactionHash = "";
+        try {
+            transactionHash = await bioPay(email, axiom, form, userInfo);
+        }catch (err) {
+            return;
+        }
         if(transactionHash === "failed") {
             setResultStatus("failed");
             return;
@@ -931,6 +937,10 @@ const Transfer = (props: any) => {
             })
             setSubmitFlag(false);
             sessionStorage.removeItem("form");
+            const sr = sessionStorage.getItem("sr");
+            if(sr === "0") {
+                sessionStorage.removeItem("sr");
+            }
             setResultStatus("success");
         }
     }
@@ -945,6 +955,11 @@ const Transfer = (props: any) => {
         }
         const sendValue = form.value.replace(/,/g, "")
         const value = ethers.utils.parseUnits(sendValue, decimals);
+        const sessionKey = sessionStorage.getItem("sk");
+        const sr = sessionStorage.getItem("sr");
+        if(sessionKey && sr === "0" && !isTransfinite) {
+            await handleSendSetSession(axiom, 'bio')
+        }
         if(form.send.value === "AXC") {
             try {
                 const res = await axcBioPay(axiom, form, value);
@@ -954,6 +969,7 @@ const Transfer = (props: any) => {
                     return res;
                 }
             }catch(err) {
+                console.log(err)
                 return "failed";
             }
         }else {
@@ -976,7 +992,7 @@ const Transfer = (props: any) => {
             onRequestSigning: async (useropHash: any) => {
                 const obj: any = {
                     challenge: isoBase64URL.fromBuffer(useropHash),
-                    rpId: "localhost",
+                    rpId: "axmwallet.io",
                     allowCredentials: [{
                         "id": allowCredentials,
                         "type": "public-key"
@@ -986,7 +1002,9 @@ const Transfer = (props: any) => {
                 try {
                     auth =  await startAuthentication(obj);
                     setBioStatus("success");
+                    openResult();
                 }catch(error: any) {
+                    console.log('transfer biopay error', error)
                     const string = error.toString(), expr = /The operation either timed out or was not allowed/;
                     if(string.search(expr) > 0) {
                         setBioStatus("cancel");
@@ -1029,18 +1047,15 @@ const Transfer = (props: any) => {
                 erc20.interface.encodeFunctionData("transfer", [form.to, value]),
             ];
     
-            const callData = "0x";
-            let userop: any;
-            const resOp = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
-                dryRun: true,
+            const res = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
                 onBuild: (op: any) => {
-                    userop = op;
-                }
+                    console.log("Signed UserOperation:", op);
+                },
             }, {
                 onRequestSigning: async (useropHash: any) => {
                     const obj: any = {
                         challenge: isoBase64URL.fromBuffer(useropHash),
-                        rpId: "localhost",
+                        rpId: "axmwallet.io",
                         allowCredentials: [{
                             "id": allowCredentials,
                             "type": "public-key"
@@ -1050,41 +1065,7 @@ const Transfer = (props: any) => {
                     try {
                         auth =  await startAuthentication(obj);
                         setBioStatus("success");
-                    }catch(error: any) {
-                        const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-                        if(string.search(expr) > 0) {
-                            setBioStatus("cancel");
-                        }else {
-                            setBioStatus("failed");
-                        }
-                        return;
-                    }
-                    return {
-                        response: auth,
-                        expectedChallenge: "",
-                        expectedOrigin: ""
-                    }
-                }
-            })
-            await resOp.wait();
-            await handleEntryPoint(userop, userInfo);
-            const res = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
-                onBuild: (op: any) => {
-                    console.log("Signed UserOperation:", op);
-                },
-            }, {
-                onRequestSigning: async (useropHash: any) => {
-                    const obj: any = {
-                        challenge: isoBase64URL.fromBuffer(useropHash),
-                        rpId: "localhost",
-                        allowCredentials: [{
-                            "id": allowCredentials,
-                            "type": "public-key"
-                        }]
-                    }
-                    let auth: any;
-                    try {
-                        auth =  await startAuthentication(obj);
+                        openResult();
                     }catch(error: any) {
                         const string = error.toString(), expr = /The operation either timed out or was not allowed/;
                         if(string.search(expr) > 0) {
@@ -1109,44 +1090,6 @@ const Transfer = (props: any) => {
             }
         }else {
             const callData = new ethers.utils.Interface(ERC20_ABI).encodeFunctionData("transfer", [form.to, value]);
-            let userop: any;
-            const resOp = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
-                dryRun: true,
-                onBuild: (op: any) => {
-                    userop = op;
-                    console.log("Signed UserOperation:", op);
-                }
-            }, {
-                onRequestSigning: async (useropHash: any) => {
-                    const obj: any = {
-                        challenge: isoBase64URL.fromBuffer(useropHash),
-                        rpId: "localhost",
-                        allowCredentials: [{
-                            "id": allowCredentials,
-                            "type": "public-key"
-                        }]
-                    }
-                    let auth: any;
-                    try {
-                        auth =  await startAuthentication(obj);
-                    }catch(error: any) {
-                        const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-                        if(string.search(expr) > 0) {
-                            setBioStatus("cancel");
-                        }else {
-                            setBioStatus("failed");
-                        }
-                        return;
-                    }
-                    return {
-                        response: auth,
-                        expectedChallenge: "",
-                        expectedOrigin: ""
-                    }
-                }
-            })
-            await resOp.wait();
-            await handleEntryPoint(userop, userInfo);
             const res = await axiom.sendUserOperation(form.send.contract, 0, callData, window.PAYMASTER, form.send.contract, {
                 onBuild: (op: any) => {
                     console.log("Signed UserOperation:", op);
@@ -1155,7 +1098,7 @@ const Transfer = (props: any) => {
                 onRequestSigning: async (useropHash: any) => {
                     const obj: any = {
                         challenge: isoBase64URL.fromBuffer(useropHash),
-                        rpId: "localhost",
+                        rpId: "axmwallet.io",
                         allowCredentials: [{
                             "id": allowCredentials,
                             "type": "public-key"
@@ -1164,6 +1107,8 @@ const Transfer = (props: any) => {
                     let auth: any;
                     try {
                         auth =  await startAuthentication(obj);
+                        setBioStatus("success");
+                        openResult();
                     }catch(error: any) {
                         const string = error.toString(), expr = /The operation either timed out or was not allowed/;
                         if(string.search(expr) > 0) {
@@ -1314,11 +1259,11 @@ const Transfer = (props: any) => {
     }
 
     const handleAXMCTransfer = async (axiom: any, value: BigNumber) => {
-        console.log(axiom)
+        console.log("password")
         const sr = sessionStorage.getItem("sr");
         const sessionKey = sessionStorage.getItem("sk");
         if(sessionKey && sr === "0" && !isTransfinite) {
-            await handleSendSetSession(axiom)
+            await handleSendSetSession(axiom, "password")
         }
         console.log(form.to, value)
         const callData = "0x";
@@ -1337,7 +1282,7 @@ const Transfer = (props: any) => {
         const sessionKey = sessionStorage.getItem("sk");
         const sr = sessionStorage.getItem("sr");
         if(sessionKey && sr === "0" && !isTransfinite) {
-            await handleSendSetSession(axiom)
+            await handleSendSetSession(axiom, "password")
         }
         // @ts-ignore
         const erc20 = new ethers.Contract(window.PAYMASTER, ERC20_ABI);
@@ -1397,23 +1342,19 @@ const Transfer = (props: any) => {
         }
     }
 
-    const handleSendSetSession = async (axiom: any) => {
+    const handleSendSetSession = async (axiom: any, type: string) => {
         try {
-            const validAfter = sessionStorage.getItem("validAfter");
-            const validUntil = sessionStorage.getItem("validUntil");
-            const signer = await handleGetSessionSigner();
-            const freeLimit = sessionStorage.getItem("freeLimit");
-            const value = freeLimit ? ethers.utils.parseUnits(freeLimit, 18) : "";
-            console.log(signer.address, 'signer.address')
-            const setSessionOP = await axiom.setSession(
-                signer,
-                value,
-                Number(validAfter),
-                Number(validUntil),
-                "",
-                ""
-            );
+            let setSessionOP: any = localStorage.getItem("sessionOp");
+            setSessionOP = JSON.parse(setSessionOP);
+            if(type === "bio") {
+                setSessionOP.authData = isoBase64URL.toBuffer(setSessionOP.authData);
+                setSessionOP.clientData = isoBase64URL.toBuffer(setSessionOP.clientData);
+                setSessionOP.signature = isoBase64URL.toBuffer(setSessionOP.signature);
+            }
+            if(setSessionOP)
             await axiom.sendSetSession(setSessionOP);
+
+            localStorage.removeItem("sessionOp");
         }catch (e: any) {
             console.log(e)
         }
@@ -1591,8 +1532,8 @@ const Transfer = (props: any) => {
             <TransferModal open={transferOpen} onBioPay={handleBioPay} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} clearError={() => {setPasswordError("")}} />
             <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
             <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
-            <SetBioPayModal isOpen={bioOpen} onClose={() => {setBioOpen(false)}} />
-            <BioResultModal status={bioStatus} isOpen={bioResultOpen} />
+            <SetBioPayModal isOpen={bioOpen} onClose={() => {setBioOpen(false)}} password={passord} />
+            <BioResultModal status={bioStatus} isOpen={bioResultOpen} onClose={() => {setBioResultOpen(false)}} />
         </>
     )
 }

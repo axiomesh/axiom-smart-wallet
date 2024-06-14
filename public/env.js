@@ -15,7 +15,7 @@ window.ETH_BROWSER = 'https://sepolia.etherscan.io';
 
 //  开发环境配置参数
 
-window.RPC_URL='http://10.2.69.244:28881';
+window.RPC_URL='/api/node/';
 window.WETH_CONTRACT = "0x712516e61C8B383dF4A63CFe83d7701Bce54B03e"
 window.USDT_CONTRACT = "0xd6bab5c1078684460673DB9ff600f1c2b0132993"
 window.WUSDT_CONTRACT = "0xbCF26943C0197d2eE0E5D05c716Be60cc2761508"
@@ -24,9 +24,10 @@ window.WUSDC_CONTRACT = "0x59F2f1fCfE2474fD5F0b9BA1E73ca90b143Eb8d0"
 window.WAXC_CONTRACT = "0x62B864FbF36c5BAb14bF1EBafE1dA94DAb56e9f8"
 window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
-window.BUNDLER_URL='http://10.2.69.244:4337';
+window.BUNDLER_URL='/api/bundler/';
 window.AXM_BROWSER = 'http://10.2.69.208:8080';
-window.socketUrl='ws://10.2.69.208:9003'
+// window.socketUrl='wss://axmwallet.io/api/ws'
+window.socketUrl='ws://localhost:8000/api/ws'
 
 
 // 演示环境配置参数

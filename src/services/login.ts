@@ -233,3 +233,39 @@ export async function isOpenBio(data: any) {
     });
     return res?.data;
 }
+
+export async function deviceIsOpenBio(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/is-opened-bio-payment`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}
+
+export async function isReplaceBioPayment(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/is-replace-bio-payment`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}
+
+export async function checkBioPasskeyCreate(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/passkey/check-creat-bio`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function checkBioPasskey(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/passkey/check-bio`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}

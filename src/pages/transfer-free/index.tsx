@@ -143,7 +143,7 @@ const TransferFree = (props: any) => {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    const handleSaveFree = async (axiom: any) => {
+    const handleSaveFree = async (axiom: any, isBio: boolean) => {
         const skPassword = generateRandomSixDigits().toString();
         const salt = generateRandomBytes(16);
         const limit = ethers.utils.parseUnits(value, 18);
@@ -170,12 +170,81 @@ const TransferFree = (props: any) => {
         sessionStorage.setItem("freeLimit", value ? value : "");
         sessionStorage.setItem("validAfter", validAfter.toString());
         sessionStorage.setItem("validUntil", validUntil.toString());
-        showSuccessToast("Password-free transfer has been activated");
-        setIsOpen(false);
-        setBtnLoading(false);
-        setPinLoading(false);
-        if(sessionKey || freeLimit) {
-            setIsUpdate(true);
+        const decryptKey = decrypt(encryptKey, secretKey.toString("utf-8"))
+
+        const signer = new Wallet(decryptKey);
+        let setSessionOP: any;
+        if(isBio) {
+            setSessionOP = await axiom.setSession(
+                signer,
+                limit,
+                Number(validAfter),
+                Number(validUntil),
+                "",
+                "",
+                {
+                    onRequestSigning: async (useropHash: any) => {
+                        const allowCredentials = localStorage.getItem("allowCredentials");
+                        const obj: any = {
+                            challenge: isoBase64URL.fromBuffer(useropHash),
+                            rpId: "axmwallet.io",
+                            allowCredentials: [{
+                                "id": allowCredentials,
+                                "type": "public-key"
+                            }]
+                        }
+                        let auth: any;
+                        try {
+                            auth = await startAuthentication(obj);
+                            setBioStatus("success");
+                        }catch(error: any) {
+                            const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+                            if(string.search(expr) > 0) {
+                                setBioStatus("cancel");
+                            }else {
+                                setBioStatus("failed");
+                            }
+                            return;
+                        }
+                        return {
+                            response: auth,
+                            expectedChallenge: "",
+                            expectedOrigin: ""
+                        }
+                    }
+                }
+            );
+            setSessionOP.authData = isoBase64URL.fromBuffer(setSessionOP.authData);
+            setSessionOP.clientData = isoBase64URL.fromBuffer(setSessionOP.clientData);
+            setSessionOP.signature = isoBase64URL.fromBuffer(setSessionOP.signature);
+            console.log(setSessionOP, 'setSessionOP')
+            console.log(setSessionOP, 'setSessionOP')
+
+            localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
+            showSuccessToast("Password-free transfer has been activated");
+            setIsOpen(false);
+            setBtnLoading(false);
+            setPinLoading(false);
+            if(sessionKey || freeLimit) {
+                setIsUpdate(true);
+            }
+        }else {
+            setSessionOP = await axiom.setSession(
+                signer,
+                limit,
+                Number(validAfter),
+                Number(validUntil),
+                "",
+                ""
+            );
+            localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
+            showSuccessToast("Password-free transfer has been activated");
+            setIsOpen(false);
+            setBtnLoading(false);
+            setPinLoading(false);
+            if(sessionKey || freeLimit) {
+                setIsUpdate(true);
+            }
         }
     }
 
@@ -208,36 +277,14 @@ const TransferFree = (props: any) => {
             }
             return;
         }
-        handleSaveFree(axiom);
+        handleSaveFree(axiom, false);
     }
 
     const handleBioPay = async() => {
         setBioResultOpen(true);
         setBioStatus("loading");
-        const allowCredentials = localStorage.getItem("allowCredentials");
-        const randomChallange = new Uint8Array(32);
-        const obj: any = {
-            challenge: isoBase64URL.fromBuffer(randomChallange),
-            rpId: "localhost",
-            allowCredentials: [{
-                "id": allowCredentials,
-                "type": "public-key"
-            }]
-        }
-        try {
-            await startAuthentication(obj);
-            setBioStatus("success");
-        }catch(error: any) {
-            const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-            if(string.search(expr) > 0) {
-                setBioStatus("cancel");
-            }else {
-                setBioStatus("failed");
-            }
-            return;
-        }
         const axiom = await AxiomAccount.fromPasskey(userInfo.address);
-        await handleSaveFree(axiom);
+        await handleSaveFree(axiom, true);
     }
 
     const handleConfirm = async () => {

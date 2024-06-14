@@ -53,7 +53,7 @@ const TransferModal = (props: any) => {
     }, [props.pinLoading])
 
     useEffect(() => {
-        const sessionKey = sessionStorage.getItem('sessionKey');
+        const sessionKey = sessionStorage.getItem('sk');
         const freeLimit = sessionStorage.getItem('freeLimit');
         const sr = sessionStorage.getItem('sr');
         if(sessionKey || freeLimit){

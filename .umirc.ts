@@ -14,6 +14,27 @@ export default defineConfig({
       target: 'http://94.74.111.72/price-aggregator/',
       changeOrigin: true,
     },
+    '/api/node': {
+      target: 'http://10.2.69.244:28881',
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api/node': '',
+      }
+    },
+    '/api/bundler': {
+      target: 'http://10.2.69.244:4337',
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api/bundler': '',
+      }
+    },
+    'api/ws': {
+      target: 'http://10.2.69.208:8580',
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api/ws': '',
+      }
+    }
     // '/websocket': {
     //   target: 'http://172.16.13.133:8581',
     //   changeOrigin: true,

@@ -118,6 +118,7 @@ const ResetTransfer = (props: any) => {
     }, []);
 
     const handleSubmit = async (password: string) => {
+        const visitorId = userInfo.device_id;
         if(password === ""){
             return;
         }
@@ -132,7 +133,7 @@ const ResetTransfer = (props: any) => {
             console.log(signer.privateKey);
             console.log(signer.address);
             setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{
-                const userRes = await getUserInfo(email);
+                const userRes = await getUserInfo(email, visitorId);
                 if(userRes){
                     dispatch({
                         type: 'global/setUser',
@@ -145,7 +146,7 @@ const ResetTransfer = (props: any) => {
                 setBtnLoading(false);
                 setMessage("")
                 setMessage('')
-                setStep(0)
+                setStep(0);
             }).catch((err: any) => {
                     setBtnLoading(false);
                 showErrorToast(err)

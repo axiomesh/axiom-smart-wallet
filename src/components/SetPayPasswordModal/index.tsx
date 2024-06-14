@@ -48,7 +48,7 @@ const SetPayPasswordModal = (props: Props) => {
     },[props.isOpen])
 
     const onClose = () => {
-        props.onClose(false)
+        props.onClose(false, "")
     }
 
     const handleSubmit = async (e: string) => {
@@ -73,7 +73,7 @@ const SetPayPasswordModal = (props: Props) => {
             }
             setLoading(false);
             showSuccessToast("Password set successfully!");
-            props.onClose(true);
+            props.onClose(true, e);
         }catch (error) {
             setLoading(false);
             console.log(error)

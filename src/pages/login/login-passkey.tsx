@@ -39,6 +39,7 @@ const LoginPasskey: React.FC = () => {
     useEffect(() => {
         const deviceId = localStorage.getItem('visitorId');
         if(deviceId) {
+            setDeviceId(deviceId);
             hanldeIsOpenBio(deviceId);
         }else {
             const fpPromise = import('@/utils/v3')
@@ -198,7 +199,9 @@ const LoginPasskey: React.FC = () => {
             device_id: deviceId,
         })
         const verifyRes = JSON.parse(res.credentials_json);
-        localStorage.setItem("allowCredentials", res.credential_id)
+        if(isBioOpen !== 0) {
+            localStorage.setItem("allowCredentials", res.credential_id)
+        }
         const authentication = await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
@@ -218,7 +221,6 @@ const LoginPasskey: React.FC = () => {
             showErrorToast(error)
             return;
         }
-        console.log(token)
         setToken(token);
     }
 
