@@ -89,21 +89,26 @@ const BioPayment = (props: any) => {
 
     const verifyPasskey = async (isRepalce: boolean) => {
         const deviceId = localStorage.getItem("visitorId");
-        const res = await checkBioPasskeyCreate({
-            email: email,
-            device_id: deviceId,
-        })
-        const verifyRes = JSON.parse(res.credentials_json);
         let publicKey: any;
         try {
+            const res = await checkBioPasskeyCreate({
+                email: email,
+                device_id: deviceId,
+            })
+            const verifyRes = JSON.parse(res.credentials_json);
             publicKey = await startAuthentication({
                 challenge: verifyRes.publicKey.challenge,
                 rpId: verifyRes.publicKey.rpId,
-                allowCredentials: [verifyRes.publicKey.allowCredentials[0]]
+                allowCredentials: [{
+                    "id": res.credential_id,
+                    "type": "public-key",
+                    "transports": ["internal"]
+                }]
             })
             setResultStatus("success");
             localStorage.setItem("allowCredentials", publicKey.id)
         }catch(error: any) {
+            console.log(error, '------verifyPasskey')
             const string = error.toString(), expr = /The operation either timed out or was not allowed/;
             if(string.search(expr) > 0) {
                 setResultStatus("cancel");
@@ -239,7 +244,7 @@ const BioPayment = (props: any) => {
         const visitorId = userInfo.device_id;
         localStorage.setItem("allowCredentials", publicKey.id)
         try {
-            await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKey)});
+            await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKey), device_type: getDeviceType()});
             setIsSwitch(true);
             const deviceId = localStorage.getItem('visitorId');
             const userRes = await getUserInfo(email, deviceId);

@@ -15,6 +15,8 @@ import { sendVerifyCode, checkUser } from '@/services/login';
 import {setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { getToken } from "@/utils/help";
+import { detectBrowser, getSafariVersion, getChromeVersion } from "@/utils/utils";
+import DeviceSupport from "@/components/DeviceSupport";
 
 function Login() {
     const toast = useToast();
@@ -22,6 +24,9 @@ function Login() {
     const [isCheck, setIsCheck] = useState(false);
     const [mail, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const [version, setVersion] = useState("");
+    const [device, setDevice] = useState("");
     const {showErrorToast} = Toast();
 
     const validateName = (value: string) => {
@@ -52,7 +57,22 @@ function Login() {
                 tx.retry()
             }
         });
-
+        const browser = detectBrowser();
+        if(browser === 'chrome') {
+            const version = getChromeVersion();
+            if(version && version.version < 67) {
+                setIsOpen(true);
+                setVersion(version.allVersion);
+                setDevice(browser);
+            }
+        }else if(browser === "safari") {
+            const version = getSafariVersion();
+            if(version && version.version < 16) {
+                setIsOpen(true);
+                setVersion(version.allVersion);
+                setDevice(browser);
+            }
+        }  
     }, [])
 
     const handleSubmit = async () => {
@@ -156,6 +176,7 @@ function Login() {
                   </div>
               </div>
               <Right />
+              <DeviceSupport isOpen={isOpen} version={version} device={device}/>
           </div>
       </div>
   );

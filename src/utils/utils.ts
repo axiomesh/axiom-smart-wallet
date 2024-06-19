@@ -61,3 +61,64 @@ export const getDeviceType = () => {
    
     return 'Unknown';
   }
+
+  export const detectBrowser = () => {
+    let userAgent = navigator.userAgent.toLowerCase();
+    let isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    let isChrome = /chrome|crios|crmo/i.test(userAgent) && !isSafari;
+
+    if (isSafari) {
+        return "safari"
+    } else if (isChrome) {
+        return "chrome"
+    } else {
+        return "other"
+    }
+}
+
+export const getSafariVersion = () => {
+  let userAgent = navigator.userAgent.toLowerCase();
+  let isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+  if (isSafari) {
+      let match = userAgent.match(/version\/(\d+)/);
+      let matchAll = userAgent.match(/version\/([\d.]+)/);
+      if (match && matchAll) {
+          let safariVersion = parseInt(match[1], 10);
+          return {
+              version: safariVersion,
+              allVersion: matchAll[1]
+          };
+      } else {
+          console.log("Safari version not found.");
+          return null;
+      }
+  } else {
+      console.log("The browser is not Safari.");
+      return null;
+  }
+}
+
+export const getChromeVersion = () => {
+  let userAgent = navigator.userAgent.toLowerCase();
+  let isChrome = /chrome|crios|crmo/i.test(userAgent) && !/edge|edg|opr/i.test(userAgent);
+
+  if (isChrome) {
+      let match = userAgent.match(/chrome\/(\d+)/);
+      let matchAll = userAgent.match(/chrome\/([\d.]+)/);
+      console.log(matchAll)
+      if (match && matchAll) {
+          let chromeVersion = parseInt(match[1], 10);
+          console.log("Chrome major version: " + matchAll[1]);
+          return {
+            version: chromeVersion,
+            allVersion: matchAll[1]
+        };;
+      } else {
+          console.log("Chrome version not found.");
+          return null;
+      }
+  } else {
+      console.log("The browser is not Chrome.");
+      return null;
+  }
+}

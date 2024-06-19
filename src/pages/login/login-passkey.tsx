@@ -19,7 +19,7 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 import BioResultModal from '@/components/BioResultModal';
 import { AxiomAccount, generateSigner } from 'axiom-smart-account-test'
 import { sha256 } from 'js-sha256'
-import {generateRandomBytes,getDeviceType} from "@/utils/utils";
+import {generateRandomBytes,getDeviceType, detectBrowser, getSafariVersion} from "@/utils/utils";
 import { register } from '@passwordless-id/webauthn/dist/esm/client';
 import Toast from "@/hooks/Toast";
 
@@ -141,12 +141,23 @@ const LoginPasskey: React.FC = () => {
             showErrorToast(error)
             return;
         }
+        let type = register.authenticator_type;
+        const browser = detectBrowser();
+        if(browser === "safari") {
+            const version = getSafariVersion();
+            if(version && version.version == 16) {
+                type = 'platform'
+            }
+        }  
         const registerObj: any = {
             challenge: register.challenge,
             rp: register.rp[0],
             pubKeyCredParams: [register.pub_key_cred_param],
             authenticatorSelection: {
-                authenticatorAttachment: register.authenticator_type
+                authenticatorAttachment: type,
+                residentKey: 'preferred',
+                userVerification: 'preferred',
+                requireResidentKey: false,
             },
             user: {
                 "id": btoa(register.user.id),
@@ -154,8 +165,10 @@ const LoginPasskey: React.FC = () => {
                 "displayName": register.user.displayName
             },
             excludeCredentials: [],
-            timeout: 30000
+            timeout: 30000,
+            attestation: "none"
         }
+        console.log(JSON.stringify(registerObj), '--------registerObj')
         let publicKeyCredential: any;
         try {
             publicKeyCredential = await startRegistration(registerObj)
@@ -202,12 +215,21 @@ const LoginPasskey: React.FC = () => {
         if(isBioOpen !== 0) {
             localStorage.setItem("allowCredentials", res.credential_id)
         }
+        let transports = [res.transport];
+        const browser = detectBrowser();
+        if(browser === "safari") {
+            const version = getSafariVersion();
+            if(version && version.version == 16) {
+                transports = ["internal", res.transport]
+            }
+        } 
         const authentication = await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
             allowCredentials: [{
                 "type": "public-key",
-                "id": res.credential_id
+                "id": res.credential_id,
+                "transports": transports
             }]
         })
         let token: any;
@@ -215,7 +237,8 @@ const LoginPasskey: React.FC = () => {
             token = await checkPasskey({
                 email: email,
                 result: JSON.stringify(authentication),
-                device_id: deviceId
+                device_id: deviceId,
+                device_type: isBioOpen === 0 ? "Iphone" : getDeviceType()
             })
         }catch (error: any) {
             showErrorToast(error)

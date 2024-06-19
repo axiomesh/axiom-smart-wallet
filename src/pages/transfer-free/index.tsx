@@ -190,7 +190,8 @@ const TransferFree = (props: any) => {
                             rpId: "axmwallet.io",
                             allowCredentials: [{
                                 "id": allowCredentials,
-                                "type": "public-key"
+                                "type": "public-key",
+                                "transports": ["internal"]
                             }]
                         }
                         let auth: any;
@@ -221,7 +222,6 @@ const TransferFree = (props: any) => {
             console.log(setSessionOP, 'setSessionOP')
 
             localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
-            showSuccessToast("Password-free transfer has been activated");
             setIsOpen(false);
             setBtnLoading(false);
             setPinLoading(false);
@@ -238,7 +238,6 @@ const TransferFree = (props: any) => {
                 ""
             );
             localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
-            showSuccessToast("Password-free transfer has been activated");
             setIsOpen(false);
             setBtnLoading(false);
             setPinLoading(false);

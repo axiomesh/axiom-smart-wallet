@@ -1,0 +1,58 @@
+.deviceSupport {
+  &Title {
+    font-family: Inter;
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    padding: 5px 0;
+  }
+  &Content {
+    padding: 20px;
+    background: rgba(217, 217, 217, 0.2);
+    border-radius: 20px;
+    margin-top: 20px;
+    p {
+      font-family: Inter;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 16.94px;
+      text-align: center;
+      color: #718096;
+      padding: 8px 0;
+    }
+    &List {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    &Item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px;
+      background: #fff;
+      border-radius: 20px;
+      &NoIcon {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background: url("../../assets/login/nonsupport.png") no-repeat center / cover;
+      }
+      &Icon {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background: url("../../assets/login/support.png") no-repeat center / cover;
+      }
+      &Text {
+        font-family: Inter;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 24px;
+        text-align: left;
+        color: #292D32;
+      }
+    }
+  }
+}

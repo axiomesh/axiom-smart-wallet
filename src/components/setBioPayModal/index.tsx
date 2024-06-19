@@ -115,7 +115,7 @@ const SetBioPayModal = (props: any) => {
         }
         const visitorId = userInfo.device_id;
         try {
-            await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKeyCredential)});
+            await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKeyCredential), device_type: getDeviceType()});
             const deviceId = localStorage.getItem('visitorId');
             const userRes = await getUserInfo(email, deviceId);
             if(userRes){

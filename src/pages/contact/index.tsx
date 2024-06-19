@@ -60,7 +60,7 @@ const Contact = () => {
                             <span>{item.tip}</span>
                             {item.label === "email" && <div className={styles.securityListItemCopy} onClick={handleCopy}>
                                 <span>{axiomEmail}</span>
-                                {isCopy ? <img src={require("@/assets/security/copy-success.png")} alt="" /> : <Copy fill={index === isHover ? "#ECC94B" : "#718096"}/>}
+                                {isCopy ? <img style={{width: "16px", height: "11px"}} src={require("@/assets/security/copy-success.png")} alt="" /> : <Copy fill={index === isHover ? "#ECC94B" : "#718096"}/>}
                             </div>}
                         </div>
                     ))

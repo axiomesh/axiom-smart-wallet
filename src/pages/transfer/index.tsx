@@ -6,10 +6,11 @@ import {
     FormErrorMessage,
     InputRightElement,
     InputGroup,
+    Tooltip
 } from '@chakra-ui/react';
 import Select, {components} from 'react-select';
 import useContinueButton from "@/hooks/ContinueButton";
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef} from "react";
 import {token} from "@/utils/tokenList";
 import TransferModal from "@/components/TransferModal";
 import SetPayPasswordModal from "@/components/SetPayPasswordModal";
@@ -53,7 +54,7 @@ interface transferProps {
 const customOption: React.FC<{ innerProps: any; data: any; }>  = ({ innerProps, data }) => (
     <div {...innerProps} className={`${styles.formOption} ${data.disabled ? styles.formOptionDisabled : ""}`}>
         <div className={styles.formOptionLabel}>{data.icon?data.icon:null}{data.label}</div>
-        {data.balance ? <span className={styles.formOptionBalance}>{data.balance}</span> : null}
+        {data.balance ? <Tooltip fontSize="14px" borderRadius="4px" zIndex="9999999" hasArrow bg='gray.900' placement='top' label={data.balance}><span className={styles.formOptionBalance}>{data.balance}</span></Tooltip> : null}
     </div>
 );
 
@@ -107,7 +108,7 @@ const customStyles = (isFirstSelect: boolean) => ({
         ...provided,
         color: "#A0AEC0", // 修改 placeholder 文本颜色
     }),
-    menuPortal: (base: any) => ({ ...base, zIndex: 9999, width: 516 })
+    menuPortal: (base: any) => ({ ...base, zIndex: 99, width: 516 })
 
 });
 
@@ -201,6 +202,7 @@ const Transfer = (props: any) => {
     const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
 
     let timer: any = null;
+    const inputRef: any = useRef(null);
 
 
 
@@ -249,7 +251,7 @@ const Transfer = (props: any) => {
                     symbol: item.symbol,
                     balance: formatAmount(balance.toString()),
                     amount: balance,
-                    icon: <img src={require(`@/assets/token/${item.name}.png`)} />
+                    icon: <img style={{width: "40px", height: "40px"}} src={require(`@/assets/token/${item.name}.png`)} />
                 })
                 arr.sort((a, b) => b.amount - a.amount);
             }
@@ -842,15 +844,22 @@ const Transfer = (props: any) => {
     }
 
     const handleValueChange = async (e: any) => {
-        let value = e.target.value;
-        if(value) {
-            value = formatAmount(value.replace(/,/g, ""));
+        let inputValue = e.target.value;
+        const { selectionStart, value} = e.target;
+
+        if(inputValue) {
+            inputValue = formatAmount(inputValue.replace(/,/g, ""));
         }
-        const decimal = getDecimalPlaces(value);
-        console.log(maxLength)
-        if(/^[0-9,.]*$/.test(value) && decimal <= maxLength){
-            setForm({ ...form, value: value })
+        const cursorPosition = selectionStart + (inputValue.length - value.length);
+        const decimal = getDecimalPlaces(inputValue);
+        if(/^[0-9,.]*$/.test(inputValue) && decimal <= maxLength){
+            setForm({ ...form, value: inputValue })
         }
+        setTimeout(() => {
+            if (inputRef.current) {
+              inputRef?.current?.setSelectionRange(cursorPosition, cursorPosition);
+            }
+          }, 0);
     }
 
     const handleKeyDown = (e: any) => {
@@ -995,7 +1004,8 @@ const Transfer = (props: any) => {
                     rpId: "axmwallet.io",
                     allowCredentials: [{
                         "id": allowCredentials,
-                        "type": "public-key"
+                        "type": "public-key",
+                        "transports": ["internal"]
                     }]
                 }
                 let auth: any;
@@ -1058,7 +1068,8 @@ const Transfer = (props: any) => {
                         rpId: "axmwallet.io",
                         allowCredentials: [{
                             "id": allowCredentials,
-                            "type": "public-key"
+                            "type": "public-key",
+                            "transports": ["internal"]
                         }]
                     }
                     let auth: any;
@@ -1101,7 +1112,8 @@ const Transfer = (props: any) => {
                         rpId: "axmwallet.io",
                         allowCredentials: [{
                             "id": allowCredentials,
-                            "type": "public-key"
+                            "type": "public-key",
+                            "transports": ["internal"]
                         }]
                     }
                     let auth: any;
@@ -1444,6 +1456,7 @@ const Transfer = (props: any) => {
                                 <FormLabel className={styles.formTitle}></FormLabel>
                                 <InputGroup>
                                     <Input
+                                        ref={inputRef}
                                         value={form.value}
                                         isDisabled={!isSetPassword}
                                         fontSize="14px"

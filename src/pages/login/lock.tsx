@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { checkUnlockPasskeyCreate, checkUnlockPasskey, isOpenBio } from "@/services/login";
 import { startAuthentication } from '@simplewebauthn/browser';
+import { detectBrowser, getSafariVersion } from '@/utils/utils';
 
 export default function LockPage() {
     const email: string | any = getMail();
@@ -67,12 +68,21 @@ export default function LockPage() {
     const handlePasskeyClick = async() => {
         const verifyRes = JSON.parse(auth.credentials_json);
         const visitorId = localStorage.getItem('visitorId');
+        let transports = [verifyRes.transport];
+        const browser = detectBrowser();
+        if(browser === "safari") {
+            const version = getSafariVersion();
+            if(version && version.version == 16) {
+                transports = ["internal", verifyRes.transport]
+            }
+        } 
         const authentication = await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
             allowCredentials: [{
                 "type": "public-key",
-                "id": auth.credential_id
+                "id": auth.credential_id,
+                "transports": [auth.transport]
             }]
         })
         localStorage.setItem("allowCredentials", auth.credential_id)

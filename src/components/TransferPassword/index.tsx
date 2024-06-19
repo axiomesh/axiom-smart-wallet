@@ -67,6 +67,11 @@ const TransferPassword = (props: Props) => {
             } else {
                 setProgress(25);
             }
+            if(newValue.length < 3) {
+                setProgress(25)
+            }else if(newValue.length < 6) {
+                setProgress(50)
+            }
 
             setProgressText('Password is too short !')
         }
@@ -111,17 +116,20 @@ const TransferPassword = (props: Props) => {
             return;
         if(!passWordReg.test(password)){
             setNewErrorText('Invalid password')
+            return;
         }
         if(!password){
             setNewErrorText('Please enter a new password')
+            return;
         }
         if(!passWordReg.test(rePassword)){
-            setErrorText('Invalid password')
+            setErrorText('Invalid password');
+            return;
         }
         if(!rePassword){
             setErrorText('Please enter a repeat password')
+            return;
         }
-
         if(!password || !rePassword || errorText || newErrorText) return
         props.onSubmit(password)
     }
@@ -137,6 +145,7 @@ const TransferPassword = (props: Props) => {
                         style={{height: 56}}
                         onChange={handleChangePassWord}
                         onBlur={handleBlurPassWord}
+                        tabIndex="-1"
                     />
 
                     {password && !passWordReg.test(password) ? <>
@@ -154,6 +163,7 @@ const TransferPassword = (props: Props) => {
                         style={{height: 56}}
                         onChange={handleChangeRePassWord}
                         onBlur={handleBlurRePassWord}
+                        tabIndex="-1"
                     />
                     <FormErrorMessage>{errorText}</FormErrorMessage>
                 </FormControl>

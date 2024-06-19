@@ -30,7 +30,7 @@ const passkeySecurity = (props: any) => {
         }else {
             return [
                 "Safari on iPhone",
-                "Chrome for Android"
+                "Chrome for IOS/Android"
             ]
         }
     }

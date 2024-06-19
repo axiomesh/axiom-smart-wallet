@@ -7,6 +7,7 @@ import {
     ModalHeader,
     ModalFooter,
     ModalBody,
+    Tooltip
 } from '@chakra-ui/react';
 import ModalInputPassword from '@/components/ModalInputPassword';
 import useContinueButton from "@/hooks/ContinueButton";
@@ -116,7 +117,7 @@ const TransferModal = (props: any) => {
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={onClose} closeOnOverlayClick={false}>
+            <Modal isOpen={isOpen} onClose={onClose} closeOnOverlayClick={false} isCentered>
                 <ModalOverlay />
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
@@ -133,7 +134,8 @@ const TransferModal = (props: any) => {
                             <div className={styles.transferSend}>
                                 <div className={styles.transferSendItem}>
                                     <span className={styles.transferSendItemTitle}>Send</span>
-                                    <div className={styles.transferSendItemContent}><img src={require("@/assets/token/wAXC.png")} alt=""/><span>{info?.value}{info?.send}</span></div>
+                                    <div className={styles.transferSendItemContent}><img src={require("@/assets/token/wAXC.png")} alt=""/><Tooltip fontSize="14px" borderRadius="4px" zIndex="9999999" hasArrow bg='gray.900' placement='top' label={info?.value}><span className={styles.transferSendItemContentText}>{info?.value}</span></Tooltip><span>{info?.send}</span></div>
+                                    {/* <div className={styles.transferSendItemContent}><img src={require("@/assets/token/wAXC.png")} alt=""/><Tooltip fontSize="14px" borderRadius="4px" zIndex="9999999" hasArrow bg='gray.900' placement='top' label={"1231212323112312321312312312312331212312312"}><span className={styles.transferSendItemContentText}pan className={styles.transferSendItemContentText}>1231212323112312321312312312312331212312312</span></Tooltip><span>AXC</span></div> */}
                                 </div>
                                 <div className={styles.transferSendItem} style={{alignItems: "start"}}>
                                     <span className={styles.transferSendItemTitle}>To</span>
