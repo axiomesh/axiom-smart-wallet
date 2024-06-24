@@ -52,11 +52,11 @@ const BioPayment = (props: any) => {
         const times = await transferLockTime({email});
         const deviceId = localStorage.getItem("visitorId");
 
-        if(times > 0) {
-            showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
-            return;
-        }
         if(!e.target.checked) {
+            if(times.lock_type >= 0) {
+                showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
+                return;
+            }
             setResultOpen(true);
             setResultStatus("loading");
             const isdevice = await deviceIsOpenBio({email, device_id: deviceId});
@@ -103,7 +103,8 @@ const BioPayment = (props: any) => {
                     "id": res.credential_id,
                     "type": "public-key",
                     "transports": ["internal"]
-                }]
+                }],
+                userVerification: "required"
             })
             setResultStatus("success");
             localStorage.setItem("allowCredentials", publicKey.id)
@@ -172,7 +173,8 @@ const BioPayment = (props: any) => {
             rp: register.rp[0],
             pubKeyCredParams: register.pub_key_cred_param ? [register.pub_key_cred_param] : [],
             authenticatorSelection: {
-                authenticatorAttachment: register.authenticator_type
+                authenticatorAttachment: register.authenticator_type,
+                userVerification: 'required',
             },
             user: {
                 "id": register.user.id,

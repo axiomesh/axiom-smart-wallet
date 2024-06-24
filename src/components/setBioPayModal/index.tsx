@@ -66,7 +66,8 @@ const SetBioPayModal = (props: any) => {
             rp: register.rp[0],
             pubKeyCredParams: register.pub_key_cred_param ? [register.pub_key_cred_param] : [],
             authenticatorSelection: {
-                authenticatorAttachment: register.authenticator_type
+                authenticatorAttachment: register.authenticator_type,
+                userVerification: "required"
             },
             user: {
                 "id": register.user.id,

@@ -5,5 +5,6 @@ declare global {
         PAYMASTER: string;
         RPC_URL: string;
         ENTRY_POINT: string;
+        RPID: string;
     }
 }

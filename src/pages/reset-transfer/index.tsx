@@ -35,7 +35,7 @@ const ResetTransfer = (props: any) => {
     useEffect(() => {
         async function times() {
             const times = await transferLockTime({email});
-            if(times > 0) {
+            if(times.lock_type >= 0) {
                 setToastMsg("The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.")
             }else {
                 setToastMsg('Your account will be locked for 24 hours after resetting your password, and transactions cannot be sent normally.')

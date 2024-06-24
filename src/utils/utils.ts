@@ -1,3 +1,4 @@
+import dayjs from '@/utils/dayjs';
 export const generateRandomBytes = (length: number) => {
     let randomBytes = new Uint8Array(length);
     window.crypto.getRandomValues(randomBytes);
@@ -20,9 +21,7 @@ export const msToTime = (duration: number) => {
 }
 
 export const convertTimestampToDate = (timestamp: number) => {
-  var date = new Date(timestamp);
-  var formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
-  return formattedDate;
+  return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss');
 }
 
 export const formatAmount = (inputAmount: string) => {

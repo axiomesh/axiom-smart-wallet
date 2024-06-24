@@ -39,7 +39,7 @@ export const theme = extendTheme({
 
 const TransferFree = (props: any) => {
     const email: string | any = getMail();
-    const { userInfo } = props;
+    const { userInfo, dispatch, freeForm } = props;
     const [isSwitch, setIsSwitch] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -81,11 +81,27 @@ const TransferFree = (props: any) => {
             setIsLimitDisabled(true)
         }
         handleLockTimes()
+        if(freeForm) {
+            setIsSwitch(true);
+            setValue(freeForm);
+        }
+        const unlisten = history.listen((location: any) => {
+            if(location.action === "PUSH" && location.location.pathname === "/security") {
+                dispatch({
+                    type: 'global/setFreeForm',
+                    payload: "",
+                })
+            }
+        });
+    
+        return () => {
+            unlisten();
+        };
     },[])
 
     const handleLockTimes = async () => {
         const times = await transferLockTime({email});
-        if(times > 0) {
+        if(times.lock_type >= 0) {
             setIsLock(true)
         }
     };
@@ -112,6 +128,10 @@ const TransferFree = (props: any) => {
         if(oldLimit) {
             oldLimit === value ? setIsDisabled(true) : setIsDisabled(false)
         }
+        dispatch({
+            type: 'global/setFreeForm',
+            payload: value,
+        })
     }, [value])
 
     const handleChange = (e: any) => {
@@ -157,19 +177,9 @@ const TransferFree = (props: any) => {
         // const validUntil: number = currentTimestamp + (5 * 60 * 1000);
 
         const sessionSigner = generateSigner();
-        setFreeStep("0")
         const secretKey = await deriveAES256GCMSecretKey(sha256(skPassword), salt);
         const encryptKey = encrypt(sessionSigner.privateKey, secretKey.toString());
-        console.log(sessionSigner.address, 'sessionSigner.address')
 
-        sessionStorage.setItem("ow", axiom.getAddress())
-        sessionStorage.setItem("a", sha256(skPassword));
-        sessionStorage.setItem("b", salt);
-        sessionStorage.setItem("sr", "0");
-        sessionStorage.setItem("sk", encryptKey);
-        sessionStorage.setItem("freeLimit", value ? value : "");
-        sessionStorage.setItem("validAfter", validAfter.toString());
-        sessionStorage.setItem("validUntil", validUntil.toString());
         const decryptKey = decrypt(encryptKey, secretKey.toString("utf-8"))
 
         const signer = new Wallet(decryptKey);
@@ -187,7 +197,7 @@ const TransferFree = (props: any) => {
                         const allowCredentials = localStorage.getItem("allowCredentials");
                         const obj: any = {
                             challenge: isoBase64URL.fromBuffer(useropHash),
-                            rpId: "axmwallet.io",
+                            rpId: window.RPID,
                             allowCredentials: [{
                                 "id": allowCredentials,
                                 "type": "public-key",
@@ -215,11 +225,10 @@ const TransferFree = (props: any) => {
                     }
                 }
             );
+            console.log(setSessionOP, '--------op')
             setSessionOP.authData = isoBase64URL.fromBuffer(setSessionOP.authData);
             setSessionOP.clientData = isoBase64URL.fromBuffer(setSessionOP.clientData);
             setSessionOP.signature = isoBase64URL.fromBuffer(setSessionOP.signature);
-            console.log(setSessionOP, 'setSessionOP')
-            console.log(setSessionOP, 'setSessionOP')
 
             localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
             setIsOpen(false);
@@ -245,6 +254,25 @@ const TransferFree = (props: any) => {
                 setIsUpdate(true);
             }
         }
+
+        setFreeStep("0")
+
+        sessionStorage.setItem("ow", axiom.getAddress())
+        sessionStorage.setItem("a", sha256(skPassword));
+        sessionStorage.setItem("b", salt);
+        if(sessionKey || freeLimit) {
+            sessionStorage.setItem("sr", "1");
+        }else {
+            sessionStorage.setItem("sr", "0");
+        }
+        sessionStorage.setItem("sk", encryptKey);
+        sessionStorage.setItem("freeLimit", value ? value : "");
+        sessionStorage.setItem("validAfter", validAfter.toString());
+        sessionStorage.setItem("validUntil", validUntil.toString());
+        dispatch({
+            type: 'global/setFreeForm',
+            payload: "",
+        })
     }
 
     const handleSubmit = async (password: any) => {
@@ -280,6 +308,7 @@ const TransferFree = (props: any) => {
     }
 
     const handleBioPay = async() => {
+        setIsOpen(false);
         setBioResultOpen(true);
         setBioStatus("loading");
         const axiom = await AxiomAccount.fromPasskey(userInfo.address);
@@ -301,7 +330,7 @@ const TransferFree = (props: any) => {
             return;
         }
         const times = await transferLockTime({email});
-        if(times > 0) {
+        if(times.lock_type >= 0) {
             showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
             return;
         }
@@ -428,4 +457,5 @@ const TransferFree = (props: any) => {
 }
 export default connect(({ global }) => ({
     userInfo: global.userInfo,
+    freeForm: global.freeForm
 }))(TransferFree)

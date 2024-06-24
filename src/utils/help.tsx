@@ -128,6 +128,10 @@ export const clearSessionData = (dispatch?: any) => {
     sessionStorage.removeItem("b");
     sessionStorage.removeItem("op");
     sessionStorage.removeItem("freeLimit");
+    sessionStorage.removeItem("sr");
+    sessionStorage.removeItem("ow");
+    sessionStorage.removeItem("validAfter");
+    sessionStorage.removeItem("validUntil");
     if(dispatch){
         dispatch({
             type: 'global/setUser',

@@ -37,6 +37,7 @@ const ModalInputPassword = (props: any) => {
     }
 
     const handleToReset = () => {
+        setError('');
         history.push('/reset-transfer')
     }
 
@@ -54,6 +55,7 @@ const ModalInputPassword = (props: any) => {
                     style={{height: 56, width: "100%"}}
                     onChange={handleChangePassWord}
                     onBlur={handleBlurPassWord}
+                    tabIndex="-1"
                 />
                 <FormErrorMessage>{error}</FormErrorMessage>
             </FormControl>

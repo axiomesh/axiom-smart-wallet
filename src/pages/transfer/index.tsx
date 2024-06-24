@@ -186,7 +186,7 @@ const Transfer = (props: any) => {
     const [balance, setBalance] = useState(0);
     const [transferInfo, setTransferInfo] = useState<transferProps>();
     const [lockTimes, setLockTimes] = useState('');
-    const [isLock, setIsLock] = useState(true);
+    const [isLock, setIsLock] = useState<number>(0);
     const [btnLoading, setBtnLoading] = useState(false);
     const [gasLoading, setGasLoading] = useState(false);
     const [submitFlag, setSubmitFlag] = useState(false);
@@ -238,24 +238,25 @@ const Transfer = (props: any) => {
         }
     },[info])
 
-    const handleTokenOption = (network: string) => {
+    const handleTokenOption = async (network: string) => {
         let arr: any = [];
-        token.map(async (item: {name: string, network: string, decimals: number, contract: string, symbol: string}, index: number) => {
-            if(network.includes(item.network) ) {
-                const balance = await initBalance(item.name);
+        for (let i: number = 0; i < token.length; i++) {
+            if(network.includes(token[i].network)) {
+                const balance = await initBalance(token[i].name);
+                console.log(balance)
                 arr.push({
-                    value: item.name,
-                    label: item.name,
-                    decimals: item.decimals,
-                    contract: item.contract,
-                    symbol: item.symbol,
+                    value: token[i].name,
+                    label: token[i].name,
+                    decimals: token[i].decimals,
+                    contract: token[i].contract,
+                    symbol: token[i].symbol,
                     balance: formatAmount(balance.toString()),
                     amount: balance,
-                    icon: <img style={{width: "40px", height: "40px"}} src={require(`@/assets/token/${item.name}.png`)} />
+                    icon: <img style={{width: "40px", height: "40px"}} src={require(`@/assets/token/${token[i].name}.png`)} />
                 })
-                arr.sort((a, b) => b.amount - a.amount);
             }
-        })
+        }
+        arr.sort((a: any, b: any) => b.amount - a.amount);
         setTokenList(arr)
     }
 
@@ -267,7 +268,7 @@ const Transfer = (props: any) => {
             if (milliseconds < 0) {
                 clearInterval(timer);
                 setLockTimes("");
-                setIsLock(false);
+                setIsLock(-1);
             } else {
                 setLockTimes(msToTime(milliseconds))
             }
@@ -278,11 +279,13 @@ const Transfer = (props: any) => {
         setBtnLoading(true);
         const times = await transferLockTime({email});
         setBtnLoading(false);
-        if(times > 0) {
-            setIsLock(true);
-            countdown(times)
+        if(times.lock_type === 0) {
+            setIsLock(0);
+            countdown(times.time_left)
+        }else if(times.lock_type === 1) {
+            setIsLock(1);
         }else {
-            setIsLock(false);
+            setIsLock(-1);
         }
     };
 
@@ -562,7 +565,7 @@ const Transfer = (props: any) => {
         const sessionKey = sessionStorage.getItem("sk");
         const sr = sessionStorage.getItem("sr");
         let flag = true;
-        if(sessionKey && sr !== "0") {
+        if(sessionKey && sr !== "0" && sr !== "1") {
             const skPassword = sessionStorage.getItem("a");
             const salt = sessionStorage.getItem("b");
             const ow = sessionStorage.getItem("ow");
@@ -663,9 +666,8 @@ const Transfer = (props: any) => {
         }
         if(btnLoading)
             return;
-        if(isLock)
+        if(isLock >= 0)
             return;
-
         setBtnLoading(true)
         if(isSetPassword) {
             if(!form.send){
@@ -702,11 +704,17 @@ const Transfer = (props: any) => {
                 return;
             }
             const times = await transferLockTime({email});
-            if(times > 0) {
+            if(times.lock_type === 0) {
+                setIsLock(0);
+                countdown(times.time_left);
                 setBtnLoading(false);
-                setIsLock(true);
-                countdown(times);
                 return;
+            }else if(times.lock_type === 1) {
+                setIsLock(1);
+                setBtnLoading(false);
+                return;
+            }else {
+                setIsLock(-1);
             }
             const gas = await getGas(sendValue, form.send);
             if(isMax) {
@@ -757,7 +765,7 @@ const Transfer = (props: any) => {
                 }
             })
             let isLimit: boolean = false;
-            if(sessionKey && sr !== "0") {
+            if(sessionKey && sr !== "0" && sr !== "1") {
                 isLimit = await handleVerifyLimit();
             }
             console.log(isLimit)
@@ -947,7 +955,7 @@ const Transfer = (props: any) => {
             setSubmitFlag(false);
             sessionStorage.removeItem("form");
             const sr = sessionStorage.getItem("sr");
-            if(sr === "0") {
+            if(sr === "0" || sr === "1") {
                 sessionStorage.removeItem("sr");
             }
             setResultStatus("success");
@@ -966,7 +974,7 @@ const Transfer = (props: any) => {
         const value = ethers.utils.parseUnits(sendValue, decimals);
         const sessionKey = sessionStorage.getItem("sk");
         const sr = sessionStorage.getItem("sr");
-        if(sessionKey && sr === "0" && !isTransfinite) {
+        if(sessionKey && (sr === "0" || sr === "1") && !isTransfinite) {
             await handleSendSetSession(axiom, 'bio')
         }
         if(form.send.value === "AXC") {
@@ -1001,7 +1009,7 @@ const Transfer = (props: any) => {
             onRequestSigning: async (useropHash: any) => {
                 const obj: any = {
                     challenge: isoBase64URL.fromBuffer(useropHash),
-                    rpId: "axmwallet.io",
+                    rpId: window.RPID,
                     allowCredentials: [{
                         "id": allowCredentials,
                         "type": "public-key",
@@ -1065,7 +1073,7 @@ const Transfer = (props: any) => {
                 onRequestSigning: async (useropHash: any) => {
                     const obj: any = {
                         challenge: isoBase64URL.fromBuffer(useropHash),
-                        rpId: "axmwallet.io",
+                        rpId: window.RPID,
                         allowCredentials: [{
                             "id": allowCredentials,
                             "type": "public-key",
@@ -1109,7 +1117,7 @@ const Transfer = (props: any) => {
                 onRequestSigning: async (useropHash: any) => {
                     const obj: any = {
                         challenge: isoBase64URL.fromBuffer(useropHash),
-                        rpId: "axmwallet.io",
+                        rpId: window.RPID,
                         allowCredentials: [{
                             "id": allowCredentials,
                             "type": "public-key",
@@ -1165,7 +1173,7 @@ const Transfer = (props: any) => {
         const sr = sessionStorage.getItem("sr");
         const sessionKey = sessionStorage.getItem("sk");
         let axiom: any, ev: any;
-        if((sessionKey && sr === "0") || !sessionKey || isTransfinite) {
+        if((sessionKey && sr === "0") || (sessionKey && sr === "1") || !sessionKey || isTransfinite) {
             try {
                 axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address)
             }catch (e: any) {
@@ -1261,7 +1269,7 @@ const Transfer = (props: any) => {
             to_address: form.to,
         })
         setPinLoading(false);
-        if(sr === "0") {
+        if(sr === "0" || sr === "1") {
             sessionStorage.removeItem("sr");
         }
         setSubmitFlag(false);
@@ -1274,7 +1282,7 @@ const Transfer = (props: any) => {
         console.log("password")
         const sr = sessionStorage.getItem("sr");
         const sessionKey = sessionStorage.getItem("sk");
-        if(sessionKey && sr === "0" && !isTransfinite) {
+        if(sessionKey && (sr === "0" || sr === "1") && !isTransfinite) {
             await handleSendSetSession(axiom, "password")
         }
         console.log(form.to, value)
@@ -1293,7 +1301,7 @@ const Transfer = (props: any) => {
     const handleAXMERC20Transfer = async (axiom: any, value: BigNumber) => {
         const sessionKey = sessionStorage.getItem("sk");
         const sr = sessionStorage.getItem("sr");
-        if(sessionKey && sr === "0" && !isTransfinite) {
+        if(sessionKey && (sr === "0" || sr === "1") && !isTransfinite) {
             await handleSendSetSession(axiom, "password")
         }
         // @ts-ignore
@@ -1399,6 +1407,22 @@ const Transfer = (props: any) => {
         })
     }
 
+    const handleBioStatusClose = () => {
+        setBioResultOpen(false);
+        handleLockTimes();
+        setBtnLoading(false);
+        setGasLoading(true);
+        const sendValue = form.value.replace(/,/g, "");
+        const addressBalance = balance.replace(/,/g, "");
+        getGas(sendValue, form.send).then((res: any) => {
+            setGasLoading(false);
+            setGasFee(res);
+            if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
+                setValueError("Gas fee is insufficient");
+            }
+        })
+    }
+
     const openResult = () => {
         setTransferOpen(false);
         setResultOpen(true);
@@ -1409,7 +1433,8 @@ const Transfer = (props: any) => {
 
     return (
         <>
-            {lockTimes && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account has been frozen for 24 hours and transactions cannot be sent normally. {lockTimes}</span></div>}
+            {isLock === 0 && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account has been frozen for 24 hours and transactions cannot be sent normally. {lockTimes}</span></div>}
+            {isLock === 1 && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account is currently locked. Please try again tomorrow !</span></div>}
             {isSetPassword ? <div className={styles.transfer}>
                 <div className={styles.transferTitle}>
                     <h1>Transfer</h1>
@@ -1464,6 +1489,7 @@ const Transfer = (props: any) => {
                                         color="gray.700"
                                         height="56px"
                                         borderRadius="12px"
+                                        placeholder='0.0'
                                         _disabled={{
                                             color: "#D1D5DB",
                                             bg: "gray.200", // 修改禁用状态的背景色
@@ -1531,14 +1557,14 @@ const Transfer = (props: any) => {
                         />
                         <FormErrorMessage>{toErrorsText}</FormErrorMessage>
                     </FormControl>
-                    <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
+                    <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
                 </div>
             </div> : 
             <div className={styles.noPassword}>
                 <img style={{width: "800px"}} src={require('@/assets/transfer/set-transfer-bg.png')} alt="" />
                 <p className={styles.noPasswordTitle}>Transfer to any address on Axiomesh & Ethereum</p>
                 <p className={styles.noPasswordDesc}>Set a transfer password to use</p>
-                <div style={{width: "320px", margin: "0 auto"}}><Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock || (form.to === "" && isSetPassword)) ? true : false} >Set transfer password first <i className={styles.noPasswordIcon}></i></Button></div>
+                <div style={{width: "320px", margin: "0 auto"}}><Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword)) ? true : false} >Set transfer password first <i className={styles.noPasswordIcon}></i></Button></div>
             </div> 
             }
 
@@ -1546,7 +1572,7 @@ const Transfer = (props: any) => {
             <SetPayPasswordModal isOpen={passwordOpen} onClose={handlePasswordClose} />
             <TransferResultModal isOpen={resultOpen} onClose={handleResultClose} status={resultStatus} name={resultName} />
             <SetBioPayModal isOpen={bioOpen} onClose={() => {setBioOpen(false)}} password={passord} />
-            <BioResultModal status={bioStatus} isOpen={bioResultOpen} onClose={() => {setBioResultOpen(false)}} />
+            <BioResultModal status={bioStatus} isOpen={bioResultOpen} onClose={handleBioStatusClose} />
         </>
     )
 }

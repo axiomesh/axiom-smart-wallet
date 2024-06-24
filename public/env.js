@@ -27,6 +27,7 @@ window.ETH_BROWSER = 'https://sepolia.etherscan.io';
 // window.BUNDLER_URL='/api/bundler/';
 // window.AXM_BROWSER = 'http://10.2.69.208:8080';
 // window.socketUrl='wss://axmwallet.io';
+// window.RPID="axmwallet.io";
 
 
 // 演示环境配置参数
@@ -43,6 +44,7 @@ window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
 window.BUNDLER_URL='/api/bundler/';
 window.AXM_BROWSER = 'http://10.2.69.59:8080';
 window.socketUrl='wss://axmwallettest.bcds.io';
+window.rpId="axmwallettest.bcds.io";
 
 // 预发布环境配置参数
 

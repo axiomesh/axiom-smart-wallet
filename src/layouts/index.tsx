@@ -10,7 +10,7 @@ import {getUserInfo, refreshToken} from "@/services/login";
 
 
 function Layout(props: any) {
-    const {dispatch } = props;
+    const { dispatch } = props;
     const email: string | any = getMail();
     const [info, setInfo] = useState({});
     useEffect(() => {

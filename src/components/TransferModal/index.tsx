@@ -75,8 +75,12 @@ const TransferModal = (props: any) => {
                 setTime(i)
                 if (i === 0){
                     clearInterval(t);
-                    showErrorToast("Password verification timeout");
-                    // props.onClose();
+                    if(isBio || (isFree && freeStep !== "0")) {
+                        showErrorToast("Verification timeout");
+                    }else {
+                        showErrorToast("Password verification timeout");
+                    }
+                    props.onClose();
                 }
                 i--;
             }
@@ -125,10 +129,13 @@ const TransferModal = (props: any) => {
                         <i className={styles.transferClose} onClick={onClose}></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 40px 40px">
-                        {freeStep === "0" && <div className={styles.transferFreeToast}>
+                        {freeStep === "0" ? <div className={styles.transferFreeToast}>
                             <img src={require("@/assets/transfer/free-toast.png")} alt="" />
                             <span>Password-free payment will be activated after this transfer transaction.</span>
-                        </div>}
+                        </div> : freeStep === "1" ? <div className={styles.transferFreeToast}>
+                            <img src={require("@/assets/transfer/free-toast.png")} alt="" />
+                            <span>Password-free payment update will be activated after this transfer transaction.</span>
+                        </div> : null}
                         <div className={styles.transferDetail}>
                             <h1 style={{paddingBottom: "8px"}}>DETAILS</h1>
                             <div className={styles.transferSend}>
@@ -153,15 +160,15 @@ const TransferModal = (props: any) => {
                                 </div>
                             </div>
                         </div>
-                        {(isBio && (!isFree || freeStep === "0")) && <div className={styles.transferBio}>
+                        {(isBio && (!isFree || freeStep === "0" || freeStep === "1")) && <div className={styles.transferBio}>
                             <div className={styles.transferBioButton} onClick={handleBioPay}><img src={require("@/assets/transfer/bio.png")} alt="" /><span>Confirm</span></div>
                             <div className={styles.transferBioText} onClick={() => setIsBio(false)}>Confirm with password</div>
                         </div>}
-                        {(!isBio && (!isFree || freeStep === "0")) && <><p className={styles.transferTitle}>Transfer password verification</p>
+                        {(!isBio && (!isFree || freeStep === "0" || freeStep === "1")) && <><p className={styles.transferTitle}>Transfer password verification</p>
                             <ModalInputPassword isForget={true} isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
                             {userInfo.bio_payment_status === 1 && <div className={styles.transferBioText} onClick={() => setIsBio(true)}>Confirm with passkey</div>}
                         </>}
-                        {(isFree && freeStep !== "0") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm (Passward-free)</Button></div>}
+                        {(isFree && freeStep !== "0" && freeStep !== "1") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm (Passward-free)</Button></div>}
                     </ModalBody>
                 </ModalContent>
             </Modal>

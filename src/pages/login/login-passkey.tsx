@@ -156,7 +156,7 @@ const LoginPasskey: React.FC = () => {
             authenticatorSelection: {
                 authenticatorAttachment: type,
                 residentKey: 'preferred',
-                userVerification: 'preferred',
+                userVerification: 'required',
                 requireResidentKey: false,
             },
             user: {
@@ -230,7 +230,8 @@ const LoginPasskey: React.FC = () => {
                 "type": "public-key",
                 "id": res.credential_id,
                 "transports": transports
-            }]
+            }],
+            userVerification: "required"
         })
         let token: any;
         try {

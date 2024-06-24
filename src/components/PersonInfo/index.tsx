@@ -40,6 +40,8 @@ const PersonInfo = (props: any) => {
         sessionStorage.removeItem('sessionKey');
         sessionStorage.removeItem("key");
         sessionStorage.removeItem("allowCredentials");
+        sessionStorage.removeItem("ow");
+        sessionStorage.removeItem("sr");
         const deviceId: string | null = localStorage.getItem('visitorId');
         await logout(email, deviceId)
         history.replace('/login')

@@ -67,11 +67,6 @@ const TransferPassword = (props: Props) => {
             } else {
                 setProgress(25);
             }
-            if(newValue.length < 3) {
-                setProgress(25)
-            }else if(newValue.length < 6) {
-                setProgress(50)
-            }
 
             setProgressText('Password is too short !')
         }
