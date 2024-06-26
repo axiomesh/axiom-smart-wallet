@@ -109,20 +109,20 @@ const TransferPassword = (props: Props) => {
     const handleSubmit = () => {
         if(loading)
             return;
-        if(!passWordReg.test(password)){
-            setNewErrorText('Invalid password')
-            return;
-        }
         if(!password){
             setNewErrorText('Please enter a new password')
             return;
         }
-        if(!passWordReg.test(rePassword)){
-            setErrorText('Invalid password');
+        if(!passWordReg.test(password)){
+            setNewErrorText('Invalid password')
             return;
         }
         if(!rePassword){
             setErrorText('Please enter a repeat password')
+            return;
+        }
+        if(!passWordReg.test(rePassword)){
+            setErrorText('Invalid password');
             return;
         }
         if(!password || !rePassword || errorText || newErrorText) return

@@ -42,6 +42,10 @@ const ModalInputPassword = (props: any) => {
     }
 
     const handleSubmit = () => {
+        if(password === "") {
+            setError('Please enter a password');
+            return;
+        }
         props.onSubmit(password)
     }
     

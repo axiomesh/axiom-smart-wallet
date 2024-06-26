@@ -5,19 +5,25 @@ import { history, connect } from 'umi';
 import { passkeySecurityInfo } from "@/services/transfer";
 import {getMail} from "@/utils/help";
 import { convertTimestampToDate } from "@/utils/utils";
+import Toast from "@/hooks/Toast";
 
 const passkeySecurity = (props: any) => {
     const email: string | any = getMail();
     const { userInfo } = props;
     const [passkeyInfo, setPasskeyInfo] = useState<any>([]);
+    const {showErrorToast} = Toast();
 
     useEffect(() => {
         handleGetPasskeyInfo()
     }, [userInfo])
 
     const handleGetPasskeyInfo = (async () => {
-        const result = await passkeySecurityInfo({email: email, device_id: userInfo.device_id});
-        setPasskeyInfo(result);
+        try {
+            const result = await passkeySecurityInfo({email: email, device_id: userInfo.device_id});
+            setPasskeyInfo(result);
+        }catch (error: any) {
+            showErrorToast(error);
+        }
     })
 
     const handleGetTipList = (type: string) => {

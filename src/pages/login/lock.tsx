@@ -19,7 +19,7 @@ import { detectBrowser, getSafariVersion } from '@/utils/utils';
 import BioResultModal from '@/components/BioResultModal';
 import {connect} from "@@/exports";
 
-export default function LockPage(props: any) {
+function LockPage(props: any) {
     const { dispatch } = props;
     const email: string | any = getMail();
     const [open, setOpen] = useState(false);
@@ -176,3 +176,6 @@ export default function LockPage(props: any) {
       </div>
   );
 }
+export default connect(({ global }) => ({
+    userInfo: global.userInfo,
+}))(LockPage)

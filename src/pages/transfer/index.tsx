@@ -186,7 +186,7 @@ const Transfer = (props: any) => {
     const [balance, setBalance] = useState(0);
     const [transferInfo, setTransferInfo] = useState<transferProps>();
     const [lockTimes, setLockTimes] = useState('');
-    const [isLock, setIsLock] = useState<number>(0);
+    const [isLock, setIsLock] = useState<number>(-1);
     const [btnLoading, setBtnLoading] = useState(false);
     const [gasLoading, setGasLoading] = useState(false);
     const [submitFlag, setSubmitFlag] = useState(false);
@@ -1014,7 +1014,8 @@ const Transfer = (props: any) => {
                         "id": allowCredentials,
                         "type": "public-key",
                         "transports": ["internal"]
-                    }]
+                    }],
+                    userVerification: "required"
                 }
                 let auth: any;
                 try {
@@ -1078,7 +1079,8 @@ const Transfer = (props: any) => {
                             "id": allowCredentials,
                             "type": "public-key",
                             "transports": ["internal"]
-                        }]
+                        }],
+                        userVerification: "required"
                     }
                     let auth: any;
                     try {
@@ -1122,7 +1124,8 @@ const Transfer = (props: any) => {
                             "id": allowCredentials,
                             "type": "public-key",
                             "transports": ["internal"]
-                        }]
+                        }],
+                        userVerification: "required"
                     }
                     let auth: any;
                     try {

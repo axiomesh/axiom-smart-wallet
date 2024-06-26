@@ -66,8 +66,12 @@ const TransferFree = (props: any) => {
     const [ModalComponent, openModal, closeModal] = useCancelModal();
 
     useEffect(() => {
-        if(sessionStorage.getItem("sr")) {
-            setFreeStep(sessionStorage.getItem("sr"))
+        const sr = sessionStorage.getItem("sr");
+        if(sr === "1" || sr === "0") {
+            setFreeStep("0")
+            if(sr === "1") {
+                setIsUpdate(true)
+            }
         }
         if(sessionStorage.getItem("sk")) {
             setSessionKey(sessionStorage.getItem("sk"))
@@ -202,7 +206,8 @@ const TransferFree = (props: any) => {
                                 "id": allowCredentials,
                                 "type": "public-key",
                                 "transports": ["internal"]
-                            }]
+                            }],
+                            userVerification: "required"
                         }
                         let auth: any;
                         try {
@@ -366,6 +371,14 @@ const TransferFree = (props: any) => {
         validate(value);
     }
 
+    const handleValueChange = (e: any) => {
+        let inputValue = e.target.value;
+        if(/^[0-9,.]*$/.test(inputValue)){
+            console.log(111)
+            setValue(inputValue);
+        }
+    }
+
     return (
         <ChakraProvider theme={theme}>
             <Page needBack backFn={() => history.push('/security')}>
@@ -390,7 +403,6 @@ const TransferFree = (props: any) => {
                                     <span className={styles.freeSettingCenterBefore}>HK$</span>
                                 </InputLeftAddon>
                                 <Input
-                                    type='number'
                                     value={value?value:""}
                                     placeholder='100-5000'
                                     fontSize="14px"
@@ -409,9 +421,7 @@ const TransferFree = (props: any) => {
                                         backgroundColor: "#EDF2F7"
                                     }}
                                     onBlur={handleBlur}
-                                    onChange={(e: any) => {
-                                        setValue(e.target.value)
-                                    }}
+                                    onChange={handleValueChange}
                                     disabled={isLimitDisabled}
                                 />
                                 {
