@@ -27,7 +27,6 @@ export default async function request(params: any) {
         // @ts-ignore
         new_data[key] = data[key]
     }
-
     const headers = {
         Authorization: `axiom-wallet ${getToken()}`,
     }

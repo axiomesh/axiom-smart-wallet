@@ -87,6 +87,8 @@ const TransferFree = (props: any) => {
         handleLockTimes()
         if(freeForm) {
             setIsSwitch(true);
+            setIsLimitDisabled(false);
+            
             setValue(freeForm);
         }
         const unlisten = history.listen((location: any) => {
@@ -236,6 +238,7 @@ const TransferFree = (props: any) => {
             setSessionOP.signature = isoBase64URL.fromBuffer(setSessionOP.signature);
 
             localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
+            localStorage.setItem("sessionType", "passkey");
             setIsOpen(false);
             setBtnLoading(false);
             setPinLoading(false);
@@ -252,6 +255,7 @@ const TransferFree = (props: any) => {
                 ""
             );
             localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
+            localStorage.setItem("sessionType", "password");
             setIsOpen(false);
             setBtnLoading(false);
             setPinLoading(false);
@@ -452,7 +456,7 @@ const TransferFree = (props: any) => {
                             </PopoverTrigger>
                             <PopoverContent style={{background: "#171923",color:"#fff",fontSize: "14px",boxShadow:"none"}}>
                                 <PopoverArrow bg="#171923" />
-                                <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after this transfer transaction.":"Password-free payment will be activated after your next successful transfer transaction."}</PopoverBody>
+                                <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after your next successful transfer transaction.":"Password-free payment will be activated after your next successful transfer transaction."}</PopoverBody>
                             </PopoverContent>
                         </Popover></div>}
                     </div>

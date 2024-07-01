@@ -22,7 +22,6 @@ const Page: React.FC<Props> = ({needBack, backFn, children}) => {
             boxSizing: 'border-box',
             minHeight: 700,
             height: '100vh',
-            overflow: 'scroll',
             background: 'linear-gradient(0deg, #fff 0%, rgba(237, 205, 88, 0.01) 33%, rgba(236, 201, 75, 0) 66%, rgba(255, 255, 255, 0.8) 100%)'
         }}>
             { needBack ? <div onClick={handleBack} className='page-back'>

@@ -45,6 +45,10 @@ function LockPage(props: any) {
             type: 'global/setFreeForm',
             payload: "",
         })
+        dispatch({
+            type: 'global/setForm',
+            payload: {},
+        })
     }, [])
 
     useEffect(() => {

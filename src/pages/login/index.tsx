@@ -9,7 +9,7 @@ import {
     useToast
 } from '@chakra-ui/react';
 import { history, connect, Navigate } from 'umi';
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import Right from './componments/right';
 import { sendVerifyCode, checkUser } from '@/services/login';
 import {setMail} from "@/utils/help";
@@ -18,7 +18,8 @@ import { getToken } from "@/utils/help";
 import { detectBrowser, getSafariVersion, getChromeVersion } from "@/utils/utils";
 import DeviceSupport from "@/components/DeviceSupport";
 
-function Login() {
+function Login(props: any) {
+    const { dispatch } = props;
     const toast = useToast();
     const [errorText, setErrorText] = useState('');
     const [isCheck, setIsCheck] = useState(false);
@@ -45,6 +46,17 @@ function Login() {
     // useEffect(() => {
     //     clearSessionData(dispatch);
     // }, []);
+
+    useEffect(() => {
+        dispatch({
+            type: 'global/setForm',
+            payload: {},
+        })
+        dispatch({
+            type: 'global/setUser',
+            payload: {},
+        })
+    }, [])
 
 
     React.useEffect(() => {

@@ -243,7 +243,6 @@ const Transfer = (props: any) => {
         for (let i: number = 0; i < token.length; i++) {
             if(network.includes(token[i].network)) {
                 const balance = await initBalance(token[i].name);
-                console.log(balance)
                 arr.push({
                     value: token[i].name,
                     label: token[i].name,
@@ -328,7 +327,6 @@ const Transfer = (props: any) => {
                 // })
             }
             if(sessionForm.value) {
-                console.log(sessionForm)
                 newForm.value = sessionForm.value;
                 const sendValue = sessionForm.value.replace(/,/g, "")
                 getGas(sendValue, sessionForm.send).then((res: any) => {
@@ -365,7 +363,6 @@ const Transfer = (props: any) => {
             getGas(sendValue, form.send).then((res: any) => {
                 setGasLoading(false);
                 setGasFee(res);
-                console.log(res, sendValue)
                 if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
                     setValueError("Gas fee is insufficient");
                 }
@@ -389,7 +386,6 @@ const Transfer = (props: any) => {
             // @ts-ignore
             const contract = new ethers.Contract(send.contract, ERC20_ABI, rpc_provider);
             decimals = await contract.decimals();
-            console.log(decimals, amount)
             value = ethers.utils.parseUnits(amount, decimals);
             // @ts-ignore
             const erc20 = new ethers.Contract(window.PAYMASTER, ERC20_ABI, rpc_provider);
@@ -399,7 +395,6 @@ const Transfer = (props: any) => {
                 to: send.contract,
                 data: calldata,
             })
-            console.log(res)
             allow = parseInt(res, 16);
         }
         if(allow === 0) {
@@ -485,7 +480,6 @@ const Transfer = (props: any) => {
                 const number = Number(gas);
                 const roundedNum = Math.ceil(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
                 const roundedNumber = roundedNum.toFixed(decimals);
-                console.log(roundedNum, gas)
                 return roundedNumber;
             }
         }
@@ -772,7 +766,6 @@ const Transfer = (props: any) => {
             const transfinite: boolean = isLimit;
             setIsTransfinite(transfinite)
 
-            console.log(transfinite)
             setTransferInfo({
                 send: form.send.value,
                 to: form.to,
@@ -940,8 +933,11 @@ const Transfer = (props: any) => {
         }catch (err) {
             return;
         }
+        console.log(transactionHash)
         if(transactionHash === "failed") {
             setResultStatus("failed");
+            return;
+        }else if(transactionHash === "cancel") {
             return;
         }else {
             await transaction({
@@ -982,12 +978,18 @@ const Transfer = (props: any) => {
                 const res = await axcBioPay(axiom, form, value);
                 if(res === "failed") {
                     return "failed";
+                }else if (res === "cancel") {
+                    return "cancel";
                 }else {
                     return res;
                 }
-            }catch(err) {
-                console.log(err)
-                return "failed";
+            }catch(err: any) {
+                const string = err.toString(), expr = /Cannot destructure property 'response'/;
+                if(string.search(expr) > 0) {
+                    return "cancel";
+                }else {
+                    return "failed";
+                }
             }
         }else {
             try {
@@ -997,8 +999,13 @@ const Transfer = (props: any) => {
                 }else {
                     return res;
                 }
-            }catch(err) {
-                return "failed";
+            }catch(err: any) {
+                const string = err.toString(), expr = /Cannot destructure property 'response'/;
+                if(string.search(expr) > 0) {
+                    return "cancel";
+                }else {
+                    return "failed";
+                }
             }
         }
     }
@@ -1030,7 +1037,7 @@ const Transfer = (props: any) => {
                     }else {
                         setBioStatus("failed");
                     }
-                    return;
+                    return "cancel"
                 }
                 return {
                     response: auth,
@@ -1369,17 +1376,20 @@ const Transfer = (props: any) => {
         try {
             let setSessionOP: any = localStorage.getItem("sessionOp");
             setSessionOP = JSON.parse(setSessionOP);
-            if(type === "bio") {
+            const sessionType = localStorage.getItem("sessionType");
+            if(sessionType === "passkey") {
                 setSessionOP.authData = isoBase64URL.toBuffer(setSessionOP.authData);
                 setSessionOP.clientData = isoBase64URL.toBuffer(setSessionOP.clientData);
                 setSessionOP.signature = isoBase64URL.toBuffer(setSessionOP.signature);
             }
-            if(setSessionOP)
-            await axiom.sendSetSession(setSessionOP);
+            if(setSessionOP){
+                await axiom.sendSetSession(setSessionOP);
+            }
 
             localStorage.removeItem("sessionOp");
+            localStorage.removeItem("sessionType");
         }catch (e: any) {
-            console.log(e)
+            console.log(e, '-----------------setSessionOP')
         }
     }
 
@@ -1410,11 +1420,19 @@ const Transfer = (props: any) => {
         })
     }
 
-    const handleBioStatusClose = () => {
+    const handleBioStatusClose = async () => {
         setBioResultOpen(false);
         handleLockTimes();
         setBtnLoading(false);
         setGasLoading(true);
+        if(isMax) {
+            const max: string | undefined = await hanldeGetMax();
+            if(max) {
+                setForm({ ...form, value: max.toString() })
+            }else {
+                return;
+            }
+        }
         const sendValue = form.value.replace(/,/g, "");
         const addressBalance = balance.replace(/,/g, "");
         getGas(sendValue, form.send).then((res: any) => {

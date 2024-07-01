@@ -51,7 +51,11 @@ const VerifyTransferModal = (props: any) => {
                 setTime(i)
                 if (i === 0){
                     clearInterval(t);
-                    showErrorToast("Confirm timeout !");
+                    if(showBio) {
+                        showErrorToast("Verification timeout");
+                    }else {
+                        showErrorToast("Confirm timeout !");
+                    }
                     props.onClose();
                 }
                 i--;
@@ -61,7 +65,11 @@ const VerifyTransferModal = (props: any) => {
     },[props.isOpen])
 
     const handleClose = () => {
-        showErrorToast("Confirm failed !");
+        if(showBio) {
+            showErrorToast("Verification failed");
+        }else {
+            showErrorToast("Confirm failed !");
+        }
         props.onClose();
     }
 

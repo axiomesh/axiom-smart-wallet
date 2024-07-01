@@ -39,8 +39,10 @@ const BioPayment = (props: any) => {
     const {showSuccessToast, showErrorToast} = Toast();
     const [isOpen, setIsOpen] = useState(false);
     const [pinLoading, setPinLoading] = useState<boolean>(false);
+    const [isUpdate, setIsUpdate] = useState<boolean>(false);
     const [msg, setMsg] = useState<string>("");
     const [publicKey, setPublicKey] = useState<any>({});
+    const [updatePublicKey, setUpdatePublicKey] = useState<any>({});
 
     useEffect(() => {
         if(userInfo.bio_payment_status === 1) {
@@ -61,10 +63,12 @@ const BioPayment = (props: any) => {
             setResultStatus("loading");
             const isdevice = await deviceIsOpenBio({email, device_id: deviceId});
             if(isdevice === 0) {
+                setIsUpdate(false);
                 await createPasskey();
             }else {
                 const isRepalce = await isReplaceBioPayment({email, device_id: deviceId});
                 if(isRepalce === 1) {
+                    setIsUpdate(true);
                     await verifyPasskey(true);
                 }else {
                     await verifyPasskey(false);
@@ -90,8 +94,9 @@ const BioPayment = (props: any) => {
     const verifyPasskey = async (isRepalce: boolean) => {
         const deviceId = localStorage.getItem("visitorId");
         let publicKey: any;
+        let res: any;
         try {
-            const res = await checkBioPasskeyCreate({
+            res = await checkBioPasskeyCreate({
                 email: email,
                 device_id: deviceId,
             })
@@ -106,6 +111,7 @@ const BioPayment = (props: any) => {
                 }],
                 userVerification: "required"
             })
+            setUpdatePublicKey(publicKey);
             setResultStatus("success");
             localStorage.setItem("allowCredentials", publicKey.id)
         }catch(error: any) {
@@ -119,41 +125,43 @@ const BioPayment = (props: any) => {
             return;
         }
 
-        try {
-            await checkBioPasskey({
-                email: email,
-                result: JSON.stringify(publicKey),
-                device_id: deviceId
-            })
-        }catch (error: any) {
-            showErrorToast(error)
-            return;
-        }
-
         if(isRepalce) {
-            setTimeout(async () => {
-                setAxiomResultOpen(true);
-                setIsOpen(false);
-                setAxiomResultStatus("loading");
-                try {
-                    const axiom = await AxiomAccount.fromPasskey(userInfo.address);
-                    await axiom.updatePasskey({response: publicKey, expectedChallenge: "", expectedOrigin: ""}, {})
-                    setAxiomResultStatus("success");
-                    setIsSwitch(true);
-                    const userRes = await getUserInfo(email, deviceId);
-                    if(userRes){
-                        dispatch({
-                            type: 'global/setUser',
-                            payload: userRes,
-                        })
-                    }
-                }catch(err: any) {
-                    console.log(err, '-------updatepasskey')
-                    setAxiomResultStatus("failed");
-                    return;
-                }
-            }, 1000)
+            setResultStatus("opened");
+            setPublicKey(JSON.parse(res.credential_result));
+            // setTimeout(async () => {
+            //     setAxiomResultOpen(true);
+            //     setIsOpen(false);
+            //     setAxiomResultStatus("loading");
+            //     try {
+            //         const axiom = await AxiomAccount.fromPasskey(userInfo.address);
+            //         await axiom.updatePasskey({response: JSON.parse(res), expectedChallenge: "", expectedOrigin: ""}, {})
+            //         setAxiomResultStatus("success");
+            //         setIsSwitch(true);
+            //         const userRes = await getUserInfo(email, deviceId);
+            //         if(userRes){
+            //             dispatch({
+            //                 type: 'global/setUser',
+            //                 payload: userRes,
+            //             })
+            //         }
+            //     }catch(err: any) {
+            //         console.log(err, '-------updatepasskey')
+            //         setAxiomResultStatus("failed");
+            //         return;
+            //     }
+            // }, 1000)
         }else {
+            try {
+                await checkBioPasskey({
+                    email: email,
+                    result: JSON.stringify(publicKey),
+                    device_id: deviceId
+                })
+                setIsSwitch(true);
+            }catch (error: any) {
+                showErrorToast(error)
+                return;
+            }
             setIsSwitch(true);
             const userRes = await getUserInfo(email, deviceId);
             if(userRes){
@@ -235,6 +243,7 @@ const BioPayment = (props: any) => {
         setAxiomResultOpen(true);
         setIsOpen(false);
         setAxiomResultStatus("loading");
+        // console.log(publicKey, '----------------createPublic')
         try {
             await axiom.updatePasskey({response: publicKey, expectedChallenge: "", expectedOrigin: ""}, {})
             setAxiomResultStatus("success");
@@ -245,21 +254,36 @@ const BioPayment = (props: any) => {
         }
         const visitorId = userInfo.device_id;
         localStorage.setItem("allowCredentials", publicKey.id)
-        try {
-            await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKey), device_type: getDeviceType()});
-            setIsSwitch(true);
-            const deviceId = localStorage.getItem('visitorId');
-            const userRes = await getUserInfo(email, deviceId);
-            if(userRes){
-                dispatch({
-                    type: 'global/setUser',
-                    payload: userRes,
-                })
+        const deviceId = localStorage.getItem('visitorId');
+        if(!isUpdate) {
+            try {
+                await bioCheck({email, device_id: visitorId, result: JSON.stringify(publicKey), device_type: getDeviceType()});
+                setIsSwitch(true);
+            }catch (error: any) {
+                showErrorToast(error);
+                setResultStatus("failed");
+                return;
             }
-        }catch (error: any) {
-            showErrorToast(error);
-            setResultStatus("failed");
-            return;
+        }else {
+            try {
+                await checkBioPasskey({
+                    email: email,
+                    result: JSON.stringify(updatePublicKey),
+                    device_id: deviceId
+                })
+                setIsSwitch(true);
+            }catch (error: any) {
+                showErrorToast(error)
+                return;
+            }
+        }
+
+        const userRes = await getUserInfo(email, deviceId);
+        if(userRes){
+            dispatch({
+                type: 'global/setUser',
+                payload: userRes,
+            })
         }
     }
 
