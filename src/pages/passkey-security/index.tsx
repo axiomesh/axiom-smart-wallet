@@ -26,19 +26,12 @@ const passkeySecurity = (props: any) => {
         }
     })
 
-    const handleGetTipList = (type: string) => {
-        if(type === "Mac" || type == "Windows") {
-            return [
-                "Safari on MacOS",
-                "Chrome on MacOS",
-                "Opera on Windows"
-            ]
-        }else {
-            return [
-                "Safari on iPhone",
-                "Chrome for IOS/Android"
-            ]
-        }
+    const handleGetTipList = () => {
+        return [
+            "Safari on MacOS",
+            "Chrome on MacOS",
+            "Opera on Windows"
+        ]
     }
 
     return (
@@ -70,7 +63,7 @@ const passkeySecurity = (props: any) => {
                                         <div className={styles.passkeyItemBottomTip}>Where you can log in current account with Passkey</div>
                                         <div className={styles.passkeyItemBottomContent}>
                                             {
-                                                handleGetTipList(item.device_type).map((tip: string, tipIndex: number) => {
+                                                handleGetTipList().map((tip: string, tipIndex: number) => {
                                                     return (
                                                         <div key={tipIndex} className={styles.passkeyItemBottomContentItem}>{item.device_type === "Mac" || item.device_type === "Windows" ? <img src={require("@/assets/passkey/pc.png")} alt="" /> : <img src={require("@/assets/passkey/phone.png")} alt="" />}<span>{tip}</span></div>
                                                     )

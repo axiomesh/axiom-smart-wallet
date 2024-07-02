@@ -12,6 +12,7 @@ import { ethers } from "ethers";
 // @ts-ignore
 import { ERC20_ABI } from 'axiom-smart-account-test'
 import {connect} from "umi";
+const Decimal = require('decimal');
 
 interface Item {
     label: string
@@ -117,9 +118,9 @@ const Home = (props:any) => {
             initTicketData()
         }
     }, [userInfo?.address]);
-
     const sumArrayObjects = (arr:Array<Item>) => {
-        return arr.reduce((accumulator, obj) => accumulator + obj.totalValue, 0);
+        return arr.reduce((accumulator, obj) => accumulator.add(new Decimal(obj.totalValue)), new Decimal(0));
+        // return arr.reduce((accumulator, obj) => accumulator + obj.totalValue, 0);
     }
 
     useEffect(() => {
