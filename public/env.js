@@ -32,31 +32,32 @@ window.ETH_BROWSER = 'https://sepolia.etherscan.io';
 
 // 演示环境配置参数
 
+// window.RPC_URL='/api/node/';
+// window.WETH_CONTRACT = "0x5fbdb2315678afecb367f032d93f642f64180aa3"
+// window.USDT_CONTRACT = "0xC73a66B4074B609E24bB264821e183DC3b9Ef654"
+// window.WUSDT_CONTRACT = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+// window.USDC_CONTRACT = "0xAaE9ebB0EcBfeAbD2d9883e6707F89acfF55284C"
+// window.WUSDC_CONTRACT = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
+// window.WAXC_CONTRACT = "0x620A5aaA95608eB4929BDbc069B3105F3347Ccd2"
+// window.PAYMASTER = "0x000000000000000000000000000000000000100b"
+// window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
+// window.BUNDLER_URL='/api/bundler/';
+// window.AXM_BROWSER = 'http://10.2.69.59:8080';
+// window.socketUrl='wss://axmwallettest.bcds.io';
+// window.rpId="axmwallettest.bcds.io";
+
+// 预发布环境配置参数
+
 window.RPC_URL='/api/node/';
-window.WETH_CONTRACT = "0x5fbdb2315678afecb367f032d93f642f64180aa3"
+window.WETH_CONTRACT = "0xa7240bcff60eef40f31b8ed5d921bad6db13b199"
 window.USDT_CONTRACT = "0xC73a66B4074B609E24bB264821e183DC3b9Ef654"
-window.WUSDT_CONTRACT = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+window.WUSDT_CONTRACT = "0x2c56932223cde0d363266f1308c48ff1bf9f9041"
 window.USDC_CONTRACT = "0xAaE9ebB0EcBfeAbD2d9883e6707F89acfF55284C"
-window.WUSDC_CONTRACT = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
+window.WUSDC_CONTRACT = "0xc565eb7363769f8ffae0005285ccd854c631a0a0"
 window.WAXC_CONTRACT = "0x620A5aaA95608eB4929BDbc069B3105F3347Ccd2"
 window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
 window.BUNDLER_URL='/api/bundler/';
-window.AXM_BROWSER = 'http://10.2.69.59:8080';
-window.socketUrl='wss://axmwallettest.bcds.io';
-window.rpId="axmwallettest.bcds.io";
-
-// 预发布环境配置参数
-
-// window.RPC_URL='http://10.2.69.65:18881';
-// window.WETH_CONTRACT = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
-// window.USDT_CONTRACT = "0xC73a66B4074B609E24bB264821e183DC3b9Ef654"
-// window.WUSDT_CONTRACT = "0xdc64a140aa3e981100a9beca4e685f962f0cf6c9"
-// window.USDC_CONTRACT = "0xAaE9ebB0EcBfeAbD2d9883e6707F89acfF55284C"
-// window.WUSDC_CONTRACT = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
-// window.WAXC_CONTRACT = "0x620A5aaA95608eB4929BDbc069B3105F3347Ccd2"
-// window.PAYMASTER = "0x000000000000000000000000000000000000100b"
-// window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
-// window.BUNDLER_URL='http://10.2.69.2:4337';
-// window.AXM_BROWSER = 'http://10.2.69.126:8080';
-// window.socketUrl='ws://10.2.69.242:8380'
+window.AXM_BROWSER = 'http://10.2.69.126:8080';
+window.socketUrl='wss://axmwallet.bcds.io'
+window.rpId="axmwallet.bcds.io";

@@ -12,7 +12,7 @@ import { ethers } from "ethers";
 // @ts-ignore
 import { ERC20_ABI } from 'axiom-smart-account-test'
 import {connect} from "umi";
-const Decimal = require('decimal');
+const Decimal = require('decimal.js');
 
 interface Item {
     label: string
