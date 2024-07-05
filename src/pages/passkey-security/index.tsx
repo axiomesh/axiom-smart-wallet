@@ -15,11 +15,12 @@ const passkeySecurity = (props: any) => {
 
     useEffect(() => {
         handleGetPasskeyInfo()
-    }, [userInfo])
+    }, [])
 
     const handleGetPasskeyInfo = (async () => {
+        const device_id = localStorage.getItem("visitorId");
         try {
-            const result = await passkeySecurityInfo({email: email, device_id: userInfo.device_id});
+            const result = await passkeySecurityInfo({email: email, device_id});
             setPasskeyInfo(result);
         }catch (error: any) {
             showErrorToast(error);
