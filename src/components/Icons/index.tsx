@@ -82,6 +82,16 @@ export const SuccessIcon = createIcon({
     ),
 });
 
+export const CloseIcon = createIcon({
+    displayName: "CloseIcon",
+    viewBox: "0 0 12 12",
+    path: (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.2383 1.81641L10.1836 0.761719L6 4.94531L1.81641 0.761719L0.761719 1.81641L4.94531 6L0.761719 10.1836L1.81641 11.2383L6 7.05469L10.1836 11.2383L11.2383 10.1836L7.05469 6L11.2383 1.81641Z" fill="currentColor"/>
+        </svg>
+    ),
+});
+
 
 
 

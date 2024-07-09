@@ -88,7 +88,7 @@ const TransferFree = (props: any) => {
         if(freeForm) {
             setIsSwitch(true);
             setIsLimitDisabled(false);
-            
+
             setValue(freeForm);
         }
         const unlisten = history.listen((location: any) => {
@@ -99,7 +99,7 @@ const TransferFree = (props: any) => {
                 })
             }
         });
-    
+
         return () => {
             unlisten();
         };
@@ -420,10 +420,22 @@ const TransferFree = (props: any) => {
                                     _invalid={{
                                         border: "1px solid #E53E3E"
                                     }}
+                                    _hover={{
+                                        borderColor: "#A0AEC0"
+                                    }}
+                                    _active={{
+                                        borderColor: "#718096"
+                                    }}
+                                    _focusVisible={{
+                                        borderColor: "#718096"
+                                    }}
                                     _disabled={{
                                         color: "#A0AEC0",
                                         backgroundColor: "#EDF2F7"
                                     }}
+                                    spellCheck={false}
+                                    autoCapitalize="off"
+                                    autoComplete='off'
                                     onBlur={handleBlur}
                                     onChange={handleValueChange}
                                     disabled={isLimitDisabled}

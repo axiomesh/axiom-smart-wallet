@@ -1009,7 +1009,7 @@ const Transfer = (props: any) => {
             }
         }
     }
-    
+
     const axcBioPay = async (axiom: any, form: any, value: any) => {
         const allowCredentials = localStorage.getItem("allowCredentials");
         const ev = await axiom.sendUserOperation(form.to, value, "0x", "", "", {} , {
@@ -1053,7 +1053,7 @@ const Transfer = (props: any) => {
             return "failed"
         }
     }
-    
+
     const erc20BioPay = async (axiom: any, form: any, value: any, userInfo: any) => {
         const allowCredentials = localStorage.getItem("allowCredentials");
         // @ts-ignore
@@ -1072,7 +1072,7 @@ const Transfer = (props: any) => {
                 erc20.interface.encodeFunctionData("approve", [window.PAYMASTER, ethers.constants.MaxUint256]),
                 erc20.interface.encodeFunctionData("transfer", [form.to, value]),
             ];
-    
+
             const res = await axiom.sendBatchedUserOperation(to, calldata, window.PAYMASTER, form.send.contract, {
                 onBuild: (op: any) => {
                     console.log("Signed UserOperation:", op);
@@ -1522,6 +1522,9 @@ const Transfer = (props: any) => {
                                         _hover={{
                                             borderColor: "#A0AEC0"
                                         }}
+                                        _focusVisible={{
+                                            borderColor: "#718096"
+                                        }}
                                         _active={{
                                             borderColor: "#718096"
                                         }}
@@ -1531,8 +1534,11 @@ const Transfer = (props: any) => {
                                         style={{
                                             boxShadow: "none"
                                         }}
+                                        spellCheck={false}
+                                        autoCapitalize="off"
+                                        autoComplete='off'
                                     />
-                                    <InputRightElement style={{top: "10px", right: "20px"}}>
+                                    <InputRightElement style={{top: "8.5px", right: "20px"}}>
                                         <div className={styles.formMax} onClick={handleMax}>MAX</div>
                                     </InputRightElement>
                                 </InputGroup>
@@ -1572,21 +1578,27 @@ const Transfer = (props: any) => {
                             _active={{
                                 borderColor: "#718096"
                             }}
+                            _focusVisible={{
+                                borderColor: "#718096"
+                            }}
                             style={{
                                 boxShadow: "none"
                             }}
+                            spellCheck={false}
+                            autoCapitalize="off"
+                            autoComplete='off'
                         />
                         <FormErrorMessage>{toErrorsText}</FormErrorMessage>
                     </FormControl>
                     <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
                 </div>
-            </div> : 
+            </div> :
             <div className={styles.noPassword}>
                 <img style={{width: "800px"}} src={require('@/assets/transfer/set-transfer-bg.png')} alt="" />
                 <p className={styles.noPasswordTitle}>Transfer to any address on Axiomesh & Ethereum</p>
                 <p className={styles.noPasswordDesc}>Set a transfer password to use</p>
                 <div style={{width: "320px", margin: "0 auto"}}><Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword)) ? true : false} >Set transfer password first <i className={styles.noPasswordIcon}></i></Button></div>
-            </div> 
+            </div>
             }
 
             <TransferModal open={transferOpen} onBioPay={handleBioPay} pinLoading={pinLoading} onSubmit={handleAXMSubmit} onClose={handleTransferClose} info={transferInfo} errorMsg={passwordError} clearError={() => {setPasswordError("")}} />
