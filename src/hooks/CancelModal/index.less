@@ -2,11 +2,26 @@
   display: inline-block;
   width: 46px;
   height: 46px;
-  background: url("../../assets/cancel.png")  no-repeat center;
-  background-size: cover;
+  line-height: 40px;
+  border: 1px solid #E6E8EC;
+  text-align: center;
+  color: #000;
+  border-radius: 50%;
   position: absolute;
   top: 40px;
   right: 42px;
   cursor: pointer;
+
+  &:hover{
+    background: #F7FAFC;
+    border-color: #718096;
+    color:#718096;
+  }
+
+  &:active{
+    background: #EDF2F7;
+    border-color: #2D3748;
+    color:#2D3748;
+  }
 }
 

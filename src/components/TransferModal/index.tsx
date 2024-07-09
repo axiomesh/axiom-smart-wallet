@@ -14,6 +14,8 @@ import useContinueButton from "@/hooks/ContinueButton";
 import Toast from "@/hooks/Toast";
 import {connect} from "umi";
 import { bioCreate, bioCheck } from "@/services/transfer";
+import { CloseIcon } from "@/components/Icons";
+
 interface transferProps {
     send: string;
     to: string;
@@ -112,7 +114,7 @@ const TransferModal = (props: any) => {
         props.onSubmit(value)
     }
 
-    
+
 
     const handleClear = () => {
         props.clearError()
@@ -126,7 +128,7 @@ const TransferModal = (props: any) => {
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
                         <div>Transfer <span className={styles.transferTitleTime}>（{time}s）</span></div>
-                        <i className={styles.transferClose} onClick={onClose}></i>
+                        <i className={styles.transferClose} onClick={onClose}><CloseIcon fontSize="12px" /></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 40px 40px">
                         {freeStep === "0" ? <div className={styles.transferFreeToast}>
@@ -162,7 +164,7 @@ const TransferModal = (props: any) => {
                         </div>
                         {(isBio && (!isFree || freeStep === "0" || freeStep === "1")) && <div className={styles.transferBio}>
                             <div className={styles.transferBioButton} onClick={handleBioPay}><img src={require("@/assets/transfer/bio.png")} alt="" /><span>Confirm</span></div>
-                            <div className={styles.transferBioText} onClick={() => setIsBio(false)}>Confirm with password</div>
+                            <div className={styles.transferBioText} style={{marginTop: 0}} onClick={() => setIsBio(false)}>Confirm with password</div>
                         </div>}
                         {(!isBio && (!isFree || freeStep === "0" || freeStep === "1")) && <><p className={styles.transferTitle}>Transfer password verification</p>
                             <ModalInputPassword isForget={true} isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
