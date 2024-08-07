@@ -3,16 +3,24 @@ import { Menu, Flex, MenuButton, MenuList, MenuItem, Button, Image, Box, Divider
     Tabs, TabList,  Tab, Tooltip,
 } from '@chakra-ui/react'
 import styles from './index.less';
-import {currencyList, selectCurrencyList} from './config';
+import {currencyList, PayStatus, selectCurrencyList} from './config';
 import { SelectDownIcon } from '@/components/Icons';
 import TokenList from './componment/tokenList';
 import {changePrice, getImgFromHash, changeBalance} from "@/utils/help";
-import {getTickerPrice} from "@/services/login";
-import { ethers } from "ethers";
+import {getNftList, getTickerPrice, getAllNft} from "@/services/login";
+import {ethers, JsonRpcProvider} from "ethers";
+import { formatUnits, formatEther } from 'viem'
 // @ts-ignore
-import { ERC20_ABI } from 'axiom-smart-account-test'
-import {connect} from "umi";
+import { ERC20_ABI } from '@/utils/abi';
+import SkeletonCard from './componment/skeleton-card';
+import Empty from "./componment/empty";
+import DAppCard from './componment/dApp-card'
+import ScrollLoader from './componment/scroll-bar';
+import {connect, history} from "umi";
+import {getBrowserName} from "@/utils/utils";
+import {getDeviceVersion, getMacVersion} from "@/utils/system";
 const Decimal = require('decimal.js');
+const tabList = [{name: 'ERC721', type: 'ERC-721'}, {name: 'ERC1155', type: 'ERC-1155'}];
 
 interface Item {
     label: string
@@ -39,29 +47,63 @@ const Home = (props:any) => {
     const [activeType, setActiveType] = useState(0);
     const [loading, setLoading] = useState<boolean>(false);
     const [priceList, setPriceList] = useState<Array<Item>>([]);
+    const [nftList, setNftList] = useState([{}]);
     const [selectList, setSelectList] = useState<Array<Item>>(selectCurrencyList.all);
     const [total, setTotal] = useState<number | string | any>(0);
+    const [num, setNum] = useState(3);
+    const [current, setCurrent] = useState(1);
+    const [nextPageParams, setPageParams] = useState({});
+    const [activeTab, setActiveTab] = useState('ERC-721');
     // @ts-ignore
-    const rpc_provider = new ethers.providers.JsonRpcProvider(window.RPC_URL);
+    const rpc_provider = new JsonRpcProvider(window.RPC_URL);
     // @ts-ignore
-    const provider = new ethers.providers.JsonRpcProvider(window.ETH_RPC);
+    const provider = new JsonRpcProvider(window.ETH_RPC);
     const handleActiveClick = (value: string) => {
-        setActiveKey(value)
+        setActiveKey(value);
+        setActiveTab('ERC-721');
     }
 
     const handleChangeType = (key: number) => {
-        if(key) return;
         setActiveType(key);
+        if(key){
+            setActiveTab('ERC-721');
+            initNftList('ERC-721');
+        }
     }
 
-    const getSymbol = async (erc20:any, currentProvider:any) => {
-        const symboldata = erc20.interface.encodeFunctionData('decimals');
-        const symbolRes = await currentProvider.call({
-            to: erc20.address,
-            data: symboldata,
-            // value: 0,
-        })
-        return  Math.pow(10, Number(symbolRes === '0x' ? 0 : BigInt(symbolRes).toString()))
+    // const getSymbol = async (erc20:any, currentProvider:any) => {
+    //     const symboldata = erc20.interface.encodeFunctionData('decimals');
+    //     const symbolRes = await currentProvider.call({
+    //         to: erc20.address,
+    //         data: symboldata,
+    //         // value: 0,
+    //     })
+    //     return  Math.pow(10, Number(symbolRes === '0x' ? 0 : BigInt(symbolRes).toString()))
+    // }
+
+    const initNftList = async (type) => {
+        try {
+            setLoading(true);
+            // const res = await getNftList(userInfo.address, type);
+            const res = await getAllNft('0xE55Db6E6743111F35F18af34E8331AB1E27214de', type);
+            console.log(res)
+            if(res){
+                const fitlerData = (res.items || []).filter(li => li?.token?.address === window.NFT_CONTRACT);
+                if(fitlerData.length > 0){
+                    const nftRes = await getNftList(window.NFT_CONTRACT, type);
+                    setNftList(nftRes.items)
+                    setPageParams(nftRes.next_page_params)
+                } else {
+                    setNftList([])
+                    setPageParams(null)
+                }
+            } else {
+                setNftList([])
+                setPageParams(null)
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     const initBalance = async (type:string | any) => {
@@ -70,27 +112,21 @@ const Home = (props:any) => {
         if(type === 'AXCUSD'){
             const balance = await rpc_provider.getBalance(userInfo.address);
             // @ts-ignore
-            // return balance.toBigInt().toString() / Math.pow(10, window.AXC_SYMBOL)
-            return ethers.utils.formatUnits(balance, window.AXC_SYMBOL)
+            return formatUnits(balance, window.AXC_SYMBOL)
         } else if(type === 'ETHUSD'){
             let balance = await provider.getBalance(userInfo.address);
             // @ts-ignore
-            return balance.toBigInt().toString() / Math.pow(10,window.ETH_SYMBOL)
+            return formatEther(balance, window.ETH_SYMBOL)
         } else {
             const allList = selectCurrencyList.all;
             const filterData = allList.filter((item: Item) => item.symbol === type)[0];
             const currentProvider = filterData.type === 'eth' ? provider : rpc_provider;
             // return 0
             const erc20 = new ethers.Contract(filterData.contract, ERC20_ABI, currentProvider);
-            // const calldata = erc20.interface.encodeFunctionData('balanceOf',[userInfo.address]);
-            // const res = await currentProvider.call({
-            //     to: erc20.address,
-            //     data: calldata,
-            // })
             const balance = await erc20.balanceOf(userInfo.address);
-            const balanceStr = ethers.utils.formatUnits(balance, await erc20.decimals())
-            console.log(balanceStr)
-            // const decimals = await getSymbol(erc20, currentProvider)
+            const decimals = await erc20.decimals();
+            const formatUnitsDe = formatUnits(decimals, 0);
+            const balanceStr = formatUnits(balance, Number(formatUnitsDe))
             // @ts-ignore
             return balanceStr;
         }
@@ -115,6 +151,7 @@ const Home = (props:any) => {
 
     useEffect(() => {
         if(userInfo?.address){
+            console.log(getDeviceVersion())
             initTicketData()
         }
     }, [userInfo?.address]);
@@ -144,6 +181,25 @@ const Home = (props:any) => {
             setSelectList(newList.sort((a, b) => b.totalValue - a.totalValue))
         // }
     }, [priceList, activeKey]);
+
+    const loadMoreItems = async (page) => {
+        // 模拟异步加载
+        // await loadData(num * 3, page + 1)
+        const params = {
+            page,
+            size: num * 3,
+        }
+        setCurrent(page);
+        // const data = await getDappList(params);
+        // setTotal(data.total);
+        // const newList = [...list, ...data.list];
+        // setList(newList);
+    };
+
+    const handleTabChange = (type) => {
+        setActiveTab(type);
+        initNftList(type);
+    }
 
     return (
         <div className={styles.homePage}>
@@ -200,7 +256,7 @@ const Home = (props:any) => {
             </Box>
             <Flex align='center' mb="20px">
                 {/*@ts-ignore */}
-                <Image boxSize='112px' borderRadius='12px' src={getImgFromHash(userInfo.address)} alt='avatar' mr='8px'/>
+                <Image boxSize='112px' borderRadius='12px' src={getImgFromHash(userInfo?.address || '')} alt='avatar' mr='8px'/>
                 <Box color="text.50" fontWeight="700">
                     <Box fontSize="18px" lineHeight="28px" mb="6px">TOTAL VALUE</Box>
                     {loading ? <div className='big-loader' style={{marginLeft: 22}}></div> :
@@ -212,19 +268,70 @@ const Home = (props:any) => {
             </Box>
             <Flex gap="20px" pb="40px">
                 <Box flex={1}>
-                    <Tabs colorScheme='gray.300' index={activeType} onChange={handleChangeType} mb="20px" variant="unstyled">
+                    <Tabs index={activeType} onChange={handleChangeType} mb="20px" variant="unstyled">
                         <TabList>
-                            <Tab fontWeight="700" fontSize="18px" color='grey.700' p="0 32px 0 0">TOKEN</Tab>
-                            <Tab fontWeight="700" fontSize="18px" color="gray.300" p="0 32px 0 0">
-                                <Tooltip hasArrow label='Coming soon' fontSize="14px" borderRadius="4px" bg='gray.900' color='#FFFFFF' placement="top">
-                                    NFT
-                                </Tooltip>
+                            <Tab
+                                fontWeight="700"
+                                fontSize="18px"
+                                p="0 32px 0 0"
+                                color='gray.300'
+                                _hover={{color: "#2D3748" }}
+                                _selected={{ color: "#2D3748"}}
+                            >TOKEN</Tab>
+                            <Tab
+                                fontWeight="700"
+                                fontSize="18px"
+                                p="0 32px 0 0"
+                                color='gray.300'
+                                _hover={{color: "#2D3748" }}
+                                _selected={{ color: "#2D3748"}}
+                            >
+                                NFT
                             </Tab>
                         </TabList>
                     </Tabs>
-                    <Box>
+                    {activeType === 0 ? <Box>
                         <TokenList list={selectList} loading={loading}/>
-                    </Box>
+                    </Box> : null}
+                    {activeKey === 'eth' ? <Box textAlign='center' mt='150px'>
+                        <Flex w='70px' h='70px' borderRadius='50%' bg='#EDF2F7' align='center' justify='center' margin='0 auto'>
+                            <Box fontSize='32px'>⚙️</Box>
+                        </Flex>
+                        <Box color="gray.500" fontWeight='500' fontSize='16px' mt='8px'>Coming Soon</Box>
+                    </Box> : activeType === 1 ? <Box>
+                        <div style={{display: 'flex', margin: '20px 0'}}>
+                            <div className={styles.tabList}>
+                                {tabList.map((item, index) => (
+                                    <div
+                                        key={item.type}
+                                        className={activeTab === item.type ? 'tab-active' : 'tab'}
+                                        onClick={() => handleTabChange(item.type)}
+                                    >
+                                        {item.name}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        {nftList?.length || loading ? <div>
+                            {/*{list.map(item => <DAppCard item={item} isHome/>)}*/}
+                            <div className='dapp-list'>
+                                {loading ? <>
+                                    <SkeletonCard />
+                                    <SkeletonCard />
+                                    <SkeletonCard />
+                                    {num === 4 ? <SkeletonCard /> : null}
+                                </> : nftList.map(item => <DAppCard item={item} isHome/>)}
+                            </div>
+                            <ScrollLoader
+                                firstLoading={loading}
+                                loadMore={loadMoreItems}
+                                current={current}
+                                hasMore={current * 3 * num < total}
+                                num={num}
+                            />
+                            {/*{(current * num * 3 >= total && total > 0 ?<div className='no-more'>no more dApps</div> : null}*/}
+                        </div> : <Empty title="No results" />}
+                    </Box> : null}
                 </Box>
                 <Box>
                     <Box fontWeight="700" fontSize="18px" color='grey.700' mb="20px">RECENT TRANSACTIONS</Box>
@@ -244,6 +351,17 @@ const Home = (props:any) => {
                     </Flex>
                 </Box>
             </Flex>
+
+            {userInfo.pay_password_set_status === PayStatus.init ? <div className={styles.bottom}>
+                <Flex align='center' gap="8px">
+                    <div className={styles.bottomIcon}>!</div>
+                    <div className={styles.bottomTitle}>Improve account security </div>
+                </Flex>
+                <div style={{marginTop: 12, marginBottom: 20}}>Please set your transfer password promptly to enhance the security level of your account.</div>
+                <div>
+                    <span className='a_link' onClick={() => history.push('/transfer')}>Go to set</span>
+                </div>
+            </div> : null}
         </div>
     )
 }

@@ -33,7 +33,6 @@ const TransferModal = (props: any) => {
     const [isFree, setIsFree] = useState<Boolean>(false);
     const [info, setInfo] = useState<transferProps>();
     const [error, setError] = useState<string>('');
-    const [freeStep, setFreeStep] = useState<string>('');
     const [time, setTime] = useState<number>(30);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isBio, setIsBio] = useState<boolean>(false);
@@ -55,18 +54,18 @@ const TransferModal = (props: any) => {
         setIsLoading(props.pinLoading)
     }, [props.pinLoading])
 
+    const isFreeTransfer = () => {
+        const status = sessionStorage.getItem("freeStatus")
+        const timer = sessionStorage.getItem("limit_timer")
+        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
+            return true
+        }
+        return false
+    }
+
     useEffect(() => {
-        const sessionKey = sessionStorage.getItem('sk');
-        const freeLimit = sessionStorage.getItem('freeLimit');
-        const sr = sessionStorage.getItem('sr');
-        if(sessionKey || freeLimit){
-            setIsFree(true)
-        }else {
-            setIsFree(false)
-        }
-        if(sr) {
-            setFreeStep(sr)
-        }
+
+        setIsFree(isFreeTransfer())
         setIsOpen(props.open)
         setTime(30)
         if(props.open) {
@@ -77,7 +76,7 @@ const TransferModal = (props: any) => {
                 setTime(i)
                 if (i === 0){
                     clearInterval(t);
-                    if(isBio || (isFree && freeStep !== "0")) {
+                    if(isBio || isFree) {
                         showErrorToast("Verification timeout");
                     }else {
                         showErrorToast("Password verification timeout");
@@ -96,7 +95,8 @@ const TransferModal = (props: any) => {
 
     useEffect(() => {
         setInfo(props.info)
-        console.log(props.info?.isTransfinite)
+        console.log(props.info)
+        // console.log(props.info?.isTransfinite)
         if(props.info?.isTransfinite){
             setIsFree(false)
         }
@@ -131,10 +131,7 @@ const TransferModal = (props: any) => {
                         <i className={styles.transferClose} onClick={onClose}><CloseIcon fontSize="12px" /></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 40px 40px">
-                        {freeStep === "0" ? <div className={styles.transferFreeToast}>
-                            <img src={require("@/assets/transfer/free-toast.png")} alt="" />
-                            <span>Password-free payment will be activated after this transfer transaction.</span>
-                        </div> : freeStep === "1" ? <div className={styles.transferFreeToast}>
+                        {isFree ? <div className={styles.transferFreeToast}>
                             <img src={require("@/assets/transfer/free-toast.png")} alt="" />
                             <span>Password-free payment update will be activated after this transfer transaction.</span>
                         </div> : null}
@@ -162,15 +159,15 @@ const TransferModal = (props: any) => {
                                 </div>
                             </div>
                         </div>
-                        {(isBio && (!isFree || freeStep === "0" || freeStep === "1")) && <div className={styles.transferBio}>
+                        {(isBio && !isFree) ? <div className={styles.transferBio}>
                             <div className={styles.transferBioButton} onClick={handleBioPay}><img src={require("@/assets/transfer/bio.png")} alt="" /><span>Confirm</span></div>
                             <div className={styles.transferBioText} style={{marginTop: 0}} onClick={() => setIsBio(false)}>Confirm with password</div>
-                        </div>}
-                        {(!isBio && (!isFree || freeStep === "0" || freeStep === "1")) && <><p className={styles.transferTitle}>Transfer password verification</p>
+                        </div> : null}
+                        {(!isBio && !isFree) ? <><p className={styles.transferTitle}>Transfer password verification</p>
                             <ModalInputPassword isForget={true} isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
                             {userInfo.bio_payment_status === 1 && <div className={styles.transferBioText} onClick={() => setIsBio(true)}>Confirm with passkey</div>}
-                        </>}
-                        {(isFree && freeStep !== "0" && freeStep !== "1") && <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm (Passward-free)</Button></div>}
+                        </> : null}
+                        {isFree ? <div style={{marginTop: "20px"}}><Button onClick={() => handleSubmit("")}>Confirm (Passward-free)</Button></div> : null}
                     </ModalBody>
                 </ModalContent>
             </Modal>

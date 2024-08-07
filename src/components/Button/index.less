@@ -1,5 +1,42 @@
-//.walletInput{
-//  background: #fff;
-//  border-radius: 12px;
-//  border-color: #E2E8F0;
-//}
+.default_yellow_button {
+  border-radius: 56px;
+  border: 0;
+  background: #ecc94b !important;
+  color: #fff;
+  height: 56px;
+  width: 100%;
+  font-size: 16px;
+  box-shadow: 0 0 0 0;
+
+  &:hover {
+    background: #f6e05e !important;
+    color: #fff !important;
+  }
+
+  &:active {
+    background: #d4b443 !important;
+    color: #fff !important;
+  }
+
+  //?:global{.ant-btn-disabled}
+}
+
+.default_yellow_button.ant-btn-loading:hover,
+.default_yellow_button.ant-btn-loading:active {
+  background: #ecc94b !important;
+}
+
+.default_yellow_button.ant-btn-default:disabled,
+.default_yellow_button.ant-btn-default:disabled:hover {
+  background: rgba(236, 201, 75, 0.5) !important;
+  color: #fff !important;
+}
+
+.default_yellow_button:not(:disabled):focus-visible,
+.default_yellow_button:not(:disabled) div{
+  outline: 0;
+  outline-offset: 0;
+  box-shadow: 0 0 0 0;
+}
+
+

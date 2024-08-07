@@ -15,7 +15,7 @@ import { sendVerifyCode, checkUser } from '@/services/login';
 import {setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { getToken } from "@/utils/help";
-import { detectBrowser, getSafariVersion, getChromeVersion } from "@/utils/utils";
+import { detectBrowser, getSafariVersion, getChromeVersion, removeTransferFee } from "@/utils/utils";
 import DeviceSupport from "@/components/DeviceSupport";
 
 function Login(props: any) {
@@ -48,6 +48,7 @@ function Login(props: any) {
     // }, []);
 
     useEffect(() => {
+        removeTransferFee();
         dispatch({
             type: 'global/setForm',
             payload: {},
@@ -84,7 +85,7 @@ function Login(props: any) {
                 setVersion(version.allVersion);
                 setDevice(browser);
             }
-        }  
+        }
     }, [])
 
     const handleSubmit = async () => {

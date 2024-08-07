@@ -5,9 +5,12 @@ import {clearSessionData, exchangeAddress, getImgFromHash, getMail} from '@/util
 import {getUserInfo, logout} from "@/services/login";
 import { connect, history } from 'umi';
 import handleClipboard from "@/utils/clipboard"
+import {AlertIcon, FailIcon} from "@/components/Icons";
+import {Tooltip} from "@chakra-ui/react";
+import {PayStatus} from "@/pages/home/config";
 
 const PersonInfo = (props: any) => {
-    const {info} = props;
+    const {info, userInfo} = props;
     const [isHover, setIsHover] = useState(false);
     const [isCopy, setIsCopy] = useState(false);
     const email: string | any = getMail();
@@ -50,7 +53,15 @@ const PersonInfo = (props: any) => {
     return (
         <div className={`${styles.personinfo} ${isHover ? styles.personinfoHover : ''}`} onMouseOver={() => { setIsHover(true) }} onMouseLeave={() => {setIsHover(false)}}>
             {/*@ts-ignore*/}
-            <img className={styles.img} src={getImgFromHash(info.address)} alt=""/>
+            <div className={styles.img} style={{borderWidth: userInfo.pay_password_set_status === PayStatus.init ? 2 : 0}}>
+                <img src={getImgFromHash(info?.address || '')} alt=""/>
+                {userInfo.pay_password_set_status === PayStatus.init ? <Tooltip hasArrow label={<div>
+                    <FailIcon fontSize="20px" />
+                    <span style={{marginLeft: 8}}>Set transaction password</span>
+                </div>} fontSize="14px" p="10px" fontWeight="500" borderRadius="4px" bg='gray.900' color='#FFFFFF' placement="bottom-start">
+                    <AlertIcon className={styles.alertIcon} />
+                </Tooltip> : null}
+            </div>
             <div className={styles.information}>
                 <span className={styles.email}>{info.email}</span>
                 {/*@ts-ignore*/}

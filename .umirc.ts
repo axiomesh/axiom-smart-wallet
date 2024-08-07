@@ -5,9 +5,16 @@ export default defineConfig({
   title: 'AxiomWallet',
   jsMinifier: 'terser',
   proxy: {
+    '/api/v2': {
+      target: 'http://10.2.69.126:8080',
+      changeOrigin: true,
+      // pathRewrite: {
+      //   '^/api/v2': '',
+      // }
+    },
     '/api/axm-wallet': {
       // target: 'http://10.2.69.157:8580',
-      target: 'http://10.2.69.208:8580',
+      target: 'http://10.2.69.208:8581',
       changeOrigin: true,
     },
     '/api/ticker': {
@@ -29,12 +36,12 @@ export default defineConfig({
       }
     },
     'api/ws': {
-      target: 'http://10.2.69.208:8580',
+      target: 'http://10.2.69.208:8581',
       changeOrigin: true,
       pathRewrite: {
         '^/api/ws': '',
       }
-    }
+    },
     // '/websocket': {
     //   target: 'http://172.16.13.133:8581',
     //   changeOrigin: true,
@@ -46,7 +53,7 @@ export default defineConfig({
     javascriptEnabled: true,
   },
   headScripts: [
-      {src: 'env.js', defer: true, async: true},
+      { src: 'env.js', defer: true, async: true },
       {src: 'https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js', defer: true, async: true},
       {src: 'https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js', defer: true, async: true}
   ],
@@ -94,14 +101,6 @@ export default defineConfig({
       component: '@/pages/security/verify-code',
     },
     {
-      path: '/security/update-password',
-      component: '@/pages/security/update-password',
-    },
-    {
-      path: '/security/update-reset-password',
-      component: '@/pages/security/update-password',
-    },
-    {
       path: '/login-password',
       component: '@/pages/login/login-password',
       layout: false,
@@ -124,6 +123,9 @@ export default defineConfig({
     {
       path: '/home',
       component: '@/pages/home',
+    },{
+      path: '/nft-detail',
+      component: '@/pages/home/detail',
     },
     {
       path: '/transfer',

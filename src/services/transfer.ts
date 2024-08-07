@@ -111,7 +111,97 @@ export async function bioClose(data: any) {
 
 export async function passkeySecurityInfo(data: any) {
     const res = await request({
-        url: `/api/axm-wallet/account/passkey-security`,
+        url: `/api/axm-wallet/account/security/passkey`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}
+
+
+export async function getTransferPwd(email: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/get-transfer-pwd`,
+        method: 'get',
+        data: { email },
+    });
+    return res?.data;
+}
+
+
+export async function getDeviceList(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/security/device`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}
+
+export async function addTrustDevice(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/security/device/add/check-creat`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+// /api/axm-wallet/account/security/device/add/check
+export async function addTrustDeviceCheck(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/security/device/add/check`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+// /api/axm-wallet/account/security/device/register/creat
+
+export async function registerTrustDevice(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/security/device/register/creat`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function registerTrustDeviceCheck(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/security/device/register/save`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function removeTrustDevice(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/security/device/remove`,
+        method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+//
+
+export async function getDefaultPwd(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/get-transfer-pwd`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}
+
+//
+
+export async function isOpenedBio(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/is-opened-bio-payment`,
         method: 'get',
         data,
     });

@@ -3,9 +3,17 @@ import React, { useState, useEffect } from "react";
 import { switchTheme } from "@/pages/transfer-free/theme/index";
 import Page from '@/components/Page';
 import AlertPro from "@/components/Alert";
-import {bioCreate, transferLockTime, bioCheck, bioClose, wrongPassword, passwordTimes} from "@/services/transfer";
+import {
+    bioCreate,
+    transferLockTime,
+    bioCheck,
+    bioClose,
+    wrongPassword,
+    passwordTimes,
+    isOpenedBio
+} from "@/services/transfer";
 import { history } from 'umi';
-import { 
+import {
     extendTheme,
     ChakraProvider,
     Switch,
@@ -14,13 +22,13 @@ import Toast from "@/hooks/Toast";
 import {getMail} from "@/utils/help";
 import BioResultModal from "@/components/BioResultModal";
 import {connect} from "@@/exports";
-import { getDeviceType } from "@/utils/utils";
+import {detectBrowser, getDeviceType, getSafariVersion} from "@/utils/utils";
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
-import {AxiomAccount,isoBase64URL} from "axiom-smart-account-test";
+import { Axiom } from 'axiomwallet';
 import VerifyTransferModal from "@/components/VerifyTransferModal";
 import { sha256 } from "js-sha256";
 import BioAxiomResultModal from "@/components/BioAxiomResultModal";
-import { getUserInfo, deviceIsOpenBio, isReplaceBioPayment, checkBioPasskeyCreate, checkBioPasskey } from "@/services/login";
+import {getUserInfo, isReplaceBioPayment, checkBioPasskeyCreate, checkBioPasskey, isOpenBio} from "@/services/login";
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -50,6 +58,19 @@ const BioPayment = (props: any) => {
         }
     }, [props.userInfo])
 
+    const getAuth = async (verifyRes, transports, id) => {
+        return await startAuthentication({
+            challenge: verifyRes.publicKey.challenge,
+            rpId: verifyRes.publicKey.rpId,
+            allowCredentials: [{
+                "type": "public-key",
+                "id": id,
+                "transports": transports
+            }],
+            userVerification: "required"
+        })
+    }
+
     const handleChange = async (e: any) => {
         const times = await transferLockTime({email});
         const deviceId = localStorage.getItem("visitorId");
@@ -61,7 +82,8 @@ const BioPayment = (props: any) => {
             }
             setResultOpen(true);
             setResultStatus("loading");
-            const isdevice = await deviceIsOpenBio({email, device_id: deviceId});
+            const isdevice = await isOpenedBio({email, device_id: deviceId});
+            console.log(isdevice === 0);
             if(isdevice === 0) {
                 setIsUpdate(false);
                 await createPasskey();
@@ -93,27 +115,34 @@ const BioPayment = (props: any) => {
 
     const verifyPasskey = async (isRepalce: boolean) => {
         const deviceId = localStorage.getItem("visitorId");
-        let publicKey: any;
+        let authentication:any;
         let res: any;
         try {
             res = await checkBioPasskeyCreate({
                 email: email,
                 device_id: deviceId,
             })
+            let transports = [res.transport];
+            const browser = detectBrowser();
+            if(browser === "safari") {
+                const version = getSafariVersion();
+                if(version && version.version == 16) {
+                    transports = ["internal", res.transport]
+                }
+            }
             const verifyRes = JSON.parse(res.credentials_json);
-            publicKey = await startAuthentication({
-                challenge: verifyRes.publicKey.challenge,
-                rpId: verifyRes.publicKey.rpId,
-                allowCredentials: [{
-                    "id": res.credential_id,
-                    "type": "public-key",
-                    "transports": ["internal"]
-                }],
-                userVerification: "required"
-            })
-            setUpdatePublicKey(publicKey);
+
+
+            if(res?.credential_ids?.length === 1){
+                authentication = await getAuth(verifyRes, transports, res.credential_ids[0]);
+            } else if(res?.credential_ids?.length === 2) {
+                const list = await Promise.allSettled(res?.credential_ids.map(item => getAuth(verifyRes, transports,item)));
+                const index = list.findIndex(li => li.status === "fulfilled");
+                authentication = list[index].value;
+            }
+            setUpdatePublicKey(authentication);
             setResultStatus("success");
-            localStorage.setItem("allowCredentials", publicKey.id)
+            localStorage.setItem("allowCredentials", authentication.id)
         }catch(error: any) {
             console.log(error, '------verifyPasskey')
             const string = error.toString(), expr = /The operation either timed out or was not allowed/;
@@ -128,34 +157,13 @@ const BioPayment = (props: any) => {
         if(isRepalce) {
             setResultStatus("opened");
             setPublicKey(JSON.parse(res.credential_result));
-            // setTimeout(async () => {
-            //     setAxiomResultOpen(true);
-            //     setIsOpen(false);
-            //     setAxiomResultStatus("loading");
-            //     try {
-            //         const axiom = await AxiomAccount.fromPasskey(userInfo.address);
-            //         await axiom.updatePasskey({response: JSON.parse(res), expectedChallenge: "", expectedOrigin: ""}, {})
-            //         setAxiomResultStatus("success");
-            //         setIsSwitch(true);
-            //         const userRes = await getUserInfo(email, deviceId);
-            //         if(userRes){
-            //             dispatch({
-            //                 type: 'global/setUser',
-            //                 payload: userRes,
-            //             })
-            //         }
-            //     }catch(err: any) {
-            //         console.log(err, '-------updatepasskey')
-            //         setAxiomResultStatus("failed");
-            //         return;
-            //     }
-            // }, 1000)
         }else {
             try {
                 await checkBioPasskey({
                     email: email,
-                    result: JSON.stringify(publicKey),
-                    device_id: deviceId
+                    result: JSON.stringify(authentication),
+                    device_id: deviceId,
+                    credential_id: authentication.id,
                 })
                 setIsSwitch(true);
             }catch (error: any) {
@@ -218,11 +226,11 @@ const BioPayment = (props: any) => {
         setMsg("");
         let axiom:any;
         try {
-            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address);
+            axiom = await Axiom.Wallet.AxiomWallet.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address);
         }catch (e: any) {
             setPinLoading(false);
-            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
-            if(string.search(expr) > 0 || string.search(expr2) > 0) {
+            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/,  expr3 = /invalid private key/;
+            if(string.search(expr) > 0 || string.search(expr2) > 0 || string.search(expr3) > 0) {
                 wrongPassword({email}).then(async () => {
                     const times = await passwordTimes({email})
                     if(times > 0) {
@@ -243,10 +251,17 @@ const BioPayment = (props: any) => {
         setAxiomResultOpen(true);
         setIsOpen(false);
         setAxiomResultStatus("loading");
-        // console.log(publicKey, '----------------createPublic')
+        console.log(publicKey, '----------------createPublic')
         try {
-            await axiom.updatePasskey({response: publicKey, expectedChallenge: "", expectedOrigin: ""}, {})
-            setAxiomResultStatus("success");
+            const res = await axiom.updatePasskey({response: publicKey, expectedChallenge: "", expectedOrigin: ""}, {})
+            console.log('updatePasskey', res)
+            if(res){
+                const pk = await axiom.getPasskeys();
+                console.log('258pk:', pk)
+                setAxiomResultStatus("success");
+            } else {
+                setAxiomResultStatus("failed");
+            }
         }catch(err: any) {
             console.log(err, '-------updatepasskey')
             setAxiomResultStatus("failed");

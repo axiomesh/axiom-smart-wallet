@@ -118,6 +118,10 @@ export const getMail = () => {
     return localStorage.getItem('Wallet_Mail');
 }
 
+export const getVisitorId = () => {
+    return localStorage.getItem('visitorId');
+}
+
 export const passWordReg = /^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$/;
 
 export const clearSessionData = (dispatch?: any) => {

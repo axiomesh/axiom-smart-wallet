@@ -7,21 +7,15 @@ import {
     ModalHeader,
     ModalFooter,
     ModalBody,
-    FormControl,
-    FormLabel,
-    FormErrorMessage,
 } from '@chakra-ui/react';
-import Input from '@/components/Input';
-import useContinueButton from '@/hooks/ContinueButton';
 import TransferPassword from "@/components/TransferPassword";
-import { setFirstPassword } from '@/services/transfer';
+import {getDefaultPwd, setNewPassword} from '@/services/transfer';
 import Toast from "@/hooks/Toast";
 import {passWordReg, getMail} from "@/utils/help";
 import {checkPassword, getUserInfo, getPrivateKey} from "@/services/login";
 import {connect} from "@@/exports";
-const {crypto} = require("crypto-js")
 import {generateRandomBytes} from "@/utils/utils";
-import {AxiomAccount, deriveAES256GCMSecretKey, decrypt, encrypt} from "axiom-smart-account-test"
+import { Axiom } from 'axiomwallet'
 import {sha256} from "js-sha256";
 
 interface Props {
@@ -35,15 +29,10 @@ const SetPayPasswordModal = (props: Props) => {
     const email: string | any = getMail();
     const { userInfo, dispatch } = props;
     const [open, setOpen] = useState<Boolean>(props.isOpen);
-    const [isVerify, setIsVerify] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [errorTxt, setErrorTxt] = useState('');
-    const [password, setPassword] = useState('');
-    const {Button}  = useContinueButton();
     const {showSuccessToast, showErrorToast} = Toast();
 
     useEffect(() => {
-        setErrorTxt('');
         setOpen(props.isOpen)
     },[props.isOpen])
 
@@ -51,18 +40,20 @@ const SetPayPasswordModal = (props: Props) => {
         props.onClose(false, "")
     }
 
-    const handleSubmit = async (e: string) => {
-        if(!loading) 
+    const handleSubmit = async (password: string) => {
+        if(!loading)
             setLoading(true);
         const salt = generateRandomBytes(16);
+        const transferSalt = generateRandomBytes(16);
         try {
-            const tokenInfo = await getPrivateKey(email);
-            const token = sha256(tokenInfo.verify_code);
-            const secretKey = await deriveAES256GCMSecretKey(token, tokenInfo.user_salt);
-            const decryptKey = decrypt(userInfo.enc_private_key, secretKey.toString());
-            const paySecretKey = await deriveAES256GCMSecretKey(sha256(e), salt);
-            const encryptKey = encrypt(decryptKey, paySecretKey.toString());
-            await setFirstPassword(email, userInfo.enc_private_key, encryptKey, salt);
+            console.log(password)
+            const pwd = await getDefaultPwd({email});
+            const de = await  Axiom.Utility.deriveAES256GCMSecretKey(sha256(pwd), userInfo.transfer_salt);
+             const decryptKey =  Axiom.Utility.decrypt(userInfo.enc_private_key, de.toString("utf-8"));
+            const secretKey = await  Axiom.Utility.deriveAES256GCMSecretKey(sha256(password), transferSalt);
+            const encryptedPrivateKey =  Axiom.Utility.encrypt(decryptKey, secretKey.toString());
+            // salt 字段去掉
+            await setNewPassword(email,userInfo.enc_private_key,encryptedPrivateKey, userInfo.address, salt, transferSalt);
             const deviceId = localStorage.getItem('visitorId');
             const userRes = await getUserInfo(email, deviceId);
             if(userRes){
@@ -73,42 +64,11 @@ const SetPayPasswordModal = (props: Props) => {
             }
             setLoading(false);
             showSuccessToast("Password set successfully!");
-            props.onClose(true, e);
+            props.onClose(true, password);
         }catch (error) {
             setLoading(false);
             console.log(error)
         }
-    }
-
-    const handleVerify = async () => {
-        if(errorTxt) return;
-        if(!passWordReg.test(password)){
-            setErrorTxt('Invalid password')
-        }
-        if(!password){
-            setErrorTxt('Please enter a password')
-        }
-        if(!password || !passWordReg.test(password)) return
-        try{
-            const data = await checkPassword({
-                email,
-                login_password: sha256(password),
-            })
-            if(data){
-                setIsVerify(true)
-            } else {
-                setErrorTxt('Invalid password')
-            }
-        }catch (e){
-            console.log(e);
-            // @ts-ignore
-            showErrorToast(e)
-        }
-    }
-
-    const handleChangePassWord = (e:any) => {
-        setErrorTxt('');
-        setPassword(e.target.value);
     }
 
     return (

@@ -4,20 +4,19 @@ import {
     Modal,
     ModalOverlay,
     ModalContent,
-    ModalFooter,
     ModalBody,
 } from '@chakra-ui/react';
 import { startRegistration } from '@simplewebauthn/browser';
 import { getDeviceType } from "@/utils/utils";
 import BioResultModal from "@/components/BioResultModal";
-import {bioCreate, bioCheck, wrongPassword, passwordTimes} from "@/services/transfer";
+import {bioCreate, bioCheck} from "@/services/transfer";
 import {getMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { connect } from "@@/exports";
 import { getUserInfo } from "@/services/login";
 import VerifyTransferModal from '../VerifyTransferModal';
 import BioAxiomResultModal from "@/components/BioAxiomResultModal";
-import {AxiomAccount} from "axiom-smart-account-test";
+import {Axiom} from "axiomwallet";
 import { sha256 } from "js-sha256";
 
 const SetBioPayModal = (props: any) => {
@@ -40,7 +39,7 @@ const SetBioPayModal = (props: any) => {
     },[props.isOpen])
 
     useEffect(() => {
-        setPassword(props.password)
+        setPassword(props.password || '1111111q')
     }, [props.password])
 
     const onClose = () => {
@@ -98,17 +97,25 @@ const SetBioPayModal = (props: any) => {
     }
 
     const handleSubmit = async (password: any, publicKeyCredential: any) => {
+        console.log(password, publicKeyCredential)
         setPinLoading(true);
         setMsg("");
-        let axiom:any;
-        axiom = await AxiomAccount.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address);
+        const axiom = await Axiom.Wallet.AxiomWallet.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address);
         setAxiomResultOpen(true);
         setIsOpen(false);
         setAxiomResultStatus("loading");
         try {
-            await axiom.updatePasskey({response: publicKeyCredential, expectedChallenge: "", expectedOrigin: ""}, {})
-            localStorage.setItem("allowCredentials", publicKeyCredential.id)
-            setAxiomResultStatus("success");
+            const res = await axiom.updatePasskey({
+                response: publicKeyCredential, expectedChallenge: "", expectedOrigin: ""}, {})
+            console.log(res);
+            if(res){
+                const pk = await axiom.getPasskeys();
+                console.log('114pk:', pk)
+                localStorage.setItem("allowCredentials", publicKeyCredential.id)
+                setAxiomResultStatus("success");
+            } else {
+                setAxiomResultStatus("failed");
+            }
         }catch(err: any) {
             console.log(err, '------updatepasskey')
             setAxiomResultStatus("failed");

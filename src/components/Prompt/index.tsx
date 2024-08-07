@@ -15,7 +15,7 @@ export interface PromptProps {
     when?: boolean
 }
 
-export default function Prompt({ message, when }: PromptProps) {
+export default function Prompt({ message, pathname = '/login', when }: PromptProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [unlockFn, setUnlockFn] = useState({});
     const onClose = () => {
@@ -33,7 +33,7 @@ export default function Prompt({ message, when }: PromptProps) {
 
     React.useEffect(() => {
         let unblock = history.block((tx) => {
-            if(!message || tx.location.pathname === '/login'){
+            if(!message || tx.location.pathname === pathname){
                 unblock()
                 tx.retry()
             } else {

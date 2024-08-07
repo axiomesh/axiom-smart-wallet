@@ -8,12 +8,12 @@ import {
 } from '@chakra-ui/react';
 import useContinueButton from "@/hooks/ContinueButton";
 
-
+let threeTime: any;
 const TransferResultModal = (props: any) => {
     const [isOpen, setIsOpen] = useState(props.isOpen);
     const [status, setStatus] = useState('');
     const [name, setName] = useState('');
-    const [time, setTime] = useState<number>(3);
+    let [time, setTime] = useState<number>(3);
     const {Button} = useContinueButton();
 
     useEffect(() => {
@@ -25,21 +25,27 @@ const TransferResultModal = (props: any) => {
         setName(props.name)
     },[props.name])
 
+    const handleTime = (i = 3) => {
+        threeTime = setTimeout(() => {
+            if(i === 0){
+                onClose();
+                // setTime(3);
+                clearTimeout(threeTime);
+            } else {
+                setTime(i--);
+                handleTime(i);
+
+            }
+        }, 1000)
+    }
+
     useEffect(() => {
         setStatus(props.status)
-        if(props.status === 'success' || props.status === 'failed') {
-            let t = setInterval(countDown, 1000);
-            let i = 3
-            function countDown() {
-                setTime(i)
-                if (i === 0){
-                    clearInterval(t);
-                    onClose();
-                }
-                i--;
-            }
+        if(props.isOpen && (props.status === 'success' || props.status === 'failed')){
+            handleTime();
         }
-    },[props.status])
+    },[props.status, props.isOpen])
+
 
     const onClose = () => {
         props.onClose()
