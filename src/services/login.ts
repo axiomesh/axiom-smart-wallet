@@ -297,11 +297,11 @@ export async function getNftDetail(address, id: any) {
     return res.data;
 }
 
-// export async function getNftList(address, data: any) {
-//     const res = await request({
-//         url: `/api/v2/tokens`,
-//         method: 'get',
-//         data,
-//     });
-//     return res?.data;
-// }
+export async function isNewDevice(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/is-new-device`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}

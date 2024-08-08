@@ -266,10 +266,10 @@ const Transfer = (props: any) => {
         setBtnLoading(true);
         const times = await transferLockTime({email});
         setBtnLoading(false);
-        if(times.lock_type === 0) {
+        if(times?.lock_type === 0) {
             setIsLock(0);
             countdown(times.time_left)
-        }else if(times.lock_type === 1) {
+        }else if(times?.lock_type === 1) {
             setIsLock(1);
         }else {
             setIsLock(-1);
@@ -461,12 +461,12 @@ const Transfer = (props: any) => {
                 return;
             }
             const times = await transferLockTime({email});
-            if(times.lock_type === 0) {
+            if(times?.lock_type === 0) {
                 setIsLock(0);
                 countdown(times.time_left);
                 setBtnLoading(false);
                 return;
-            }else if(times.lock_type === 1) {
+            }else if(times?.lock_type === 1) {
                 setIsLock(1);
                 setBtnLoading(false);
                 return;
@@ -691,7 +691,33 @@ const Transfer = (props: any) => {
         setSubmitFlag(false);
         setResultOpen(false);
         setBtnLoading(false);
-        // window.location.reload();
+        window.location.reload();
+    }
+
+    const getErc20Option = (option, axiom) => {
+        if(option){
+            return {
+                ...option,
+                passkey: {
+                    onRequestPasskey: async (useropHash: any) => {
+                        const res =  await bioPayUserOp(useropHash, axiom);
+                        console.log(res);
+                        return res
+                    }
+                }
+            }
+        }
+
+        return {
+            passkey: {
+                onRequestPasskey: async (useropHash: any) => {
+                    const res =  await bioPayUserOp(useropHash, axiom);
+                    console.log(res);
+                    return res
+                }
+            }
+        }
+
     }
 
     const handleBioPay = async (option?: any) => {
@@ -710,25 +736,9 @@ const Transfer = (props: any) => {
         const value = parseUnits(sendValue, decimals);
         try {
             if(form.send.value === "AXC") {
-                hash = await axiom.transfer(form.to, value, {
-                    passkey: {
-                        onRequestPasskey: async (useropHash: any) => {
-                            const res =  await bioPayUserOp(useropHash, axiom);
-                            console.log(res);
-                            return res
-                        }
-                    }
-                });
+                hash = await axiom.transfer(form.to, value, getErc20Option(option,axiom));
             } else {
-                hash = await axiom.transferErc20(form.send.contract, form.to, value,{
-                    passkey: {
-                        onRequestPasskey: async (useropHash: any) => {
-                            const res =  await bioPayUserOp(useropHash, axiom);
-                            console.log(res);
-                            return res
-                        }
-                    }
-                });
+                hash = await axiom.transferErc20(form.send.contract, form.to, value, getErc20Option(option,axiom));
             }
             if(!hash) {
                 setResultStatus("failed");
@@ -744,11 +754,6 @@ const Transfer = (props: any) => {
             })
             setSubmitFlag(false);
             sessionStorage.removeItem("form");
-            const sr = sessionStorage.getItem("sr");
-            if(sr === "0" || sr === "1") {
-                sessionStorage.removeItem("sr");
-            }
-            // setBioStatus("success");
             setResultStatus("success");
         }catch(err: any) {
             console.log('743', err)
@@ -849,7 +854,6 @@ const Transfer = (props: any) => {
         try {
 
             if(option){
-                console.log('option', option)
                 if(form.send.value === "AXC") {
                     hash = await axiom.transfer(form.to, value, option);
                 } else {
@@ -976,15 +980,8 @@ const Transfer = (props: any) => {
         // 上链
         const signer = Axiom.Utility.generateSigner();
         const spendingLimit = sessionStorage.getItem('freeLimit');
-        // const validAfter = sessionStorage.getItem('validAfter');
-        // const validUntil = sessionStorage.getItem('limit_timer');
-        const decimals = await getDecimals();
-
-        let currentDate = new Date();
-        // prod 0
-        currentDate.setHours(23, 59, 59, 999)
-        const validAfter = Math.round(Date.now() / 1000);
-        const validUntil = currentDate.getTime();
+        const validAfter = sessionStorage.getItem('validAfter');
+        const validUntil = sessionStorage.getItem('limit_timer');
         await handleBioPay({
             passwordless:{
                 signer,
@@ -992,7 +989,7 @@ const Transfer = (props: any) => {
                 validAfter,
                 validUntil,
              }
-        });
+        }, signer);
     }
 
     const handleBioStatusClose = async () => {

@@ -30,7 +30,7 @@ import {connect} from "@@/exports";
 import Toast from "@/hooks/Toast";
 import {passwordTimes, transferLockTime, wrongPassword} from "@/services/transfer";
 import {getMail} from "@/utils/help";
-import {detectBrowser, generateRandomBytes, getSafariVersion, removeTransferFee} from "@/utils/utils";
+import {detectBrowser, generateRandomBytes, getSafariVersion, getTransportType, removeTransferFee} from "@/utils/utils";
 import useCancelModal from "@/hooks/CancelModal";
 import Page from '@/components/Page'
 import { startAuthentication } from "@simplewebauthn/browser";
@@ -218,12 +218,12 @@ const TransferFree = (props: any) => {
                 device_id: userInfo.device_id,
             })
             const verifyRes = JSON.parse(res.credentials_json);
-            let transports = [res.transport];
+            let transports = [getTransportType(res.transport_type)];
             const browser = detectBrowser();
             if(browser === "safari") {
                 const version = getSafariVersion();
                 if(version && version.version == 16) {
-                    transports = ["internal", res.transport]
+                    transports = ["internal", getTransportType(res.transport_type)]
                 }
             }
 

@@ -17,7 +17,7 @@ import {
 } from '@/services/transfer';
 import { isTrustedDevice } from '@/services/login';
 import {connect} from "@@/exports";
-import {detectBrowser, getBrowserName, getDeviceType, getSafariVersion} from "@/utils/utils";
+import {detectBrowser, getBrowserName, getDeviceType, getSafariVersion, getTransportType} from "@/utils/utils";
 import {startRegistration, startAuthentication} from "@simplewebauthn/browser";
 import {getDeviceVersion} from "@/utils/system";
 
@@ -81,12 +81,12 @@ const AddDeviceModal = (props: any) => {
     const handleAddPasskey = async () => {
         const res = await addTrustDevice({ email: userInfo.email,device_id: userInfo.device_id});
         const verifyRes = JSON.parse(res.credentials_json);
-        let transports = [res.transport];
+        let transports = [getTransportType(res.transport_type)];
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
             if(version && version.version == 16) {
-                transports = ["internal", res.transport]
+                transports = ["internal", getTransportType(res.transport_type)]
             }
         }
 

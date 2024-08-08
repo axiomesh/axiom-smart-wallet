@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import {checkUnlockPasskeyCreate, checkUnlockPasskey, isTrustedDevice, isOpenBio} from "@/services/login";
 import { startAuthentication } from '@simplewebauthn/browser';
-import { detectBrowser, getSafariVersion } from '@/utils/utils';
+import {detectBrowser, getSafariVersion, getTransportType} from '@/utils/utils';
 import BioResultModal from '@/components/BioResultModal';
 import {connect} from "@@/exports";
 
@@ -83,14 +83,14 @@ function LockPage(props: any) {
         setAuth(auth);
     }
 
-    const getAuth = async (verifyRes, id) => {
+    const getAuth = async (verifyRes,transports, id) => {
         return await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
             allowCredentials: [{
                 "type": "public-key",
                 "id": id,
-                "transports": [auth.transport]
+                "transports": transports,
             }],
             userVerification: "required"
         })
@@ -101,37 +101,22 @@ function LockPage(props: any) {
         setBioResultStatus("loading");
         const verifyRes = JSON.parse(auth.credentials_json);
         const visitorId = localStorage.getItem('visitorId');
-        let transports = [verifyRes.transport];
+        let transports = [getTransportType(verifyRes.transport_type)];
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
             if(version && version.version == 16) {
-                transports = ["internal", verifyRes.transport]
+                transports = ["internal", getTransportType(verifyRes.transport_type)]
             }
         }
         let authentication: any;
         let credential_id: any;
         try {
-            // authentication = await startAuthentication({
-            //     challenge: verifyRes.publicKey.challenge,
-            //     rpId: verifyRes.publicKey.rpId,
-            //     allowCredentials: [{
-            //         "type": "public-key",
-            //         "id": auth.credential_id,
-            //         "transports": [auth.transport]
-            //     }],
-            //     userVerification: "required"
-            // })
             if(auth?.credential_ids?.length === 1){
                 credential_id = auth.credential_ids[0];
-                authentication = await getAuth(verifyRes, auth.credential_ids[0]);
+                authentication = await getAuth(verifyRes,transports, auth.credential_ids[0]);
             } else if(auth?.credential_ids?.length === 2) {
-                // getAuth
-                // const list = await Promise.all(auth?.credential_ids.map(item => getAuth(verifyRes, item)));
-                // credential_id = list[0] ? auth.credential_ids[0] : auth.credential_ids[1];
-                // authentication = list.filter(li => li)[0];
-
-                const list = await Promise.allSettled(auth?.credential_ids.map(item => getAuth(verifyRes, item)));
+                const list = await Promise.allSettled(auth?.credential_ids.map(item => getAuth(verifyRes, transports, item)));
                 const index = list.findIndex(li => li.status === "fulfilled");
                 credential_id = auth.credential_ids[index];
                 authentication = list[index].value;

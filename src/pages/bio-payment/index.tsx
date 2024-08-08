@@ -22,7 +22,7 @@ import Toast from "@/hooks/Toast";
 import {getMail} from "@/utils/help";
 import BioResultModal from "@/components/BioResultModal";
 import {connect} from "@@/exports";
-import {detectBrowser, getDeviceType, getSafariVersion} from "@/utils/utils";
+import {detectBrowser, getDeviceType, getSafariVersion, getTransportType} from "@/utils/utils";
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import { Axiom } from 'axiomwallet';
 import VerifyTransferModal from "@/components/VerifyTransferModal";
@@ -122,12 +122,12 @@ const BioPayment = (props: any) => {
                 email: email,
                 device_id: deviceId,
             })
-            let transports = [res.transport];
+            let transports = [getTransportType(res.transport_type)];
             const browser = detectBrowser();
             if(browser === "safari") {
                 const version = getSafariVersion();
                 if(version && version.version == 16) {
-                    transports = ["internal", res.transport]
+                    transports = ["internal", getTransportType(res.transport_type)]
                 }
             }
             const verifyRes = JSON.parse(res.credentials_json);

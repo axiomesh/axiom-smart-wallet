@@ -153,3 +153,8 @@ export const removeTransferFee = () => {
     sessionStorage.removeItem("freeStatus")
     sessionStorage.removeItem("freeStep")
 }
+
+export const getTransportType = (type) => {
+    if(type) return 'internal'
+    return 'hybrid'
+}

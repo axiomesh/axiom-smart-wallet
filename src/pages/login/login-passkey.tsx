@@ -26,7 +26,14 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 import BioResultModal from '@/components/BioResultModal';
 import { Axiom } from 'axiomwallet';
 import { sha256 } from 'js-sha256'
-import {generateRandomBytes, getDeviceType, detectBrowser, getSafariVersion, getBrowserName} from "@/utils/utils";
+import {
+    generateRandomBytes,
+    getDeviceType,
+    detectBrowser,
+    getSafariVersion,
+    getBrowserName,
+    getTransportType
+} from "@/utils/utils";
 import Toast from "@/hooks/Toast";
 import {getDeviceVersion} from "@/utils/system";
 
@@ -100,42 +107,46 @@ const LoginPasskey: React.FC = () => {
             }
         }else {
             try {
-                await handleVerifyPasskey();
-                const code = localStorage.getItem('verify_code');
-                if(code) {
-                    // const salt = generateRandomBytes(16);
-                    const pwd = new Date().getTime().toString() + 'a';
-                    const transferSalt = generateRandomBytes(16);
-                    let axiomAccount = await Axiom.Wallet.AxiomWallet.fromPassword(sha256(pwd), transferSalt);
-                    window.axiom = axiomAccount;
-                    const address = await axiomAccount.getAddress();
-                    const device_id = localStorage.getItem('visitorId');
-                    const hash = await axiomAccount.deployWalletAccout();
-                    try {
-                        // 上链
-                        if(hash){
-                            await registerAddress({
-                                email: email,
-                                address: address,
-                                device_id: device_id,
-                                enc_private_key: axiomAccount.getEncryptedPrivateKey(),
-                                user_salt: window.accountSalt,
-                                transfer_pwd: pwd,
-                                transfer_salt: transferSalt,
-                            })
-                            setBioResultStatus("first");
-                            localStorage.removeItem('verify_code');
+                const res = await handleVerifyPasskey();
+                console.log(res);
+                if(res) {
+                    const code = localStorage.getItem('verify_code');
+                    if(code) {
+                        // const salt = generateRandomBytes(16);
+                        const pwd = new Date().getTime().toString() + 'a';
+                        const transferSalt = generateRandomBytes(16);
+                        let axiomAccount = await Axiom.Wallet.AxiomWallet.fromPassword(sha256(pwd), transferSalt);
+                        window.axiom = axiomAccount;
+                        const address = await axiomAccount.getAddress();
+                        const device_id = localStorage.getItem('visitorId');
+                        const hash = await axiomAccount.deployWalletAccout();
+                        try {
+                            // 上链
+                            if(hash){
+                                await registerAddress({
+                                    email: email,
+                                    address: address,
+                                    device_id: device_id,
+                                    enc_private_key: axiomAccount.getEncryptedPrivateKey(),
+                                    user_salt: window.accountSalt,
+                                    transfer_pwd: pwd,
+                                    transfer_salt: transferSalt,
+                                })
+                                setBioResultStatus("first");
+                                localStorage.removeItem('verify_code');
+                            }
+                        }catch (error: any) {
+                            showErrorToast(error)
+                            return;
                         }
-                    }catch (error: any) {
-                        showErrorToast(error)
-                        return;
+                    }else {
+                        setBioResultStatus("back");
                     }
-                }else {
-                    setBioResultStatus("back");
+                    setTimeout(() => {
+                        history.replace('/home');
+                    }, 1000)
                 }
-                setTimeout(() => {
-                    history.replace('/home');
-                }, 1000)
+
             }catch (error: any) {
                 console.log(error, '------verify')
                 setOpenBioResult(true);
@@ -155,7 +166,9 @@ const LoginPasskey: React.FC = () => {
         try {
             register = await registerPasskey({
                 email: email,
-                device_id: visitorId
+                device_id: visitorId,
+                device_name: navigator.platform,
+                device_version: getDeviceVersion(),
             })
         }catch(error: any) {
             setOpenBioResult(false);
@@ -213,7 +226,9 @@ const LoginPasskey: React.FC = () => {
                 email: email,
                 device_id: device_id,
                 device_type: "Iphone",
-                response: JSON.stringify(result)
+                response: JSON.stringify(result),
+                device_name: navigator.platform,
+                device_version: getDeviceVersion(),
             })
             setBioResultStatus("success");
             setTimeout(() => {
@@ -246,26 +261,32 @@ const LoginPasskey: React.FC = () => {
             device_id: deviceId,
         })
         const verifyRes = JSON.parse(res.credentials_json);
-        let transports = [res.transport];
+        let transports = [getTransportType(res.transport_type)];
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
             if(version && version.version == 16) {
-                transports = ["internal", res.transport]
+                transports = ["internal", getTransportType(res.transport_type)]
             }
         }
         let authentication = '';
         let credential_id = '';
-        if(res?.credential_ids?.length === 1){
-            credential_id = res.credential_ids[0];
-            authentication = await getAuth(verifyRes, transports, res.credential_ids[0]);
-        } else if(res?.credential_ids?.length > 1) {
-            const list = await Promise.allSettled(res?.credential_ids.map(item => getAuth(verifyRes, transports,item)));
-            const index = list.findIndex(li => li.status === "fulfilled");
-            credential_id = res.credential_ids[index];
-            authentication = list[index].value;
+        try{
+            if(res?.credential_ids?.length === 1){
+                credential_id = res.credential_ids[0];
+                console.log('transports', transports);
+                authentication = await getAuth(verifyRes, transports, res.credential_ids[0]);
+                console.log('271', authentication);
+            } else if(res?.credential_ids?.length > 1) {
+                const list = await Promise.allSettled(res?.credential_ids.map(item => getAuth(verifyRes, transports,item)));
+                console.log(list);
+                const index = list.findIndex(li => li.status === "fulfilled");
+                credential_id = res.credential_ids[index];
+                authentication = list[index].value;
+            }
+        } catch (e){
+            console.log('274', e)
         }
-        // const authentication = await getAuth(verifyRes, transports, res.credential_id);
         let token: any;
         try {
             token = await checkPasskey({
@@ -286,6 +307,8 @@ const LoginPasskey: React.FC = () => {
             return;
         }
         setToken(token);
+
+        return token
     }
 
     return (
