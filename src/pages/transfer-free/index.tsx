@@ -65,7 +65,7 @@ const TransferFree = (props: any) => {
     const isFreeTransfer = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
+        if((status === '1' || status === '2') && timer && Number(timer) >= Math.round(new Date().getTime()/ 1000)) {
             return true
         }
         return false
@@ -79,7 +79,7 @@ const TransferFree = (props: any) => {
     const [ModalComponent, openModal, closeModal] = useCancelModal();
 
     useEffect(() => {
-        if(isFreeTransfer) {
+        if(isFreeTransfer()) {
             // setSessionKey(sessionStorage.getItem("sk"))
             setIsSwitch(true)
         }
@@ -259,8 +259,8 @@ const TransferFree = (props: any) => {
         sessionStorage.setItem("freeLimit", max || "");
         sessionStorage.setItem("freeStatus", '1')
         sessionStorage.setItem("freeStep", freeLimit ? '1' : '0')
-        sessionStorage.setItem("limit_timer", dayjs(timer).endOf('date').valueOf());
-        sessionStorage.setItem("validAfter", current.toString());
+        sessionStorage.setItem("limit_timer", Math.round(dayjs(timer).endOf('date').valueOf() / 1000));
+        sessionStorage.setItem("validAfter", Math.round(current.toString() / 1000));
         // sessionStorage.setItem("validUntil", validUntil.toString());
     }
 

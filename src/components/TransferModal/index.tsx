@@ -57,7 +57,7 @@ const TransferModal = (props: any) => {
     const isFreeTransfer = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
+        if((status === '1' || status === '2') && timer && Number(timer) >= Math.round(new Date().getTime()/ 1000)) {
             return true
         }
         return false

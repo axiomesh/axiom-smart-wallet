@@ -185,7 +185,7 @@ const Transfer = (props: any) => {
     const isFreeTransfer = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
+        if((status === '1' || status === '2') && timer && Number(timer) >= Math.round(new Date().getTime()) / 1000) {
             return true
         }
         return false
@@ -532,7 +532,7 @@ const Transfer = (props: any) => {
                 isTransfinite: transfinite
             })
 
-            if(status === '1' && timer && Number(timer) >= new Date().getTime()) {
+            if(status === '1' && timer && Number(timer) >= Math.round(new Date().getTime()/ 1000)) {
                 setFirstOpen(true)
             } else {
                 setTransferOpen(true)
@@ -854,14 +854,17 @@ const Transfer = (props: any) => {
                     hash = await axiom.transfer(form.to, value, option);
                 } else {
                     console.log(form.send.contract)
+                    console.log(`form.send.contract: ${form.send.contract}\nform.to: ${form.to}\nvalue:${value}\noption: ${option}`)
                     hash = await axiom.transferErc20(form.send.contract, form.to, value, option);
                 }
             } else {
                 if(form.send.value === "AXC") {
+                    console.log('transfer862', axiom)
                     hash = await axiom.transfer(form.to, value);
                 } else {
                     console.log('form.send.contract', form)
                     console.log('value', value)
+                    console.log(`typeof form.send.contract: ${typeof(form.send.contract)}\nform.to: ${form.to}\nvalue:${value}\noption: ${option}`)
                     hash = await axiom.transferErc20(form.send.contract, form.to, value);
                 }
             }
@@ -1019,7 +1022,7 @@ const Transfer = (props: any) => {
     const openResult = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if(status === '1' && timer && Number(Number(timer) >= new Date().getTime())){
+        if(status === '1' && timer && Number(Number(timer) >= Math.round(new Date().getTime()) / 1000)){
             setFirstOpen(false)
         } else {
             setTransferOpen(false)
