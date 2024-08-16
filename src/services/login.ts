@@ -1,5 +1,6 @@
 import request from '@/utils/request';
 import {clearSessionData, setToken} from "@/utils/help";
+import axios from "axios";
 
 
 export async function sendVerifyCode(email: string | null) {
@@ -225,6 +226,16 @@ export async function checkUnlockPasskey(data: any) {
     return res?.data;
 }
 
+export async function isTrustedDevice(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/is-trusted-device`,
+        method: 'get',
+        data,
+    });
+    return res?.data;
+}
+
+
 export async function isOpenBio(data: any) {
     const res = await request({
         url: `/api/axm-wallet/account/login/is-open-bio-payment`,
@@ -265,6 +276,31 @@ export async function checkBioPasskey(data: any) {
     const res = await request({
         url: `/api/axm-wallet/account/passkey/check-bio`,
         method: 'post',
+        data,
+    });
+    return res?.data;
+}
+
+export async function getAllNft(address, type) {
+    const res = await axios(`/api/v2/addresses/${address}/tokens?type=${type}`);
+    return res.data;
+}
+
+export async function getNftList(address) {
+    const res = await axios(`/api/v2/tokens/${address}/instances`);
+    return res.data;
+}
+
+// /api/v2/tokens/0x0d96356DE55cf67D07d8Df2c78DA371c5268DaF7/instances/7
+export async function getNftDetail(address, id: any) {
+    const res = await axios(`/api/v2/tokens/${address}/instances/${id}`);
+    return res.data;
+}
+
+export async function isNewDevice(data: any) {
+    const res = await request({
+        url: `/api/axm-wallet/account/login/is-new-device`,
+        method: 'get',
         data,
     });
     return res?.data;

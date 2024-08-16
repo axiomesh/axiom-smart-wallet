@@ -13,9 +13,9 @@ import {
     PopoverBody,
     PopoverArrow,
 } from '@chakra-ui/react';
-import { checkUnlockPasskeyCreate, checkUnlockPasskey, isOpenBio } from "@/services/login";
+import {checkUnlockPasskeyCreate, checkUnlockPasskey, isTrustedDevice, isOpenBio} from "@/services/login";
 import { startAuthentication } from '@simplewebauthn/browser';
-import { detectBrowser, getSafariVersion } from '@/utils/utils';
+import {detectBrowser, getSafariVersion, getTransportType} from '@/utils/utils';
 import BioResultModal from '@/components/BioResultModal';
 import {connect} from "@@/exports";
 
@@ -70,7 +70,7 @@ function LockPage(props: any) {
     }, [])
 
     const hanldeIsOpenBio = async (deviceId: string | null) => {
-        const isOpen = await isOpenBio({
+        const isOpen = await isTrustedDevice({
             email: email,
             device_id: deviceId,
         });
@@ -83,32 +83,47 @@ function LockPage(props: any) {
         setAuth(auth);
     }
 
+    const getAuth = async (verifyRes,transports, id) => {
+        return await startAuthentication({
+            challenge: verifyRes.publicKey.challenge,
+            rpId: verifyRes.publicKey.rpId,
+            allowCredentials: [{
+                "type": "public-key",
+                "id": id,
+                "transports": transports,
+            }],
+            userVerification: "required"
+        })
+    }
+
     const handlePasskeyClick = async() => {
         setOpenBioResult(true);
         setBioResultStatus("loading");
         const verifyRes = JSON.parse(auth.credentials_json);
         const visitorId = localStorage.getItem('visitorId');
-        let transports = [verifyRes.transport];
+        let transports = [getTransportType(verifyRes.transport_type)];
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
             if(version && version.version == 16) {
-                transports = ["internal", verifyRes.transport]
+                transports = ["internal", getTransportType(verifyRes.transport_type)]
             }
         }
         let authentication: any;
+        let credential_id: any;
         try {
-            authentication = await startAuthentication({
-                challenge: verifyRes.publicKey.challenge,
-                rpId: verifyRes.publicKey.rpId,
-                allowCredentials: [{
-                    "type": "public-key",
-                    "id": auth.credential_id,
-                    "transports": [auth.transport]
-                }],
-                userVerification: "required"
-            })
-            localStorage.setItem("allowCredentials", auth.credential_id)
+            if(auth?.credential_ids?.length === 1){
+                credential_id = auth.credential_ids[0];
+                authentication = await getAuth(verifyRes,transports, auth.credential_ids[0]);
+            } else if(auth?.credential_ids?.length === 2) {
+                const list = await Promise.allSettled(auth?.credential_ids.map(item => getAuth(verifyRes, transports, item)));
+                const index = list.findIndex(li => li.status === "fulfilled");
+                credential_id = auth.credential_ids[index];
+                authentication = list[index].value;
+            }
+            // console.log('credential_id',credential_id)
+            // // getAuth
+            // localStorage.setItem("allowCredentials",credential_id)
         }catch (error: any) {
             console.log(error, '------lock')
             setOpenBioResult(true);
@@ -120,12 +135,12 @@ function LockPage(props: any) {
             }
             return;
         }
-        let token: any;
         try {
-            token = await checkUnlockPasskey({
+            await checkUnlockPasskey({
                 email: email,
                 result: JSON.stringify(authentication),
-                device_id: visitorId
+                device_id: visitorId,
+                credential_id,
             })
             setBioResultStatus("back");
             setTimeout(() => {
@@ -149,7 +164,9 @@ function LockPage(props: any) {
                         Use a different account
                     </a>
                     {/* <ButtonPro mt="20px" onClick={handleSubmit}>Continue</ButtonPro> */}
-                    {isBioOpen === 0 ? <Popover trigger="hover" strategy="fixed" placement="bottom-start">
+                    {isBioOpen === 1 ?   <div>
+                        <div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyBioIcon}></i><span>Continue</span></div>
+                    </div> : <Popover trigger="hover" strategy="fixed" placement="bottom-start">
                         <PopoverTrigger><div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyIcon}></i><span>Continue with phone</span></div></PopoverTrigger>
                         <PopoverContent style={{borderRadius: "32px", padding: "20px"}} width="auto">
                             <PopoverArrow />
@@ -168,9 +185,7 @@ function LockPage(props: any) {
                                 </div>
                             </PopoverBody>
                         </PopoverContent>
-                    </Popover> : <div>
-                        <div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyBioIcon}></i><span>Continue</span></div>
-                    </div>}
+                    </Popover>}
                 </div>
             </div>
             <Right />

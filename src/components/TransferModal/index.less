@@ -3,8 +3,25 @@
     display: inline-block;
     width: 46px;
     height: 46px;
-    background: url("../../assets/cancel.png") no-repeat center / cover;
+    line-height: 42px;
+    border: 1px solid #E6E8EC;
+    text-align: center;
+    color: #000;
+    border-radius: 50%;
+    //background: url("../../assets/cancel.png") no-repeat center / cover;
     cursor: pointer;
+
+    &:hover{
+      background: #F7FAFC;
+      border-color: #718096;
+      color:#718096;
+    }
+
+    &:active{
+      background: #EDF2F7;
+      border-color: #2D3748;
+      color:#2D3748;
+    }
   }
   &Title {
     font-family: Inter;
@@ -21,7 +38,7 @@
   }
   &FreeToast {
     padding: 12px 16px 12px 16px;
-    border-radius: 8px;
+    border-radius: 20px;
     background: #FEEBCB;
     margin-bottom: 20px;
     display: flex;
@@ -159,4 +176,17 @@
   &:active {
     color: #D4B443;
   }
+}
+
+.alertIcon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 50%;
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
+  background: #DD6B20;
 }

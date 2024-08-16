@@ -5,13 +5,11 @@ import {
     ModalOverlay,
     ModalContent,
     ModalHeader,
-    ModalFooter,
     ModalBody
 } from '@chakra-ui/react';
 import ModalInputPassword from "@/components/ModalInputPassword";
-import {history} from "umi";
 import Toast from "@/hooks/Toast"
-import { isOpenBio } from "@/services/login";
+import {CloseIcon} from "@/components/Icons";
 
 
 const VerifyTransferModal = (props: any) => {
@@ -22,9 +20,6 @@ const VerifyTransferModal = (props: any) => {
     const [openBio, setOpenBio] = useState<boolean | undefined>(false);
     const [showBio, setShowBio] = useState(false);
     const {showErrorToast} = Toast();
-
-    useEffect(() => {
-    }, [])
 
     useEffect(() => {
         setError(props.errorMsg)
@@ -41,6 +36,12 @@ const VerifyTransferModal = (props: any) => {
         setIsLoading(props.pinLoading)
     }, [props.pinLoading])
 
+    const handleInitClose = () => {
+        setOpenBio(props.isOpenBio);
+        setShowBio(props.isOpenBio)
+        props.onClose();
+    }
+
     useEffect(() => {
         setTime(30)
         setOpen(props.isOpen)
@@ -56,7 +57,7 @@ const VerifyTransferModal = (props: any) => {
                     }else {
                         showErrorToast("Confirm timeout !");
                     }
-                    props.onClose();
+                    handleInitClose();
                 }
                 i--;
             }
@@ -70,7 +71,7 @@ const VerifyTransferModal = (props: any) => {
         }else {
             showErrorToast("Confirm failed !");
         }
-        props.onClose();
+        handleInitClose();
     }
 
     const handleBio = () => {
@@ -84,7 +85,10 @@ const VerifyTransferModal = (props: any) => {
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
                         <div className={styles.payPassTitle}><span className={styles.payPassTitleBefore}>Verification</span><span className={styles.payPassTitleTime}>（{time}s）</span></div>
-                        <i className={styles.payPassClose} onClick={handleClose}></i>
+                        {/*<i className={styles.payPassClose} onClick={handleClose}></i>*/}
+                        <i className='close' onClick={handleClose}>
+                            <CloseIcon fontSize="12px" />
+                        </i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 40px 40px">
                         <div className={styles.payPassBody}>

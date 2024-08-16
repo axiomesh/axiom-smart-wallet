@@ -9,6 +9,8 @@ import {lockPage} from "@/services/login";
 import {getMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import {connect} from "@@/exports";
+import { JsonRpcProvider } from "ethers";
+import { parseEther } from "viem";
 
 interface listItem {
     label: string,
@@ -40,6 +42,7 @@ const Security = (props: any) => {
     const [list, setList] = useState<listItem[]>([]);
     const {showErrorToast} = Toast();
     const { userInfo } = props;
+    const rpc_provider = new JsonRpcProvider(window.RPC_URL);
 
     useEffect(() => {
         if(userInfo.pay_password_set_status === 0) {
@@ -66,6 +69,11 @@ const Security = (props: any) => {
 
         }
         if(i === 1) {
+            const balance = await rpc_provider.getBalance(userInfo.address);
+            if(balance < parseEther('0.1')){
+                showErrorToast('Your current account AXC balance is less than 0.1, please recharge and try again')
+                return;
+            }
             history.push('/reset-transfer')
         }
         if(i === 2) {
@@ -86,8 +94,8 @@ const Security = (props: any) => {
                         <div className={styles.securityListItem} onClick={() => handleClickItem(index)} onMouseEnter={() => {setIsHover(index)}} onMouseLeave={() => {setIsHover(null)}}>
                             {index === isHover ? <div className={styles.securityListItemHover}></div> : null}
                             {
-                                item.label === "passkey" ? <Passkey fill={index === isHover ? "#ECC94B" : "#171923"}/> 
-                                : item.label === "transfer" ? <Transfer stroke={index === isHover ? "#ECC94B" : "#171923"}/> 
+                                item.label === "passkey" ? <Passkey fill={index === isHover ? "#ECC94B" : "#171923"}/>
+                                : item.label === "transfer" ? <Transfer stroke={index === isHover ? "#ECC94B" : "#171923"}/>
                                 : item.label === "free" ? <Free fill={index === isHover ? "#ECC94B" : "#171923"}/>
                                 : <Bio fill={index === isHover ? "#ECC94B" : "#171923"}/>
                             }

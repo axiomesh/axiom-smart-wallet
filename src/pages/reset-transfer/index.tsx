@@ -8,7 +8,7 @@ import {history} from "@@/core/history";
 import {getMail} from "@/utils/help";
 import {connect} from "@@/exports";
 import {generateRandomBytes} from "@/utils/utils";
-import { encrypt, deriveAES256GCMSecretKey, generateSigner } from "axiom-smart-account-test";
+import { Axiom } from 'axiomwallet';
 import Toast from "@/hooks/Toast";
 import {sha256} from "js-sha256";
 import {getUserInfo} from "@/services/login";
@@ -35,7 +35,7 @@ const ResetTransfer = (props: any) => {
     useEffect(() => {
         async function times() {
             const times = await transferLockTime({email});
-            if(times.lock_type >= 0) {
+            if(times.time_left && times.lock_type >= 0) {
                 setToastMsg("The current account has been frozen. Resetting the password will take effect immediately after the lock is removed.")
             }else {
                 setToastMsg('Your account will be locked for 24 hours after resetting your password, and transactions cannot be sent normally.')
@@ -127,9 +127,9 @@ const ResetTransfer = (props: any) => {
         const salt = generateRandomBytes(16);
         const transferSalt = generateRandomBytes(16);
         try {
-            const signer = generateSigner();
-            const secretKey = await deriveAES256GCMSecretKey(sha256(password), transferSalt);
-            const encryptedPrivateKey = encrypt(signer.privateKey, secretKey.toString());
+            const signer = Axiom.Utility.generateSigner();
+            const secretKey = await Axiom.Utility.deriveAES256GCMSecretKey(sha256(password), transferSalt);
+            const encryptedPrivateKey = Axiom.Utility.encrypt(signer.privateKey, secretKey.toString());
             console.log(signer.privateKey);
             console.log(signer.address);
             setNewPassword(email,info.enc_private_key,encryptedPrivateKey, signer.address, salt, transferSalt).then(async (res: any) =>{

@@ -11,12 +11,13 @@ import {
 import { history, connect, Navigate } from 'umi';
 import React, {useEffect, useState} from "react";
 import Right from './componments/right';
-import { sendVerifyCode, checkUser } from '@/services/login';
+import {sendVerifyCode, checkUser, isNewDevice} from '@/services/login';
 import {setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { getToken } from "@/utils/help";
-import { detectBrowser, getSafariVersion, getChromeVersion } from "@/utils/utils";
+import { detectBrowser, getSafariVersion, getChromeVersion, removeTransferFee } from "@/utils/utils";
 import DeviceSupport from "@/components/DeviceSupport";
+import {getDeviceVersion} from "@/utils/system";
 
 function Login(props: any) {
     const { dispatch } = props;
@@ -29,6 +30,7 @@ function Login(props: any) {
     const [version, setVersion] = useState("");
     const [device, setDevice] = useState("");
     const {showErrorToast} = Toast();
+    // const [deviceId, setDeviceId] = useState('');
 
     const validateName = (value: string) => {
         const reg =  /^(.+)@(.+)$/;
@@ -48,6 +50,7 @@ function Login(props: any) {
     // }, []);
 
     useEffect(() => {
+        removeTransferFee();
         dispatch({
             type: 'global/setForm',
             payload: {},
@@ -84,8 +87,23 @@ function Login(props: any) {
                 setVersion(version.allVersion);
                 setDevice(browser);
             }
-        }  
+        }
     }, [])
+
+    // const getDeviceId = () => {
+    //     const fpPromise = import('@/utils/v3')
+    //         .then(FingerprintJS => FingerprintJS.load())
+    //     fpPromise.then(fp => fp.get()).then(async (result) => {
+    //         const visitorId = result.visitorId;
+    //         setDeviceId(visitorId);
+    //         localStorage.setItem('visitorId', visitorId);
+    //     })
+    // }
+    //
+    //
+    // useEffect(() => {
+    //     getDeviceId();
+    // }, [])
 
     const handleSubmit = async () => {
         if(!validateName(mail)) return
@@ -116,8 +134,18 @@ function Login(props: any) {
                 setLoading(false)
             }
         }else {
-            setLoading(false)
-            history.push(`/login-passkey`);
+            const res = await isNewDevice({
+                email: mail,
+                device_name: navigator.platform,
+                device_version: getDeviceVersion(),
+                // device_id: deviceId,
+            })
+            if(res){
+                history.replace(`/register-passkey`)
+            } else {
+                setLoading(false)
+                history.push(`/login-passkey`);
+            }
         }
 
     }

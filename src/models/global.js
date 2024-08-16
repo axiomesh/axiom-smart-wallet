@@ -3,7 +3,7 @@ export default {
   state: {
     userInfo: {},
     transferForm: {},
-    freeForm: ""
+    freeForm: {},
   },
   effects: {
     *setUser({ payload }, { put }) {
@@ -37,5 +37,5 @@ export default {
       };
     },
   },
-  
+
 };

@@ -7,18 +7,18 @@ import {
     ModalBody,
 } from '@chakra-ui/react';
 import useContinueButton from "@/hooks/ContinueButton";
+import ButtonPro from "@/components/Button";
 
-
+let timer = null;
 const BioResultModal = (props: any) => {
     const [isOpen, setIsOpen] = useState(props.isOpen);
     const [status, setStatus] = useState('');
     const [tip, setTip] = useState('');
     const [name, setName] = useState('');
-    const [time, setTime] = useState<number>(3);
+    let [time, setTime] = useState<number>(3);
     const {Button} = useContinueButton();
 
     useEffect(() => {
-        setTime(3)
         setIsOpen(props.isOpen)
     },[props.isOpen])
 
@@ -30,19 +30,24 @@ const BioResultModal = (props: any) => {
         setTip(props.loadingTip)
     }, [props.loadingTip])
 
+    const countDown = (i) => {
+        setTime(i)
+        if (i === 0){
+            clearTimeout(timer);
+            onClose();
+        } else {
+            time = setTimeout(() => {
+                // eslint-disable-next-line no-param-reassign
+                i-=1;
+                countDown(i);
+            }, 1000);
+        }
+    }
+
     useEffect(() => {
         setStatus(props.status)
-        if(props.status === 'success' || props.status === 'failed') {
-            let t = setInterval(countDown, 1000);
-            let i = 1
-            function countDown() {
-                setTime(i)
-                if (i === 0){
-                    clearInterval(t);
-                    onClose();
-                }
-                i--;
-            }
+        if(props.status === 'success' || props.status === 'failed' || props.status === "deviceSuccess") {
+            countDown(3)
         }
     },[props.status])
 
@@ -65,6 +70,13 @@ const BioResultModal = (props: any) => {
                                 status === "loading" ? <div className={styles.loading}>
                                     <img src={require("@/assets/transfer/bio-loading.png")} alt=""/>
                                     <span>Authentication</span>
+                                </div> : status === "deviceSuccess" ? <div className={styles.success}>
+                                    <div className={styles.successIcon}><img src={require("@/assets/transfer/device_success.png")} alt=""/></div>
+                                    <span>Trusted Device</span>
+                                    <div style={{textAlign: 'center', fontSize: 14,color: '#718096', marginTop: 4}}>
+                                        <div>You have already set this device as a trusted device.</div>
+                                        <div>Enjoy the login via Passkey.</div>
+                                    </div>
                                 </div> : status === "success" ? <div className={styles.success}>
                                     <div className={styles.successIcon}><img src={require("@/assets/transfer/bio-success.png")} alt=""/></div>
                                     <span>Authentication success</span>
@@ -97,6 +109,10 @@ const BioResultModal = (props: any) => {
                                 <div style={{margin: "20px 0"}}><Button onClick={onVerify}>Verify transfer password</Button></div>
                                 <div className={styles.successBtn} onClick={onClose}>Cancel</div>
                             </div>
+                        }
+
+                        {
+                            status === "deviceSuccess" && <ButtonPro onClick={onClose} style={{marginTop: 20}}>OK ({time}s)</ButtonPro>
                         }
                     </ModalBody>
                 </ModalContent>

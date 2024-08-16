@@ -42,13 +42,25 @@ function Layout(props: any) {
         initUserInfo();
     }, []);
 
-    const initSocket = () => {
-        const deviceId = localStorage.getItem('visitorId');
-        // @ts-ignore
-        const ws = new WebSocket(`${window.socketUrl}/axm-wallet/notice/${email}`);
 
-        console.log('ws连接状态21：' + ws.readyState);
-        if(ws.readyState){
+    const debounce = (fn, wait) => {
+        let timeout = null;
+
+        return function() {
+            let context = this, args = arguments;
+
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                fn.apply(context, args);
+            }, wait);
+        };
+    }
+
+    const initSocket = (ws) => {
+        const deviceId = localStorage.getItem('visitorId');
+
+        console.log('ws连接状态21：' + ws?.readyState);
+        if(ws?.readyState){
             ws.close();
         }
 
@@ -64,7 +76,8 @@ function Layout(props: any) {
             if(message.data){
                 const res = JSON.parse(message.data || '{}');
                 if(res?.noticeType === 0){
-                    refreshToken(email, deviceId)
+                    debounce(refreshToken(email, deviceId), 5000)
+                    // refreshToken(email, deviceId)
                 }
                 if(res?.noticeType === 1){
                     history.replace('/lock');
@@ -76,7 +89,7 @@ function Layout(props: any) {
             // 监听整个过程中websocket的状态
             console.log('ws连接状态47：' + ws.readyState);
             setTimeout(function(){
-                initSocket();
+                initSocket(ws);
             },5000);
         }
     }
@@ -96,7 +109,15 @@ function Layout(props: any) {
     }, []);
 
     useEffect(() => {
-        initSocket();
+        // @ts-ignore
+        const ws = new WebSocket(`${window.socketUrl}/axm-wallet/notice/${email}`);
+        console.log('114',ws);
+        console.log('broser', navigator)
+        initSocket(ws);
+
+        return () => {
+            ws.close();
+        }
     }, []);
 
   return (

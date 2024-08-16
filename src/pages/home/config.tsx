@@ -141,3 +141,9 @@ export const currencyList: Array<Item> = [
         icon: axc,
     }
 ]
+
+export const PayStatus = {
+    init: 0,
+    success: 1,
+    reset: 2,
+}

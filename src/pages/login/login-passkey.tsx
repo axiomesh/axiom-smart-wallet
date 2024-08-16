@@ -1,7 +1,5 @@
 import React from 'react';
 import styles from './index.less';
-import InputPro from '@/components/Input';
-import ButtonPro from '@/components/Button'
 import {
     Popover,
     PopoverTrigger,
@@ -12,16 +10,32 @@ import {
 import { history, useLocation } from 'umi';
 import {useEffect, useState} from "react";
 import Right from './componments/right';
-import {addPrivateKey, registerAddress, registerPasskey, registerPasskeySave, checkPasskeyCreate, checkPasskey, isOpenBio} from '@/services/login';
+import {
+    addPrivateKey,
+    registerAddress,
+    registerPasskey,
+    registerPasskeySave,
+    checkPasskeyCreate,
+    checkPasskey,
+    isOpenBio,
+    isTrustedDevice
+} from '@/services/login';
 import {getMail, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 import BioResultModal from '@/components/BioResultModal';
-import { AxiomAccount, generateSigner } from 'axiom-smart-account-test'
+import { Axiom } from 'axiomwallet';
 import { sha256 } from 'js-sha256'
-import {generateRandomBytes,getDeviceType, detectBrowser, getSafariVersion} from "@/utils/utils";
-import { register } from '@passwordless-id/webauthn/dist/esm/client';
+import {
+    generateRandomBytes,
+    getDeviceType,
+    detectBrowser,
+    getSafariVersion,
+    getBrowserName,
+    getTransportType
+} from "@/utils/utils";
 import Toast from "@/hooks/Toast";
+import {getDeviceVersion} from "@/utils/system";
 
 
 
@@ -29,7 +43,7 @@ const LoginPasskey: React.FC = () => {
     const email: string | any = getMail();
     const [open, setOpen] = useState(false);
     const [isRegister, setIsRegister] = useState(false);
-    const [isBioOpen, setIsBioOpen] = useState(0);
+    const [isTrustOpen, setIsTrustOpen] = useState(0);
     const [openBioResult, setOpenBioResult] = useState(false);
     const [bioResultStatus, setBioResultStatus] = useState('');
     const [deviceId, setDeviceId] = useState('');
@@ -45,6 +59,7 @@ const LoginPasskey: React.FC = () => {
             const fpPromise = import('@/utils/v3')
             .then(FingerprintJS => FingerprintJS.load())
             fpPromise.then(fp => fp.get()).then(async (result) => {
+                console.log(result);
                 const visitorId = result.visitorId;
                 setDeviceId(visitorId);
                 localStorage.setItem('visitorId', visitorId);
@@ -59,11 +74,11 @@ const LoginPasskey: React.FC = () => {
     }, [])
 
     const hanldeIsOpenBio = async (deviceId: string) => {
-        const isOpen = await isOpenBio({
+        const isOpen = await isTrustedDevice({
             email: email,
             device_id: deviceId,
         });
-        setIsBioOpen(isOpen);
+        setIsTrustOpen(isOpen);
     }
 
     const handleBack = () =>{
@@ -92,29 +107,46 @@ const LoginPasskey: React.FC = () => {
             }
         }else {
             try {
-                await handleVerifyPasskey();
-                const code = localStorage.getItem('verify_code');
-                if(code) {
-                    const address = await handleGetAddress();
-                    const device_id = localStorage.getItem('visitorId');
-                    try {
-                        await registerAddress({
-                            email: email,
-                            address: address,
-                            device_id: device_id
-                        })
-                        setBioResultStatus("first");
-                        localStorage.removeItem('verify_code');
-                    }catch (error: any) {
-                        showErrorToast(error)
-                        return;
+                const res = await handleVerifyPasskey();
+                console.log(res);
+                if(res) {
+                    const code = localStorage.getItem('verify_code');
+                    if(code) {
+                        // const salt = generateRandomBytes(16);
+                        const pwd = new Date().getTime().toString() + 'a';
+                        const transferSalt = generateRandomBytes(16);
+                        let axiomAccount = await Axiom.Wallet.AxiomWallet.fromPassword(sha256(pwd), transferSalt);
+                        window.axiom = axiomAccount;
+                        const address = await axiomAccount.getAddress();
+                        const device_id = localStorage.getItem('visitorId');
+                        const hash = await axiomAccount.deployWalletAccout();
+                        try {
+                            // 上链
+                            if(hash){
+                                await registerAddress({
+                                    email: email,
+                                    address: address,
+                                    device_id: device_id,
+                                    enc_private_key: axiomAccount.getEncryptedPrivateKey(),
+                                    user_salt: window.accountSalt,
+                                    transfer_pwd: pwd,
+                                    transfer_salt: transferSalt,
+                                })
+                                setBioResultStatus("first");
+                                localStorage.removeItem('verify_code');
+                            }
+                        }catch (error: any) {
+                            showErrorToast(error)
+                            return;
+                        }
+                    }else {
+                        setBioResultStatus("back");
                     }
-                }else {
-                    setBioResultStatus("back");
+                    setTimeout(() => {
+                        history.replace('/home');
+                    }, 1000)
                 }
-                setTimeout(() => {
-                    history.replace('/home');
-                }, 1000)
+
             }catch (error: any) {
                 console.log(error, '------verify')
                 setOpenBioResult(true);
@@ -134,7 +166,9 @@ const LoginPasskey: React.FC = () => {
         try {
             register = await registerPasskey({
                 email: email,
-                device_id: visitorId
+                device_id: visitorId,
+                device_name: navigator.platform,
+                device_version: getDeviceVersion(),
             })
         }catch(error: any) {
             setOpenBioResult(false);
@@ -148,7 +182,7 @@ const LoginPasskey: React.FC = () => {
             if(version && version.version == 16) {
                 type = 'platform'
             }
-        }  
+        }
         const registerObj: any = {
             challenge: register.challenge,
             rp: register.rp[0],
@@ -192,7 +226,9 @@ const LoginPasskey: React.FC = () => {
                 email: email,
                 device_id: device_id,
                 device_type: "Iphone",
-                response: JSON.stringify(result)
+                response: JSON.stringify(result),
+                device_name: navigator.platform,
+                device_version: getDeviceVersion(),
             })
             setBioResultStatus("success");
             setTimeout(() => {
@@ -205,6 +241,19 @@ const LoginPasskey: React.FC = () => {
         }
     }
 
+    const getAuth = async (verifyRes, transports, id) => {
+       return await startAuthentication({
+            challenge: verifyRes.publicKey.challenge,
+            rpId: verifyRes.publicKey.rpId,
+            allowCredentials: [{
+                "type": "public-key",
+                "id": id,
+                "transports": transports
+            }],
+            userVerification: "required"
+        })
+    }
+
     const handleVerifyPasskey = async () => {
         const deviceId = localStorage.getItem('visitorId');
         const res = await checkPasskeyCreate({
@@ -212,58 +261,57 @@ const LoginPasskey: React.FC = () => {
             device_id: deviceId,
         })
         const verifyRes = JSON.parse(res.credentials_json);
-        if(isBioOpen !== 0) {
-            localStorage.setItem("allowCredentials", res.credential_id)
-        }
-        let transports = [res.transport];
+        let transports = [getTransportType(res.transport_type)];
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
             if(version && version.version == 16) {
-                transports = ["internal", res.transport]
+                transports = ["internal", getTransportType(res.transport_type)]
             }
-        } 
-        const authentication = await startAuthentication({
-            challenge: verifyRes.publicKey.challenge,
-            rpId: verifyRes.publicKey.rpId,
-            allowCredentials: [{
-                "type": "public-key",
-                "id": res.credential_id,
-                "transports": transports
-            }],
-            userVerification: "required"
-        })
+        }
+        let authentication = '';
+        let credential_id = '';
+        try{
+            if(res?.credential_ids?.length === 1){
+                credential_id = res.credential_ids[0];
+                console.log('transports', transports);
+                authentication = await getAuth(verifyRes, transports, res.credential_ids[0]);
+                console.log('271', authentication);
+            } else if(res?.credential_ids?.length > 1) {
+                const list = await Promise.allSettled(res?.credential_ids.map(item => getAuth(verifyRes, transports,item)));
+                console.log(list);
+                const index = list.findIndex(li => li.status === "fulfilled");
+                credential_id = res.credential_ids[index];
+                authentication = list[index].value;
+            }
+        } catch (e){
+            setBioResultStatus("failed");
+            console.log('274', e)
+            return ;
+        }
         let token: any;
         try {
             token = await checkPasskey({
+                credential_id,
                 email: email,
                 result: JSON.stringify(authentication),
                 device_id: deviceId,
-                device_type: isBioOpen === 0 ? "Iphone" : getDeviceType()
+                device_type: isTrustOpen === 1 ?  getDeviceType() : "Iphone",
+                device_name: navigator.platform,
+                device_version: getDeviceVersion(),
+                browser_type: getBrowserName(),
             })
+            // if(credential_id) {
+            //     localStorage.setItem("allowCredentials", credential_id)
+            // }
         }catch (error: any) {
+            setBioResultStatus("failed");
             showErrorToast(error)
             return;
         }
         setToken(token);
-    }
 
-    const handleGetAddress = async () => {
-        const password: any = localStorage.getItem('verify_code');
-        const encryptPassword = sha256(password);
-        const salt = generateRandomBytes(16);
-        // @ts-ignore
-        let axiomAccount = await AxiomAccount.fromPassword(encryptPassword, salt, window.accountSalt);
-        window.axiom = axiomAccount;
-        const private_key = axiomAccount.getEncryptedPrivateKey().toString();
-        const address = axiomAccount.getAddress();
-        await addPrivateKey({
-            email: email,
-            verify_code: password,
-            enc_private_key: private_key,
-            user_salt: salt
-        })
-        return address;
+        return token
     }
 
     return (
@@ -276,7 +324,9 @@ const LoginPasskey: React.FC = () => {
                     <a className='a_link' onClick={handleBack} style={{marginTop: 8, fontSize: 14}}>
                         Use a different account
                     </a>
-                    {isBioOpen === 0 ? <Popover trigger="hover" strategy="fixed" placement="bottom-start">
+                    {isTrustOpen === 1 ? <div>
+                        <div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyBioIcon}></i><span>Continue</span></div>
+                    </div> : <Popover trigger="hover" strategy="fixed" placement="bottom-start">
                         <PopoverTrigger><div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyIcon}></i><span>{isRegister ? "Sign in with phone" : "Continue with phone"}</span></div></PopoverTrigger>
                         <PopoverContent style={{borderRadius: "32px", padding: "20px"}} width="auto">
                             <PopoverArrow />
@@ -295,9 +345,7 @@ const LoginPasskey: React.FC = () => {
                                 </div>
                             </PopoverBody>
                         </PopoverContent>
-                    </Popover> : <div>
-                        <div className={styles.keyBtn} onClick={handlePasskeyClick}><i className={styles.keyBioIcon}></i><span>Continue</span></div>
-                    </div>}
+                    </Popover>}
                 </div>
             </div>
             <Right />

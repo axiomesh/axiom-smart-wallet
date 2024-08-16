@@ -7,7 +7,7 @@ import {
     Progress
 } from "@chakra-ui/react";
 import Toast from "@/hooks/Toast";
-import {getMail, passWordReg, setToken} from '@/utils/help';
+import {passWordReg} from '@/utils/help';
 import useContinueButton from '@/hooks/ContinueButton';
 
 interface Props {
@@ -163,7 +163,7 @@ const TransferPassword = (props: Props) => {
                     <FormErrorMessage>{errorText}</FormErrorMessage>
                 </FormControl>
             </div>
-            <div style={{marginTop: "40px", width: props.type === 'set' ? '100%' : '320px'}}><Button loading={loading} onClick={handleSubmit}>Confirm</Button></div>
+            <div style={{marginTop: "40px", width: props.type === 'set' ? '100%' : '320px'}} onClick={handleSubmit}><Button loading={loading} >Confirm</Button></div>
         </div>
     )
 }

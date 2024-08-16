@@ -2,36 +2,42 @@ import styles from "./index.less"
 import React, { useState, useEffect } from "react";
 import {
     Switch,
-    Input,
-    InputGroup,
-    InputLeftAddon,
-    InputRightElement,
-    FormControl,
-    FormErrorMessage,
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
-    PopoverBody,
-    PopoverArrow,
+    Flex
+    // Input,
+    // InputGroup,
+    // InputLeftAddon,
+    // InputRightElement,
+    // FormControl,
+    // FormErrorMessage,
+    // Popover,
+    // PopoverTrigger,
+    // PopoverContent,
+    // PopoverBody,
+    // PopoverArrow,
 } from '@chakra-ui/react'
 import { switchTheme } from "./theme"
 import { extendTheme } from '@chakra-ui/react'
 import { ChakraProvider } from '@chakra-ui/react'
-import ContinueButton from "@/hooks/ContinueButton";
+// import ContinueButton from "@/hooks/ContinueButton";
 import VerifyTransferModal from "@/components/VerifyTransferModal";
+import { DatePicker, Form, Input, Tooltip } from 'antd';
+import {DateIcon, EditIcon, TimerIcon} from '@/components/Icons';
+import AntdButton from '@/components/Button/antd-button';
 import { history } from 'umi';
-import { AxiomAccount, generateSigner, deriveAES256GCMSecretKey, encrypt, decrypt, isoBase64URL } from "axiom-smart-account-test";
+import { Axiom } from 'axiomwallet';
 import { sha256 } from "js-sha256";
 import {connect} from "@@/exports";
 import Toast from "@/hooks/Toast";
 import {passwordTimes, transferLockTime, wrongPassword} from "@/services/transfer";
 import {getMail} from "@/utils/help";
-import {generateRandomBytes} from "@/utils/utils";
-import {ethers, Wallet} from "ethers";
+import {detectBrowser, generateRandomBytes, getSafariVersion, getTransportType, removeTransferFee} from "@/utils/utils";
 import useCancelModal from "@/hooks/CancelModal";
 import Page from '@/components/Page'
 import { startAuthentication } from "@simplewebauthn/browser";
 import BioResultModal from "@/components/BioResultModal";
+import dayjs from "dayjs";
+import {checkBioPasskeyCreate} from "@/services/login";
+const dayFormat = 'YYYY-MM-DD';
 
 export const theme = extendTheme({
     components: { Switch: switchTheme },
@@ -42,75 +48,115 @@ const TransferFree = (props: any) => {
     const { userInfo, dispatch, freeForm } = props;
     const [isSwitch, setIsSwitch] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [maxNumber, setMaxNumber] = useState(5000);
-    const [value, setValue] = useState<string | null>("");
     const [msg, setMsg] = useState<string>("");
-    const [sessionKey, setSessionKey] = useState<string | null>("");
+    // const [sessionKey, setSessionKey] = useState<string | null>("");
     const [freeLimit, setFreeLimit] = useState<string | null>("");
     const {showSuccessToast, showErrorToast} = Toast();
     const [info, setInfo] = useState<any>({});
-    const [isLock, setIsLock] = useState(false);
-    const [oldLimit, setOldLimit] = useState<string | null>("");
-    const [btnLoading, setBtnLoading] = useState(false);
-    const [freeStep, setFreeStep] = useState<string | null>("");
-    const [isDisabled, setIsDisabled] = useState<boolean>(false);
-    const [isUpdate, setIsUpdate] = useState<boolean>(false);
+    const [isDisabled, setIsDisabled] = useState<boolean>(true);
     const [isLimitDisabled, setIsLimitDisabled] = useState<boolean>(false);
     const [pinLoading, setPinLoading] = useState<boolean>(false);
     const [isOpenBio, setIsOpenBio] = useState<boolean>(false);
     const [bioResultOpen, setBioResultOpen] = useState<boolean>(false);
     const [bioStatus, setBioStatus] = useState<string>("");
+    const [dateEdit, setDateEdit] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [form] = Form.useForm();
 
-    const { Button } = ContinueButton();
+    const isFreeTransfer = () => {
+        const status = sessionStorage.getItem("freeStatus")
+        const timer = sessionStorage.getItem("limit_timer")
+        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
+            return true
+        }
+        return false
+    }
+
+    // 免密 2--
+    // 生物
+    // 密码 1---
+
+    // const { Button } = ContinueButton();
     const [ModalComponent, openModal, closeModal] = useCancelModal();
 
     useEffect(() => {
-        const sr = sessionStorage.getItem("sr");
-        if(sr === "1" || sr === "0") {
-            setFreeStep("0")
-            if(sr === "1") {
-                setIsUpdate(true)
+        if(isFreeTransfer()) {
+            // setSessionKey(sessionStorage.getItem("sk"))
+            setIsSwitch(true)
+        }
+
+        // const limit = sessionStorage.getItem("freeLimit");
+        const freeLimit = sessionStorage.getItem("freeLimit")
+        const timer = sessionStorage.getItem("limit_timer");
+        if(freeLimit) {
+            setFreeLimit(freeLimit)
+            // setOldLimit(limit)
+            // limit_timer
+
+            form.setFields([{ name: 'max', errors: [], value: freeLimit }])
+            if(timer){
+                form.setFields([
+                    { name: 'timer', errors: [], value: dayjs(dayjs(Number(timer)).format(dayFormat), dayFormat) }
+                ]);
+                if(new Date().getTime() >= Number(timer)){
+                    setIsSwitch(false)
+                } else {
+                    setIsSwitch(true)
+                }
+
+                setDateEdit(true);
+            }
+            setIsLimitDisabled(true);
+            setIsDisabled(true)
+        }
+        if(freeForm.timer){
+            form.setFields([
+                { name: 'timer', errors: [], value: dayjs(dayjs(Number(freeForm.timer)).format(dayFormat), dayFormat) }
+            ]);
+            if(timer && freeForm.timer.toString() === timer){
+                setDateEdit(true);
+            } else {
+                setDateEdit(false);
             }
         }
-        if(sessionStorage.getItem("sk")) {
-            setSessionKey(sessionStorage.getItem("sk"))
-            setIsSwitch(true)
+
+        if(freeForm.max){
+            form.setFields([{ name: 'max', errors: [], value: freeForm.max}]);
+            if(freeLimit && freeForm.max === freeLimit){
+                setIsLimitDisabled(true);
+            } else {
+                setIsLimitDisabled(false);
+            }
+
         }
-        if(sessionStorage.getItem("freeLimit")) {
-            setFreeLimit(sessionStorage.getItem("freeLimit"))
-            setOldLimit(sessionStorage.getItem("freeLimit"))
-            setIsSwitch(true)
-            setValue(sessionStorage.getItem("freeLimit"))
-            setIsLimitDisabled(true)
-        }
-        handleLockTimes()
-        if(freeForm) {
+        // handleLockTimes()
+        if(freeForm.timer || freeForm.max) {
             setIsSwitch(true);
-            setIsLimitDisabled(false);
-            
-            setValue(freeForm);
+            setIsDisabled(false);
         }
-        const unlisten = history.listen((location: any) => {
-            if(location.action === "PUSH" && location.location.pathname === "/security") {
+    },[])
+
+    useEffect(() => {
+        const unlisten = history.listen(async (location: any) => {
+            if(location.location.pathname === "/security" || isSaved) {
                 dispatch({
                     type: 'global/setFreeForm',
-                    payload: "",
+                    payload: {},
+                })
+            } else {
+                const {max, timer} =  await form.getFieldsValue();
+                dispatch({
+                    type: 'global/setFreeForm',
+                    payload: {max, timer: dayjs(timer).endOf('date').valueOf()},
                 })
             }
         });
-    
+
         return () => {
             unlisten();
         };
-    },[])
+    }, [isSaved]);
 
-    const handleLockTimes = async () => {
-        const times = await transferLockTime({email});
-        if(times.lock_type >= 0) {
-            setIsLock(true)
-        }
-    };
 
     useEffect(() => {
         setInfo(userInfo)
@@ -121,181 +167,117 @@ const TransferFree = (props: any) => {
         }
     }, [userInfo])
 
-    useEffect(() => {
-        if(freeStep === "0") {
-            setIsLimitDisabled(true)
-            setIsDisabled(true);
-        }else {
-            setIsDisabled(false);
-        }
-    }, [freeStep])
-
-    useEffect(() => {
-        if(oldLimit) {
-            oldLimit === value ? setIsDisabled(true) : setIsDisabled(false)
-        }
+    const handleCancel = () => {
+        setIsSwitch(false);
+        // setSessionKey("");
+        setFreeLimit("");
+        // setValue("");
+        form.resetFields();
+        // setOldLimit("");
+        setIsDisabled(false);
+        setDateEdit(false);
+        setIsLimitDisabled(false);
+        removeTransferFee();
         dispatch({
             type: 'global/setFreeForm',
-            payload: value,
+            payload: {},
         })
-    }, [value])
+
+        closeModal();
+    }
 
     const handleChange = (e: any) => {
-        setIsSwitch(e.target.checked)
         if(!e.target.checked) {
-            setErrorMessage("");
-            setSessionKey("");
-            setFreeLimit("");
-            setFreeStep("");
-            setValue("");
-            setOldLimit("");
-            setIsDisabled(false);
-            setIsLimitDisabled(false);
-            sessionStorage.removeItem("sk");
-            sessionStorage.removeItem("a");
-            sessionStorage.removeItem("b");
-            sessionStorage.removeItem("op");
-            sessionStorage.removeItem("freeLimit");
-            sessionStorage.removeItem("sr");
-            sessionStorage.removeItem("validAfter");
-            sessionStorage.removeItem("validUntil");
-            sessionStorage.removeItem("ow");
+            openModal('Attention', handleCancel)
+        } else {
+            setIsSwitch(e.target.checked)
         }
     }
 
-    const generateRandomSixDigits = () => {
-        const min = 100000; // 最小值为 100000
-        const max = 999999; // 最大值为 999999
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+    const getAuth = async (verifyRes, transports, id) => {
+        return await startAuthentication({
+            challenge: verifyRes.publicKey.challenge,
+            rpId: verifyRes.publicKey.rpId,
+            allowCredentials: [{
+                "type": "public-key",
+                "id": id,
+                "transports": transports
+            }],
+            userVerification: "required"
+        })
     }
 
     const handleSaveFree = async (axiom: any, isBio: boolean) => {
-        const skPassword = generateRandomSixDigits().toString();
-        const salt = generateRandomBytes(16);
-        const limit = ethers.utils.parseUnits(value, 18);
-        let currentDate = new Date();
-        // prod 0
-        currentDate.setHours(23, 59, 59, 999)
-        const validAfter = Math.round(Date.now() / 1000);
-        const validUntil = currentDate.getTime();
-        // test 5min
-        // let currentTimestamp: number = currentDate.getTime();
-        // const validUntil: number = currentTimestamp + (5 * 60 * 1000);
-
-        const sessionSigner = generateSigner();
-        const secretKey = await deriveAES256GCMSecretKey(sha256(skPassword), salt);
-        const encryptKey = encrypt(sessionSigner.privateKey, secretKey.toString());
-
-        const decryptKey = decrypt(encryptKey, secretKey.toString("utf-8"))
-
-        const signer = new Wallet(decryptKey);
-        let setSessionOP: any;
+        const { max, timer } = await form.getFieldsValue();
         if(isBio) {
-            setSessionOP = await axiom.setSession(
-                signer,
-                limit,
-                Number(validAfter),
-                Number(validUntil),
-                "",
-                "",
-                {
-                    onRequestSigning: async (useropHash: any) => {
-                        const allowCredentials = localStorage.getItem("allowCredentials");
-                        const obj: any = {
-                            challenge: isoBase64URL.fromBuffer(useropHash),
-                            rpId: window.RPID,
-                            allowCredentials: [{
-                                "id": allowCredentials,
-                                "type": "public-key",
-                                "transports": ["internal"]
-                            }],
-                            userVerification: "required"
-                        }
-                        let auth: any;
-                        try {
-                            auth = await startAuthentication(obj);
-                            setBioStatus("success");
-                        }catch(error: any) {
-                            const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-                            if(string.search(expr) > 0) {
-                                setBioStatus("cancel");
-                            }else {
-                                setBioStatus("failed");
-                            }
-                            return;
-                        }
-                        return {
-                            response: auth,
-                            expectedChallenge: "",
-                            expectedOrigin: ""
-                        }
-                    }
+
+            const res = await checkBioPasskeyCreate({
+                email: email,
+                device_id: userInfo.device_id,
+            })
+            const verifyRes = JSON.parse(res.credentials_json);
+            let transports = [getTransportType(res.transport_type)];
+            const browser = detectBrowser();
+            if(browser === "safari") {
+                const version = getSafariVersion();
+                if(version && version.version == 16) {
+                    transports = ["internal", getTransportType(res.transport_type)]
                 }
-            );
-            console.log(setSessionOP, '--------op')
-            setSessionOP.authData = isoBase64URL.fromBuffer(setSessionOP.authData);
-            setSessionOP.clientData = isoBase64URL.fromBuffer(setSessionOP.clientData);
-            setSessionOP.signature = isoBase64URL.fromBuffer(setSessionOP.signature);
+            }
 
-            localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
+            try{
+                if(res?.credential_ids?.length === 1){
+                    await getAuth(verifyRes, transports, res.credential_ids[0]);
+                } else if(res?.credential_ids?.length === 2) {
+                    await Promise.allSettled(res?.credential_ids.map(item => getAuth(verifyRes, transports,item)));
+                }
+                setBioStatus("success");
+            } catch (error){
+                const string = error.toString(), expr = /The operation either timed out or was not allowed/;
+                if(string.search(expr) > 0) {
+                    setBioStatus("cancel");
+                }else {
+                    setBioStatus("failed");
+                }
+
+                return;
+            }
             localStorage.setItem("sessionType", "passkey");
-            setIsOpen(false);
-            setBtnLoading(false);
-            setPinLoading(false);
-            if(sessionKey || freeLimit) {
-                setIsUpdate(true);
-            }
         }else {
-            setSessionOP = await axiom.setSession(
-                signer,
-                limit,
-                Number(validAfter),
-                Number(validUntil),
-                "",
-                ""
-            );
-            localStorage.setItem("sessionOp", JSON.stringify(setSessionOP));
             localStorage.setItem("sessionType", "password");
-            setIsOpen(false);
-            setBtnLoading(false);
-            setPinLoading(false);
-            if(sessionKey || freeLimit) {
-                setIsUpdate(true);
-            }
         }
 
-        setFreeStep("0")
+        setIsOpen(false);
+        setPinLoading(false);
+        setIsSaved(true)
 
-        sessionStorage.setItem("ow", axiom.getAddress())
-        sessionStorage.setItem("a", sha256(skPassword));
-        sessionStorage.setItem("b", salt);
-        if(sessionKey || freeLimit) {
-            sessionStorage.setItem("sr", "1");
-        }else {
-            sessionStorage.setItem("sr", "0");
-        }
-        sessionStorage.setItem("sk", encryptKey);
-        sessionStorage.setItem("freeLimit", value ? value : "");
-        sessionStorage.setItem("validAfter", validAfter.toString());
-        sessionStorage.setItem("validUntil", validUntil.toString());
-        dispatch({
-            type: 'global/setFreeForm',
-            payload: "",
-        })
+        // setFreeStep("0");
+        setIsLimitDisabled(true);
+        setIsDisabled(true);
+        setDateEdit(true);
+        showSuccessToast('Password-free transfer update successfully!')
+        const current = new Date().getTime();
+        sessionStorage.setItem("freeLimit", max || "");
+        sessionStorage.setItem("freeStatus", '1')
+        sessionStorage.setItem("freeStep", freeLimit ? '1' : '0')
+        sessionStorage.setItem("limit_timer", dayjs(timer).endOf('date').valueOf());
+        sessionStorage.setItem("validAfter", current.toString());
+        // sessionStorage.setItem("validUntil", validUntil.toString());
     }
 
     const handleSubmit = async (password: any) => {
         setPinLoading(true);
         setMsg("");
         let axiom:any;
+        const {max} = form.getFieldsValue();
         try {
-            axiom = await AxiomAccount.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key, info.address);
-            setFreeLimit(value)
+            axiom = await Axiom.Wallet.AxiomWallet.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key, info.address);
+            setFreeLimit(max)
         }catch (e: any) {
-            setBtnLoading(false);
+            console.log('308',e);
             setPinLoading(false);
-            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/;
-            if(string.search(expr) > 0 || string.search(expr2) > 0) {
+            const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/,  expr3 = /invalid private key/;
+            if(string.search(expr) > 0 || string.search(expr2) > 0 || string.search(expr3) > 0) {
                 wrongPassword({email}).then(async () => {
                     const times = await passwordTimes({email})
                     if(times > 0) {
@@ -320,66 +302,79 @@ const TransferFree = (props: any) => {
         setIsOpen(false);
         setBioResultOpen(true);
         setBioStatus("loading");
-        const axiom = await AxiomAccount.fromPasskey(userInfo.address);
+        const axiom = await Axiom.Wallet.AxiomWallet.fromPasskey(userInfo.address);
         await handleSaveFree(axiom, true);
     }
 
     const handleConfirm = async () => {
-        if (!value) {
-            setErrorMessage('please enter daily transfer limit');
-            return
-        } else if (Number(value) > maxNumber || Number(value) < 100) {
-            setErrorMessage("Invalid Input");
-            return
-        }
-        if(isDisabled) {
-            return;
-        }
-        if(errorMessage !== "") {
-            return;
-        }
+        await form.validateFields();
         const times = await transferLockTime({email});
-        if(times.lock_type >= 0) {
+        if(times.time_left) {
             showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
             return;
         }
-        if(freeStep === "0") {
-            return ;
-        }
-        if(!btnLoading) {
-            setBtnLoading(true);
-            openModal('Attention', handlePassword)
-            setBtnLoading(false);
-        }
+        setMsg("");
+        setIsOpen(true);
     }
 
-    const handlePassword = () => {
-        setIsOpen(true);
-        setMsg("");
-        closeModal();
+    // const handlePassword = () => {
+    //     setIsOpen(true);
+    //     setMsg("");
+    //     closeModal();
+    // };
+
+    const validatorInput = (rule: any, value: any, callback: any) => {
+        const activeValue = Number(value);
+        if (value && (activeValue || activeValue === 0)) {
+            const strList = value.split('.');
+            if (strList.length > 1 && strList[1].length > 18) {
+                callback('Please enter a correct amount');
+            } else {
+                if (activeValue < 100 || activeValue > 5000) {
+                    callback('Invalid Input');
+                }else {
+                    callback();
+                }
+            }
+        } else {
+            callback('please enter daily transfer limit');
+        }
+        callback();
     };
 
-    const validate = (value: string) => {
-        if (!value) {
-            setErrorMessage('please enter daily transfer limit');
-            return
-        } else if (Number(value) > maxNumber || Number(value) < 100) {
-            setErrorMessage("Invalid Input");
-            return
+    const disabledDay = (current) => current && current < dayjs().startOf('day');
+    const handleDate = (date) => {
+        const timer = sessionStorage.getItem("limit_timer");
+        const limit = sessionStorage.getItem("freeLimit");
+        if(timer){
+            if(date){
+                const dateString = dayjs(date).endOf('date').valueOf().toString();
+                if(timer === dateString && limit){
+                    setIsDisabled(true)
+                } else {
+                    setIsDisabled(false)
+                }
+            } else {
+                setIsDisabled(true)
+            }
+        } else {
+            setIsDisabled(false)
         }
-        setErrorMessage("");
+
     }
 
-    const handleBlur = (e: any) => {
-        const { value } = e.target;
-        validate(value);
-    }
-
-    const handleValueChange = (e: any) => {
-        let inputValue = e.target.value;
-        if(/^[0-9,.]*$/.test(inputValue)){
-            console.log(111)
-            setValue(inputValue);
+    const handleInputBlur = (e) => {
+        const limit = sessionStorage.getItem("freeLimit");
+        const limit_timer = sessionStorage.getItem("limit_timer");
+        if(limit){
+            const { timer } = form.getFieldsValue();
+            if(e.target.value === limit && dayjs(timer).endOf('date').valueOf().toString() === limit_timer){
+                setIsDisabled(true)
+            } else {
+                setIsDisabled(false)
+            }
+        } else{
+            setIsDisabled(false)
         }
     }
 
@@ -390,8 +385,12 @@ const TransferFree = (props: any) => {
                     <h1 className='page-title'>Password-free transfer</h1>
                 <p className={styles.freeTip}>Once activated, you can enjoy the quick experience of transferring small amounts without the need for password verification. <i></i> Support for other blockchains is coming soon！</p>
                 <div className={styles.freeSwitch}>
-                    <span>Password-free transfer switch </span>
-                    <div><Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} /></div>
+                    <Flex align="center">
+                        <Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} />
+                        {sessionStorage.getItem("freeStatus" ) === '1' && sessionStorage.getItem("limit_timer") && Number(sessionStorage.getItem("limit_timer")) >= new Date().getTime()? <Tooltip overlayInnerStyle={{background: '#171923', borderRadius: 4, width: 322, textAlign: 'center'}} title='Password-free payment will be activated after your next successful transfer transaction.'>
+                            <Flex align="center"  className={styles.pending}><TimerIcon fontSize={24} /><div>Pending activation</div></Flex>
+                        </Tooltip>: null}
+                    </Flex>
                 </div>
                 {isSwitch && <div className={styles.freeSetting}>
                     <div className={styles.freeSettingTop}>
@@ -399,70 +398,72 @@ const TransferFree = (props: any) => {
                         <span className={styles.freeSettingTopTip}>Set your password-free transfer limit and validity period</span>
                     </div>
                     <div className={styles.freeSettingCenter}>
-                        <span className={styles.freeSettingCenterTitle}>Daily transfer limit</span>
-                        <FormControl isInvalid={errorMessage !== ''}>
-                            <InputGroup width="420px">
-                                <InputLeftAddon height="56px" padding="0 8px" borderRadius="12px 0 0 12px"
-                                                style={{border: errorMessage !== '' ? "1px solid #E53E3E" : ""}}>
-                                    <span className={styles.freeSettingCenterBefore}>HK$</span>
-                                </InputLeftAddon>
+                        <Form
+                            colon={false}
+                            hideRequiredMark
+                            form={form} layout="vertical">
+                            <Form.Item
+                                validateFirst
+                                validateTrigger="onBlur"
+                                name="max"
+                                placeholder='100-5000'
+                                label={<span className={styles.freeSettingCenterTitle}>Daily transfer limit</span>}
+                                rules={[{ validator: validatorInput }]}
+                            >
                                 <Input
-                                    value={value?value:""}
+                                    autoComplete="off"
                                     placeholder='100-5000'
-                                    fontSize="14px"
-                                    fontWeight="400"
-                                    color="gray.700"
-                                    height="56px"
-                                    borderRadius="12px"
-                                    _placeholder={{
-                                        color: "#A0AEC0"
-                                    }}
-                                    _invalid={{
-                                        border: "1px solid #E53E3E"
-                                    }}
-                                    _disabled={{
-                                        color: "#A0AEC0",
-                                        backgroundColor: "#EDF2F7"
-                                    }}
-                                    onBlur={handleBlur}
-                                    onChange={handleValueChange}
+                                    prefix='HK$'
+                                    style={{width: 420}}
                                     disabled={isLimitDisabled}
-                                />
-                                {
-                                    !isLimitDisabled && <InputRightElement style={{top: "8px", right: "20px"}}>
-                                        <div className={styles.freeSettingCenterMax} onClick={() => {
-                                            setValue("5000");
-                                            setErrorMessage("");
-                                        }}>MAX
+                                    suffix={
+                                        isLimitDisabled ? <EditIcon
+                                            cursor='pointer'
+                                            fontSize={24}
+                                            className='icon'
+                                            onClick={() => setIsLimitDisabled(false)}
+                                        /> : <div className={styles.freeSettingCenterMax} onClick={() => form.setFields([{ name: 'max', errors: [], value: '5000' }])}>
+                                            MAX
                                         </div>
-                                    </InputRightElement>
-                                }
-                                {
-                                    (isLimitDisabled && freeStep === "") && <InputRightElement style={{top: "8px", right: "16px"}}>
-                                        <div className={styles.freeSettingCenterEdit} onClick={() => {
-                                            setIsLimitDisabled(false);
-                                        }}></div>
-                                    </InputRightElement>
-                                }
-                            </InputGroup>
-                            <FormErrorMessage style={{marginLeft: "16px"}}>{errorMessage}</FormErrorMessage>
-                        </FormControl>
-                    </div>
-                    <div className={styles.freeSettingBottom}>
-                        {freeStep !== "0" && <Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button>}
-                        {freeStep === "0" && <div style={{position: "relative"}}><Popover trigger="hover" placement="top">
-                            <PopoverTrigger>
-                                <div><Button disabled={isDisabled} loading={btnLoading} onClick={handleConfirm}>{freeStep === "0" ? "Pending activation" : (sessionKey || freeLimit) ? "Update" : "Confirm"}</Button></div>
-                            </PopoverTrigger>
-                            <PopoverContent style={{background: "#171923",color:"#fff",fontSize: "14px",boxShadow:"none"}}>
-                                <PopoverArrow bg="#171923" />
-                                <PopoverBody style={{padding: "2px 8px 2px 8px",textAlign:"center"}}>{isUpdate?"Password-free payment update will be activated after your next successful transfer transaction.":"Password-free payment will be activated after your next successful transfer transaction."}</PopoverBody>
-                            </PopoverContent>
-                        </Popover></div>}
+                                    }
+                                    onBlur={handleInputBlur}
+                                />
+                            </Form.Item>
+                            <div className='date-block'>
+                                <Form.Item
+                                    name="timer"
+                                    rules={[{required: true, message: 'please enter validity date'}]}
+                                    label={<span className={styles.freeSettingCenterTitle}>Validity date</span>}
+                                >
+                                    <DatePicker
+                                        disabledDate={disabledDay}
+                                        disabled={dateEdit}
+                                        style={{width: 420, height: 56}}
+                                        format={dayFormat}
+                                        suffixIcon={dateEdit ? null: <DateIcon fontSize={24} />}
+                                        onChange={handleDate}
+                                        placeholder='Please enter validity date'
+                                    />
+                                </Form.Item>
+                                {dateEdit ? <EditIcon
+                                    className='icon'
+                                    onClick={() => {
+                                        setDateEdit(false);
+                                    }}
+                                    cursor='pointer' fontSize={24}
+                                    allowClear={false}
+                                /> : null}
+                            </div>
+                        </Form>
+                        <AntdButton
+                            style={{width: 320}}
+                            disabled={isDisabled}
+                            onClick={handleConfirm}
+                        >{freeLimit ? "Update" : "Confirm"}</AntdButton>
                     </div>
                 </div>}
-                <VerifyTransferModal bioPay={handleBioPay} tip="Password-free payment will be activated after your next successful transfer transaction." isOpenBio={isOpenBio} pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);setBtnLoading(false);handleLockTimes()}} errorMsg={msg} />
-                <ModalComponent buttonText="I understand, proceed to confirm">Password-free payment will be activated after your next successful transfer transaction.</ModalComponent>
+                <VerifyTransferModal bioPay={handleBioPay} tip="Password-free payment will be activated after your next successful transfer transaction." isOpenBio={isOpenBio} pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} errorMsg={msg} />
+                <ModalComponent buttonText="I understand, proceed to confirm">After turning off the password-free payments, you'll need to initiate a new activation transaction to enable it again.</ModalComponent>
                 <BioResultModal status={bioStatus} isOpen={bioResultOpen} onClose={() => {setBioResultOpen(false)}} />
             </div>
             </Page>
