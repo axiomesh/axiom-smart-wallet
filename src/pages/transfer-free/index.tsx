@@ -53,19 +53,20 @@ const TransferFree = (props: any) => {
     const [freeLimit, setFreeLimit] = useState<string | null>("");
     const {showSuccessToast, showErrorToast} = Toast();
     const [info, setInfo] = useState<any>({});
-    const [isDisabled, setIsDisabled] = useState<boolean>(false);
+    const [isDisabled, setIsDisabled] = useState<boolean>(true);
     const [isLimitDisabled, setIsLimitDisabled] = useState<boolean>(false);
     const [pinLoading, setPinLoading] = useState<boolean>(false);
     const [isOpenBio, setIsOpenBio] = useState<boolean>(false);
     const [bioResultOpen, setBioResultOpen] = useState<boolean>(false);
     const [bioStatus, setBioStatus] = useState<string>("");
     const [dateEdit, setDateEdit] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
     const [form] = Form.useForm();
 
     const isFreeTransfer = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if((status === '1' || status === '2') && timer && Number(timer) >= Math.round(new Date().getTime()/ 1000)) {
+        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
             return true
         }
         return false
@@ -133,8 +134,11 @@ const TransferFree = (props: any) => {
             setIsSwitch(true);
             setIsDisabled(false);
         }
+    },[])
+
+    useEffect(() => {
         const unlisten = history.listen(async (location: any) => {
-            if(location.location.pathname === "/security") {
+            if(location.location.pathname === "/security" || isSaved) {
                 dispatch({
                     type: 'global/setFreeForm',
                     payload: {},
@@ -151,7 +155,7 @@ const TransferFree = (props: any) => {
         return () => {
             unlisten();
         };
-    },[])
+    }, [isSaved]);
 
 
     useEffect(() => {
@@ -188,12 +192,6 @@ const TransferFree = (props: any) => {
         } else {
             setIsSwitch(e.target.checked)
         }
-    }
-
-    const generateRandomSixDigits = () => {
-        const min = 100000; // 最小值为 100000
-        const max = 999999; // 最大值为 999999
-        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     const getAuth = async (verifyRes, transports, id) => {
@@ -241,6 +239,8 @@ const TransferFree = (props: any) => {
                 }else {
                     setBioStatus("failed");
                 }
+
+                return;
             }
             localStorage.setItem("sessionType", "passkey");
         }else {
@@ -249,6 +249,7 @@ const TransferFree = (props: any) => {
 
         setIsOpen(false);
         setPinLoading(false);
+        setIsSaved(true)
 
         // setFreeStep("0");
         setIsLimitDisabled(true);
@@ -259,8 +260,8 @@ const TransferFree = (props: any) => {
         sessionStorage.setItem("freeLimit", max || "");
         sessionStorage.setItem("freeStatus", '1')
         sessionStorage.setItem("freeStep", freeLimit ? '1' : '0')
-        sessionStorage.setItem("limit_timer", Math.round(dayjs(timer).endOf('date').valueOf() / 1000));
-        sessionStorage.setItem("validAfter", Math.round(current.toString() / 1000));
+        sessionStorage.setItem("limit_timer", dayjs(timer).endOf('date').valueOf());
+        sessionStorage.setItem("validAfter", current.toString());
         // sessionStorage.setItem("validUntil", validUntil.toString());
     }
 
@@ -308,7 +309,7 @@ const TransferFree = (props: any) => {
     const handleConfirm = async () => {
         await form.validateFields();
         const times = await transferLockTime({email});
-        if(times.lock_type >= 0) {
+        if(times.time_left) {
             showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
             return;
         }

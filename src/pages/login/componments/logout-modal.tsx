@@ -28,7 +28,8 @@ export default function LogoutModal(props: {isOpen: boolean, onClose: closeFunc}
             onClose();
             const deviceId: string | null = localStorage.getItem('visitorId');
             await logout(email, deviceId)
-            history.replace('/login')
+            history.replace('/login');
+            window.location.reload();
         } catch (e) {
             // @ts-ignore
             showErrorToast(e)

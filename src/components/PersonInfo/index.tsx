@@ -47,7 +47,8 @@ const PersonInfo = (props: any) => {
         sessionStorage.removeItem("sr");
         const deviceId: string | null = localStorage.getItem('visitorId');
         await logout(email, deviceId)
-        history.replace('/login')
+        history.replace('/login');
+        window.location.reload();
     }
 
     return (

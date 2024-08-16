@@ -1,13 +1,12 @@
 import React, {useEffect, useState} from "react";
 import { Menu, Flex, MenuButton, MenuList, MenuItem, Button, Image, Box, Divider,
-    Tabs, TabList,  Tab, Tooltip,
-} from '@chakra-ui/react'
+    Tabs, TabList,  Tab } from '@chakra-ui/react'
 import styles from './index.less';
 import {currencyList, PayStatus, selectCurrencyList} from './config';
 import { SelectDownIcon } from '@/components/Icons';
 import TokenList from './componment/tokenList';
 import {changePrice, getImgFromHash, changeBalance} from "@/utils/help";
-import {getNftList, getTickerPrice, getAllNft} from "@/services/login";
+import {getNftList, getTickerPrice} from "@/services/login";
 import {ethers, JsonRpcProvider} from "ethers";
 import { formatUnits, formatEther } from 'viem'
 // @ts-ignore
@@ -17,8 +16,6 @@ import Empty from "./componment/empty";
 import DAppCard from './componment/dApp-card'
 import ScrollLoader from './componment/scroll-bar';
 import {connect, history} from "umi";
-import {getBrowserName} from "@/utils/utils";
-import {getDeviceVersion, getMacVersion} from "@/utils/system";
 const Decimal = require('decimal.js');
 const tabList = [{name: 'ERC721', type: 'ERC-721'}, {name: 'ERC1155', type: 'ERC-1155'}];
 
@@ -47,13 +44,14 @@ const Home = (props:any) => {
     const [activeType, setActiveType] = useState(0);
     const [loading, setLoading] = useState<boolean>(false);
     const [priceList, setPriceList] = useState<Array<Item>>([]);
-    const [nftList, setNftList] = useState([{}]);
+    const [nftList, setNftList] = useState([]);
     const [selectList, setSelectList] = useState<Array<Item>>(selectCurrencyList.all);
     const [total, setTotal] = useState<number | string | any>(0);
     const [num, setNum] = useState(3);
     const [current, setCurrent] = useState(1);
     const [nextPageParams, setPageParams] = useState({});
     const [activeTab, setActiveTab] = useState('ERC-721');
+    const [nftLoading, setNftLoading] = useState(false);
     // @ts-ignore
     const rpc_provider = new JsonRpcProvider(window.RPC_URL);
     // @ts-ignore
@@ -71,21 +69,11 @@ const Home = (props:any) => {
         }
     }
 
-    // const getSymbol = async (erc20:any, currentProvider:any) => {
-    //     const symboldata = erc20.interface.encodeFunctionData('decimals');
-    //     const symbolRes = await currentProvider.call({
-    //         to: erc20.address,
-    //         data: symboldata,
-    //         // value: 0,
-    //     })
-    //     return  Math.pow(10, Number(symbolRes === '0x' ? 0 : BigInt(symbolRes).toString()))
-    // }
-
     const initNftList = async (type) => {
         try {
-            setLoading(true);
-            // const res = await getNftList(userInfo.address, type);
-            const res = await getAllNft('0xE55Db6E6743111F35F18af34E8331AB1E27214de', type);
+            setNftLoading(true);
+            const res = await getNftList(userInfo.address, type);
+            // const res = await getAllNft('0xE55Db6E6743111F35F18af34E8331AB1E27214de', type);
             console.log(res)
             if(res){
                 const fitlerData = (res.items || []).filter(li => li?.token?.address === window.NFT_CONTRACT);
@@ -102,7 +90,7 @@ const Home = (props:any) => {
                 setPageParams(null)
             }
         } finally {
-            setLoading(false)
+            setNftLoading(false)
         }
     }
 
@@ -151,7 +139,6 @@ const Home = (props:any) => {
 
     useEffect(() => {
         if(userInfo?.address){
-            console.log(getDeviceVersion())
             initTicketData()
         }
     }, [userInfo?.address]);
@@ -312,10 +299,10 @@ const Home = (props:any) => {
                                 ))}
                             </div>
                         </div>
-                        {nftList?.length || loading ? <div>
+                        {nftList?.length || nftLoading ? <div>
                             {/*{list.map(item => <DAppCard item={item} isHome/>)}*/}
                             <div className='dapp-list'>
-                                {loading ? <>
+                                {nftLoading ? <>
                                     <SkeletonCard />
                                     <SkeletonCard />
                                     <SkeletonCard />
@@ -323,7 +310,7 @@ const Home = (props:any) => {
                                 </> : nftList.map(item => <DAppCard item={item} isHome/>)}
                             </div>
                             <ScrollLoader
-                                firstLoading={loading}
+                                firstLoading={nftLoading}
                                 loadMore={loadMoreItems}
                                 current={current}
                                 hasMore={current * 3 * num < total}

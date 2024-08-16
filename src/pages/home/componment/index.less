@@ -144,41 +144,25 @@
   }
 
   &-card{
-    width: 400px;
-    height: 400px;
-    background: #E2E8F0;
-    border-radius: 12px;
+    width: 212px;
+    height: 240px;
+    padding: 12px;
+    border-radius: 20px;
     box-sizing: border-box;
+    border: 1px solid rgba(236, 201, 75, 0.2);
 
     &-top{
-      padding: 32px;
+      //padding: 32px;
+      height: 188px;
+      width: 100%;
       display: flex;
+      flex-direction: column;
       justify-content: flex-end;
-      align-items: center;
-      height: 112px;
       box-sizing: border-box;
+      background: linear-gradient(180deg, #E2E8F0 100%, #fff 100%);
+      border-radius: 9px;
+      padding: 8px;
 
-      .ant-skeleton.ant-skeleton-element, .ant-skeleton.ant-skeleton-element .ant-skeleton-input-sm{
-        width: 80px;
-        min-width: 80px;
-        height: 16px;
-        //background: #CBD5E0;
-      }
-
-    }
-    &-buttom{
-      height: 268px;
-      padding: 0 32px;
-      box-sizing: border-box;
-      border-radius: 12px;
-      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 100%);
-
-      //.ant-skeleton.ant-skeleton-element, .ant-skeleton.ant-skeleton-element .ant-skeleton-input-sm{
-      //  width: 80px;
-      //  min-width: 80px;
-      //  height: 16px;
-      //  //background: #CBD5E0;
-      //}
     }
   }
 }

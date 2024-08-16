@@ -14,7 +14,7 @@ window.ETH_SYMBOL = 18;
 window.ETH_BROWSER = 'https://sepolia.etherscan.io';
 
 //  开发环境配置参数
-//
+
 window.WETH_CONTRACT = "0xbCF26943C0197d2eE0E5D05c716Be60cc2761508"
 window.USDT_CONTRACT = "0xd6bab5c1078684460673DB9ff600f1c2b0132993"
 window.WUSDT_CONTRACT = "0xd771D7C0e1EBE89C9E9F663824851BB89b926d1a"
@@ -25,13 +25,14 @@ window.PAYMASTER = "0x000000000000000000000000000000000000100b"
 window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
 window.AXM_BROWSER = 'http://10.2.69.208:8080';
 window.socketUrl='wss://axmwallet.io';
-window.RPID="localhost";
-// window.RPID="axmwallet.io";
+// window.RPID="localhost";
+window.RPID="axmwallet.io";
 window.NFT_CONTRACT = '0x0d96356DE55cf67D07d8Df2c78DA371c5268DaF7';
 window.GUARDIAN='0x539193d0e19859d812e2d2b3763886CB200814d9';
-window.BUNDLER_URL='http://10.2.69.244:4337';
-window.RPC_URL="http://10.2.69.244:28881"
-window.PAYMASTER_URL="http://10.2.69.244:10088"
+window.BrowserUrl = 'https://axmwallet.io'
+window.BUNDLER_URL=`${window.BrowserUrl}/api/bundler/`;
+window.RPC_URL=`${window.BrowserUrl}/api/node/`;
+window.PAYMASTER_URL=`${window.BrowserUrl}/api/paymaster/`;
 window.PAYMASTER_APPKEY="a_T4zwcJZ0fc3jqv1mhIg1AZ2g7jrXpVgWH3gPMrYSo"
 window.ACCOUNT_FACTORY="0x0000000000000000000000000000000000001009"
 window.ACCOUNT_PROXY="0x000000000000000000000000000000000000100c"
@@ -39,8 +40,6 @@ window.ACCOUNT_PROXY="0x000000000000000000000000000000000000100c"
 
 
 // 演示环境配置参数
-
-// window.RPC_URL='/api/node/';
 // window.WETH_CONTRACT = "0x5fbdb2315678afecb367f032d93f642f64180aa3"
 // window.USDT_CONTRACT = "0xC73a66B4074B609E24bB264821e183DC3b9Ef654"
 // window.WUSDT_CONTRACT = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
@@ -53,6 +52,15 @@ window.ACCOUNT_PROXY="0x000000000000000000000000000000000000100c"
 // window.AXM_BROWSER = 'http://10.2.69.59:8080';
 // window.socketUrl='wss://axmwallettest.bcds.io';
 // window.rpId="axmwallettest.bcds.io";
+// window.NFT_CONTRACT = '0x0d96356DE55cf67D07d8Df2c78DA371c5268DaF7';
+// window.GUARDIAN='0x539193d0e19859d812e2d2b3763886CB200814d9';
+// window.BrowserUrl = 'https://axmwallet.io'
+// window.BUNDLER_URL=`${window.BrowserUrl}/api/bundler/`;
+// window.RPC_URL=`${window.BrowserUrl}/api/node/`;
+// window.PAYMASTER_URL=`${window.BrowserUrl}/api/paymaster/`;
+// window.PAYMASTER_APPKEY="a_T4zwcJZ0fc3jqv1mhIg1AZ2g7jrXpVgWH3gPMrYSo"
+// window.ACCOUNT_FACTORY="0x0000000000000000000000000000000000001009"
+// window.ACCOUNT_PROXY="0x000000000000000000000000000000000000100c"
 
 // 预发布环境配置参数
 //

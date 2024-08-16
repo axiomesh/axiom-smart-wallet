@@ -174,7 +174,6 @@ const Transfer = (props: any) => {
     const [maxFlag, setMaxFlag] = useState(false);
     const [isMax, setIsMax] = useState(false);
     const [maxLength, setMaxLength] = useState(0);
-    const [sessionSigner, setSessionSigners] = useState<any>(null);
 
     const {Button} = useContinueButton();
     const rpc_provider = new JsonRpcProvider(window.RPC_URL);
@@ -185,7 +184,7 @@ const Transfer = (props: any) => {
     const isFreeTransfer = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if((status === '1' || status === '2') && timer && Number(timer) >= Math.round(new Date().getTime()) / 1000) {
+        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
             return true
         }
         return false
@@ -266,13 +265,16 @@ const Transfer = (props: any) => {
         setBtnLoading(true);
         const times = await transferLockTime({email});
         setBtnLoading(false);
-        if(times?.lock_type === 0) {
-            setIsLock(0);
-            countdown(times.time_left)
-        }else if(times?.lock_type === 1) {
-            setIsLock(1);
-        }else {
-            setIsLock(-1);
+        // 0
+        if(times.time_left){
+            if(times?.lock_type === 0) {
+                setIsLock(0);
+                countdown(times.time_left)
+            }else if(times?.lock_type === 1) {
+                setIsLock(1);
+            }else {
+                setIsLock(-1);
+            }
         }
     };
 
@@ -380,7 +382,7 @@ const Transfer = (props: any) => {
             const currentProvider = filterData.name === 'ETH' ? provider : rpc_provider;
             // return 0
             const erc20 = new Contract(filterData.contract, ERC20_ABI, currentProvider);
-            const balance = await erc20.balanceOf(userInfo.address);
+            const balance = await erc20?.balanceOf(userInfo.address);
             const decimals = await erc20.decimals();
             const formatUnitsDe = formatUnits(decimals, 0);
 
@@ -391,25 +393,22 @@ const Transfer = (props: any) => {
     }
 
     const handleVerifyLimit = async () => {
-        const sessionKey = sessionStorage.getItem("sk");
-        const skPassword = sessionStorage.getItem("a");
-        const salt = sessionStorage.getItem("b");
-        const secretKey = await Axiom.Utility.deriveAES256GCMSecretKey(skPassword, salt);
-        const decryptKey = Axiom.Utility.decrypt(sessionKey, secretKey.toString());
-        const signer = new Wallet(decryptKey);
-        const axiom = await Axiom.Wallet.AxiomWallet.fromSessionKey(
-            signer,
-            userInfo.address,
-        );
-        console.log('axiom', axiom)
-
-        const de = await getDecimals();
-        if(form.send.value === 'AXC'){
-            return axiom.checkSpendingLimit(form.to, parseUnits(form.value, de));
+        const sessionSigner = await getSessionSigner();
+        const axiom = await Axiom.Wallet.AxiomWallet.fromSessionKey(sessionSigner, userInfo.address);
+        const decimals = await getDecimals();
+        const sendValue = form.value.replace(/,/g, "")
+        const value = parseUnits(sendValue, decimals);
+        try{
+            if(form.send.value === "AXC") {
+                const res = await axiom.checkTransferLimit(form.to, value);
+                return res;
+            }else {
+                const res = await axiom.checkTransferErc20Limit(form.send.contract, form.to, value);
+                return res;
+            }
+        } catch (e){
+            return false
         }
-
-
-        return axiom.checkSpendingLimit(form.to, parseUnits(form.value, de), form.send.contract);
     }
 
 
@@ -444,8 +443,6 @@ const Transfer = (props: any) => {
             }
             let sendValue:string = form.value.replace(/,/g, "");
             const addressBalance = balance.replace(/,/g, "")
-            // const sessionKey = sessionStorage.getItem("sk");
-            // const sr = sessionStorage.getItem("sr");
             if(valueError !== "") {
                 setBtnLoading(false);
                 return;
@@ -461,18 +458,21 @@ const Transfer = (props: any) => {
                 return;
             }
             const times = await transferLockTime({email});
-            if(times?.lock_type === 0) {
-                setIsLock(0);
-                countdown(times.time_left);
-                setBtnLoading(false);
-                return;
-            }else if(times?.lock_type === 1) {
-                setIsLock(1);
-                setBtnLoading(false);
-                return;
-            }else {
-                setIsLock(-1);
+            if(times.time_left){
+                if(times?.lock_type === 0) {
+                    setIsLock(0);
+                    countdown(times.time_left);
+                    setBtnLoading(false);
+                    return;
+                }else if(times?.lock_type === 1) {
+                    setIsLock(1);
+                    setBtnLoading(false);
+                    return;
+                }else {
+                    setIsLock(-1);
+                }
             }
+
             const gas = await getGas(sendValue, form.send);
             if(isMax) {
                 const max: string | undefined = await hanldeGetMax();
@@ -516,11 +516,12 @@ const Transfer = (props: any) => {
             let isLimit: boolean = false;
             const status = sessionStorage.getItem("freeStatus")
             const timer = sessionStorage.getItem("limit_timer");
-            // if(status === '2' && timer && Number(timer) >= new Date().getTime()) {
-            //     isLimit = await handleVerifyLimit();
-            // }
-            const transfinite: boolean = isLimit;
-            setIsTransfinite(transfinite)
+            const sessionKey = sessionStorage.getItem("sk");
+            if(sessionKey && status === '2') {
+                isLimit = await handleVerifyLimit();
+            }
+            console.log('isLimit', isLimit)
+            setIsTransfinite(isLimit)
 
             setTransferInfo({
                 send: form.send.value,
@@ -529,10 +530,10 @@ const Transfer = (props: any) => {
                 value: sendValue,
                 gas: gas,
                 gasPrice: price,
-                isTransfinite: transfinite
+                isTransfinite: isLimit
             })
 
-            if(status === '1' && timer && Number(timer) >= Math.round(new Date().getTime()/ 1000)) {
+            if(status === '1' && timer && Number(timer) >= new Date().getTime()) {
                 setFirstOpen(true)
             } else {
                 setTransferOpen(true)
@@ -701,7 +702,6 @@ const Transfer = (props: any) => {
                 passkey: {
                     onRequestPasskey: async (useropHash: any) => {
                         const res =  await bioPayUserOp(useropHash, axiom);
-                        console.log(res);
                         return res
                     }
                 }
@@ -712,7 +712,6 @@ const Transfer = (props: any) => {
             passkey: {
                 onRequestPasskey: async (useropHash: any) => {
                     const res =  await bioPayUserOp(useropHash, axiom);
-                    console.log(res);
                     return res
                 }
             }
@@ -720,18 +719,14 @@ const Transfer = (props: any) => {
 
     }
 
-    const handleBioPay = async (option?: any) => {
+    const handleBioPay = async (option?: any, signer?: any) => {
         setBioResultOpen(true);
         setFirstOpen(false)
         setTransferOpen(false)
         setBioStatus("loading");
-        console.log('userInfo', userInfo)
         const axiom = await Axiom.Wallet.AxiomWallet.fromPasskey(userInfo.address);
-        const pass =  await axiom.getPasskeys()
-        console.log('axiom.getPasskeys705', pass)
         let hash:any;
         const decimals = await getDecimals();
-        console.log('axiom.decimals', decimals)
         const sendValue = form.value.replace(/,/g, "")
         const value = parseUnits(sendValue, decimals);
         try {
@@ -754,21 +749,28 @@ const Transfer = (props: any) => {
             })
             setSubmitFlag(false);
             sessionStorage.removeItem("form");
+            if(sessionStorage.getItem("freeStatus") === '1') {
+                sessionStorage.setItem("freeStatus", '2')
+            }
+            if(signer){
+                await setSessionSigner(signer);
+            }
             setResultStatus("success");
         }catch(err: any) {
-            console.log('743', err)
             const string = err.toString(), expr = /Cannot destructure property 'response'/;
+            console.log('743', err)
             if(string.search(expr) > 0) {
+                setBioStatus("cancel");
             }else {
                 setResultStatus("failed");
+                setBioStatus("failed");
             }
         }
     }
 
 
-    const bioPayUserOp = async (useropHash, axiom) => {
+    const bioPayUserOp = async (useropHash) => {
         const allowCredentials = localStorage.getItem("allowCredentials");
-        console.log('allowCredentials758', allowCredentials)
         const obj: any = {
             challenge: isoBase64URL.fromBuffer(useropHash),
             rpId: window.RPID,
@@ -810,15 +812,13 @@ const Transfer = (props: any) => {
         const decimals = await getDecimals();
         const sendValue = form.value.replace(/,/g, "")
         const value = parseUnits(sendValue, decimals);
-        console.log('axiom.decimals805', decimals)
-        const sessionKey = sessionStorage.getItem("sk");
         let axiom: any, ev: any;
         if(isFreeTransfer() && !password) {
-            if(sessionKey) {
-                // const signer = await getSessionSigner();
-                // axiom = await Axiom.Wallet.AxiomWallet.fromSessionKey(signer, userInfo.address);
-                axiom = await Axiom.Wallet.AxiomWallet.fromSessionKey(window.sessionSigner, userInfo.address);
-                console.log('axiom814', axiom )
+            if(signer){
+                axiom = await Axiom.Wallet.AxiomWallet.fromSessionKey(signer, userInfo.address);
+            } else {
+                const sessionSigner = await getSessionSigner();
+                axiom = await Axiom.Wallet.AxiomWallet.fromSessionKey(sessionSigner, userInfo.address);
             }
         }else {
 
@@ -857,23 +857,15 @@ const Transfer = (props: any) => {
                 if(form.send.value === "AXC") {
                     hash = await axiom.transfer(form.to, value, option);
                 } else {
-                    console.log(form.send.contract)
-                    console.log(`form.send.contract: ${form.send.contract}\nform.to: ${form.to}\nvalue:${value}\noption: ${option}`)
                     hash = await axiom.transferErc20(form.send.contract, form.to, value, option);
                 }
             } else {
                 if(form.send.value === "AXC") {
-                    console.log('transfer862', axiom)
                     hash = await axiom.transfer(form.to, value);
                 } else {
-                    console.log('form.send.contract', form)
-                    console.log('value', value)
-                    console.log(`typeof form.send.contract: ${typeof(form.send.contract)}\nform.to: ${form.to}\nvalue:${value}\noption: ${option}`)
                     hash = await axiom.transferErc20(form.send.contract, form.to, value);
                 }
             }
-
-            console.log(hash)
 
             if(!hash) {
                 setResultStatus("failed");
@@ -936,9 +928,6 @@ const Transfer = (props: any) => {
     }
 
     const setSessionSigner = async (sessionSigner) => {
-        // console.log('sessionSigner', sessionSigner)
-        // setSessionSigners(sessionSigner);
-        window.sessionSigner = sessionSigner;
         const skPassword = generateRandomSixDigits().toString();
         const salt = generateRandomBytes(16);
         const secretKey = await Axiom.Utility.deriveAES256GCMSecretKey(sha256(skPassword), salt);
@@ -970,8 +959,8 @@ const Transfer = (props: any) => {
             passwordless:{
                 signer: address,
                 spendingLimit: parseEther(spendingLimit),
-                validAfter,
-                validUntil,
+                validAfter:  Math.floor(Number(validAfter) / 1000),
+                validUntil: Math.floor(Number(validUntil) / 1000),
             }
         }, signer);
     }
@@ -982,12 +971,14 @@ const Transfer = (props: any) => {
         const spendingLimit = sessionStorage.getItem('freeLimit');
         const validAfter = sessionStorage.getItem('validAfter');
         const validUntil = sessionStorage.getItem('limit_timer');
+        const address = await  signer.getAddress();
+
         await handleBioPay({
             passwordless:{
-                signer,
+                signer: address,
                 spendingLimit: parseEther(spendingLimit),
-                validAfter,
-                validUntil,
+                validAfter:  Math.floor(Number(validAfter) / 1000),
+                validUntil: Math.floor(Number(validUntil) / 1000),
              }
         }, signer);
     }
@@ -1019,7 +1010,7 @@ const Transfer = (props: any) => {
     const openResult = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if(status === '1' && timer && Number(Number(timer) >= Math.round(new Date().getTime()) / 1000)){
+        if(status === '1' && timer && Number(Number(timer) >= new Date().getTime())){
             setFirstOpen(false)
         } else {
             setTransferOpen(false)
@@ -1168,7 +1159,7 @@ const Transfer = (props: any) => {
                         />
                         <FormErrorMessage>{toErrorsText}</FormErrorMessage>
                     </FormControl>
-                    <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword)) ? true : false} >{buttonText}</Button>
+                    <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword) || gasLoading) ? true : false} >{buttonText}</Button>
                 </div>
             </div> :
             <div className={styles.noPassword}>

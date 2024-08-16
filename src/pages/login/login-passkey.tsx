@@ -285,7 +285,9 @@ const LoginPasskey: React.FC = () => {
                 authentication = list[index].value;
             }
         } catch (e){
+            setBioResultStatus("failed");
             console.log('274', e)
+            return ;
         }
         let token: any;
         try {
@@ -303,6 +305,7 @@ const LoginPasskey: React.FC = () => {
             //     localStorage.setItem("allowCredentials", credential_id)
             // }
         }catch (error: any) {
+            setBioResultStatus("failed");
             showErrorToast(error)
             return;
         }

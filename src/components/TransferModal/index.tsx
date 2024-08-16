@@ -41,7 +41,6 @@ const TransferModal = (props: any) => {
 
     useEffect(() => {
         if(props.open) {
-            console.log(userInfo.bio_payment_status ,'userInfo')
             if(userInfo.bio_payment_status === 1) {
                 setIsBio(true)
             }else {
@@ -57,7 +56,7 @@ const TransferModal = (props: any) => {
     const isFreeTransfer = () => {
         const status = sessionStorage.getItem("freeStatus")
         const timer = sessionStorage.getItem("limit_timer")
-        if((status === '1' || status === '2') && timer && Number(timer) >= Math.round(new Date().getTime()/ 1000)) {
+        if((status === '1' || status === '2') && timer && Number(timer) >= new Date().getTime()) {
             return true
         }
         return false
@@ -95,12 +94,13 @@ const TransferModal = (props: any) => {
 
     useEffect(() => {
         setInfo(props.info)
-        console.log(props.info)
-        // console.log(props.info?.isTransfinite)
-        if(props.info?.isTransfinite){
+        console.log()
+        if(props.info?.isTransfinite === false){
             setIsFree(false)
+        } else if(props.info?.isTransfinite === true) {
+            setIsFree(true)
         }
-    },[props.info])
+    },[props.info, props.open])
 
     const handleBioPay = () => {
         props.onBioPay()
