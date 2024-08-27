@@ -77,7 +77,7 @@ const BioPayment = (props: any) => {
 
         if(!e.target.checked) {
             if(times.time_left) {
-                showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
+                showErrorToast("Your account is currently frozen. Please try again tomorrow！");
                 return;
             }
             setResultOpen(true);
@@ -126,7 +126,7 @@ const BioPayment = (props: any) => {
             const browser = detectBrowser();
             if(browser === "safari") {
                 const version = getSafariVersion();
-                if(version && version.version == 16) {
+                if(version && version.version >= 16) {
                     transports = ["internal", getTransportType(res.transport_type)]
                 }
             }
@@ -240,7 +240,7 @@ const BioPayment = (props: any) => {
                             setMsg(`Invalid password`)
                         }
                     }else {
-                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
+                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow!")
                     }
                 }).catch((err: any) => {
                     setMsg(err)

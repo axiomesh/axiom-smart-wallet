@@ -1,5 +1,4 @@
 import styles from './index.less';
-import ButtonPro from '@/components/Button'
 import { history, useLocation } from 'umi';
 import React, {useEffect, useState} from "react";
 import Right from './componments/right';
@@ -13,11 +12,12 @@ import {
     PopoverBody,
     PopoverArrow,
 } from '@chakra-ui/react';
-import {checkUnlockPasskeyCreate, checkUnlockPasskey, isTrustedDevice, isOpenBio} from "@/services/login";
+import {checkUnlockPasskeyCreate, checkUnlockPasskey, isTrustedDevice, isOpenBio, lockPageData} from "@/services/login";
 import { startAuthentication } from '@simplewebauthn/browser';
 import {detectBrowser, getSafariVersion, getTransportType} from '@/utils/utils';
 import BioResultModal from '@/components/BioResultModal';
 import {connect} from "@@/exports";
+import {getDeviceVersion} from "@/utils/system";
 
 function LockPage(props: any) {
     const { dispatch } = props;
@@ -29,10 +29,6 @@ function LockPage(props: any) {
     const [auth, setAuth] = useState<any>("");
     const {showErrorToast} = Toast();
     const location = useLocation();
-
-    const handleSubmit = async () => {
-        history.push('/lock-password');
-    }
 
     const handleClose = () => {
         setOpen(false)
@@ -56,6 +52,10 @@ function LockPage(props: any) {
     }, [location])
 
     useEffect(() => {
+        lockPageData(email);
+    }, []);
+
+    useEffect(() => {
         // @ts-ignore
         let unblock =  history.block((tx:any) => {
             if (tx.action === 'POP') {
@@ -73,6 +73,8 @@ function LockPage(props: any) {
         const isOpen = await isTrustedDevice({
             email: email,
             device_id: deviceId,
+            device_name: navigator.platform,
+            device_version: getDeviceVersion(),
         });
         setIsBioOpen(isOpen);
     }
@@ -84,6 +86,7 @@ function LockPage(props: any) {
     }
 
     const getAuth = async (verifyRes,transports, id) => {
+        console.log(transports);
         return await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
@@ -101,20 +104,22 @@ function LockPage(props: any) {
         setBioResultStatus("loading");
         const verifyRes = JSON.parse(auth.credentials_json);
         const visitorId = localStorage.getItem('visitorId');
-        let transports = [getTransportType(verifyRes.transport_type)];
+        let transports = [getTransportType(auth.transport_type)];
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
-            if(version && version.version == 16) {
-                transports = ["internal", getTransportType(verifyRes.transport_type)]
+            if(version && version.version >= 16) {
+                transports = ["internal", getTransportType(auth.transport_type)]
             }
         }
+
+        console.log('transports', transports);
         let authentication: any;
         let credential_id: any;
         try {
             if(auth?.credential_ids?.length === 1){
                 credential_id = auth.credential_ids[0];
-                authentication = await getAuth(verifyRes,transports, auth.credential_ids[0]);
+                authentication = await getAuth(verifyRes, transports, auth.credential_ids[0]);
             } else if(auth?.credential_ids?.length === 2) {
                 const list = await Promise.allSettled(auth?.credential_ids.map(item => getAuth(verifyRes, transports, item)));
                 const index = list.findIndex(li => li.status === "fulfilled");

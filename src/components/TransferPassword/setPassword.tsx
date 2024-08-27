@@ -17,7 +17,7 @@ interface Props {
 }
 
 
-const TransferPassword = (props: Props) => {
+const SetTransferPassword = (props: Props) => {
     const [errorText, setErrorText] = useState('');
     const [newErrorText, setNewErrorText] = useState('');
     const [password, setPassword] = useState('');
@@ -40,20 +40,18 @@ const TransferPassword = (props: Props) => {
         const regex = /^(?=.*[a-zA-Z])(?=.*\d).+$/;
         setNewErrorText('');
         if(e.target.value.length >= 8){
+
             if(regex.test(newValue)){
                 setProgress(100);
                 setProgressText('')
-            } else if(!stringRegex.test(newValue) && !numRegex.test(newValue)){
+            } else if(!stringRegex.test(newValue)){
                 setProgress(50);
                 setProgressText('Add a letter to improve!')
-            } else if(!stringRegex.test(newValue)){
-                setProgress(75);
-                setProgressText('Add a letter to improve!')
             } else if(!numRegex.test(newValue)){
-                setProgress(75);
+                setProgress(50);
                 setProgressText('Add a number to improve!')
             } else {
-                setProgress(75);
+                setProgress(50);
                 setProgressText('Add a letter to improve!')
             }
 
@@ -85,7 +83,7 @@ const TransferPassword = (props: Props) => {
 
     const handleBlurRePassWord = (e: any) => {
         if(e.target.value === ""){
-            setErrorText('Please enter a repeat password!')
+            setErrorText('Please enter password!')
         }else if(e.target.value !== password){
             setErrorText('Password do not match!')
         } else {
@@ -96,7 +94,7 @@ const TransferPassword = (props: Props) => {
 
     const handleBlurPassWord = (e:any) => {
         if(e.target.value === ""){
-            setNewErrorText('Please enter a new password!')
+            setNewErrorText('Please enter password!')
         } else if(rePassword !== ''){
             if(e.target.value !== rePassword){
                 setErrorText('Password do not match!')
@@ -112,7 +110,7 @@ const TransferPassword = (props: Props) => {
         if(loading)
             return;
         if(!password){
-            setNewErrorText('Please enter a new password!')
+            setNewErrorText('Please enter password!')
             return;
         }
         if(!passWordReg.test(password)){
@@ -120,7 +118,7 @@ const TransferPassword = (props: Props) => {
             return;
         }
         if(!rePassword){
-            setErrorText('Please enter a repeat password!')
+            setErrorText('Please enter password!')
             return;
         }
         if(!passWordReg.test(rePassword)){
@@ -170,4 +168,4 @@ const TransferPassword = (props: Props) => {
     )
 }
 
-export default TransferPassword;
+export default SetTransferPassword;

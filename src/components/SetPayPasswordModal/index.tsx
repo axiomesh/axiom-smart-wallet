@@ -6,9 +6,8 @@ import {
     ModalContent,
     ModalHeader,
     ModalFooter,
-    ModalBody,
+    ModalBody, ModalCloseButton,
 } from '@chakra-ui/react';
-import TransferPassword from "@/components/TransferPassword";
 import {getDefaultPwd, setNewPassword} from '@/services/transfer';
 import Toast from "@/hooks/Toast";
 import {passWordReg, getMail} from "@/utils/help";
@@ -17,6 +16,7 @@ import {connect} from "@@/exports";
 import {generateRandomBytes} from "@/utils/utils";
 import { Axiom } from 'axiomwallet'
 import {sha256} from "js-sha256";
+import SetTransferPassword from "@/components/TransferPassword/setPassword";
 
 interface Props {
     isOpen: boolean;
@@ -46,7 +46,6 @@ const SetPayPasswordModal = (props: Props) => {
         const salt = generateRandomBytes(16);
         const transferSalt = generateRandomBytes(16);
         try {
-            console.log(password)
             const pwd = await getDefaultPwd({email});
             const de = await  Axiom.Utility.deriveAES256GCMSecretKey(sha256(pwd), userInfo.transfer_salt);
              const decryptKey =  Axiom.Utility.decrypt(userInfo.enc_private_key, de.toString("utf-8"));
@@ -78,10 +77,18 @@ const SetPayPasswordModal = (props: Props) => {
                 <ModalContent rounded="32px" maxWidth="500px">
                     <ModalHeader padding="40px 40px 0 40px" display="flex" alignItems="center" justifyContent="space-between">
                         <div className={styles.payPassTitle}><span>Set Transfer Password</span><span className={styles.payPassInstructions}>Set your quick transfer password for transfer operations.</span></div>
-                        <i className={styles.payPassClose} onClick={onClose}></i>
+                        <ModalCloseButton
+                            top="40px"
+                            right="40px"
+                            border="1px solid #E6E8EC"
+                            borderRadius="50%"
+                            w="46px"
+                            h="46px"
+                            onClick={onClose}
+                        />
                     </ModalHeader>
                     <ModalBody padding="20px 40px 0 40px">
-                        <div><TransferPassword type="set" btnLoading={loading} onSubmit={handleSubmit} /></div>
+                        <div><SetTransferPassword type="set" btnLoading={loading} onSubmit={handleSubmit} /></div>
                     </ModalBody>
                     <ModalFooter>
                     </ModalFooter>

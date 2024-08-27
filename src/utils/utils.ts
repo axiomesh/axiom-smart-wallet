@@ -62,16 +62,16 @@ export const getDeviceType = () => {
   }
 
 export const getBrowserName = () =>{
-    const  userAgent = navigator.userAgent;
-    if(userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1){
+    const  userAgent = navigator.userAgent.toLowerCase();
+    if(userAgent.indexOf("opera") > -1 || userAgent.indexOf("opr") > -1){
         return 4;
-    } else if(userAgent.indexOf("Edge") > -1){
+    } else if(userAgent.indexOf("edg") > -1){
         return 3;
-    } else if(userAgent.indexOf("Firefox") > -1){
+    } else if(userAgent.indexOf("firefox") > -1){
         return 5;
-    } else if(userAgent.indexOf("Safari") > -1 && userAgent.indexOf("Chrome") == -1){
+    } else if(userAgent.indexOf("safari") > -1 && userAgent.indexOf("chrome") == -1){
         return 1;
-    } else if(userAgent.indexOf("Chrome") > -1 && userAgent.indexOf("Safari") > -1){
+    } else if(userAgent.indexOf("chrome") > -1 && userAgent.indexOf("safari") > -1){
         return 2;
     }
 
@@ -87,7 +87,13 @@ export const getBrowserName = () =>{
         return "safari"
     } else if (isChrome) {
         return "chrome"
-    } else {
+    } else if(userAgent.indexOf("opera") > -1 || userAgent.indexOf("opr") > -1){
+        return "opera";
+    }else if(userAgent.indexOf("firefox")){
+        return "firefox";
+    }else if(userAgent.indexOf("edg")){
+        return "edge";
+    }else {
         return "other"
     }
 }
@@ -114,6 +120,55 @@ export const getSafariVersion = () => {
   }
 }
 
+export const getIsActiveBrowser = () =>{
+
+    const ua = navigator.userAgent.toLowerCase();
+    let isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+    let isChrome = /chrome|crios|crmo/i.test(ua) && !isSafari;
+
+    if(ua.indexOf("firefox") > -1){
+        return false;
+    } else if(ua.indexOf("opera") > -1 || ua.indexOf('opr') > -1){
+        let match = ua.match(/opr\/(\d+)/);
+        let matchAll = ua.match(/opr\/([\d.]+)/);
+        if (match && matchAll) {
+            let version = parseInt(match[1], 10);
+            if(version >= 54) return true
+            return false
+        }
+        return false
+    } else if(ua.indexOf('edg') > -1){
+        let match = ua.match(/edg\/(\d+)/);
+        let matchAll = ua.match(/edg\/([\d.]+)/);
+        if (match && matchAll) {
+            let version = parseInt(match[1], 10);
+            if(version >= 18) return true
+            return false
+        }
+        return false
+    } else if(isSafari){
+        let match = ua.match(/version\/(\d+)/);
+        let matchAll = ua.match(/version\/([\d.]+)/);
+        if (match && matchAll) {
+           let safariVersion = parseInt(match[1], 10);
+           if(safariVersion >= 16) return true
+            return false
+        }
+        return false
+    } else if(isChrome){
+        let match = ua.match(/chrome\/(\d+)/);
+        let matchAll = ua.match(/chrome\/([\d.]+)/);
+        if (match && matchAll) {
+            let version = parseInt(match[1], 10);
+            if(version >= 67) return true
+            return false
+        }
+        return false
+    }
+
+    return false
+}
+
 export const getChromeVersion = () => {
   let userAgent = navigator.userAgent.toLowerCase();
   let isChrome = /chrome|crios|crmo/i.test(userAgent) && !/edge|edg|opr/i.test(userAgent);
@@ -121,7 +176,6 @@ export const getChromeVersion = () => {
   if (isChrome) {
       let match = userAgent.match(/chrome\/(\d+)/);
       let matchAll = userAgent.match(/chrome\/([\d.]+)/);
-      console.log(matchAll)
       if (match && matchAll) {
           let chromeVersion = parseInt(match[1], 10);
           console.log("Chrome major version: " + matchAll[1]);
@@ -137,6 +191,37 @@ export const getChromeVersion = () => {
       console.log("The browser is not Chrome.");
       return null;
   }
+}
+
+export const getBrowserVersion = () =>{
+
+    const ua = navigator.userAgent.toLowerCase();
+    let isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+    let isChrome = /chrome|crios|crmo/i.test(ua) && !isSafari;
+    if(ua.indexOf("firefox") > -1){
+        let match = ua.match(/firefox\/(\d+)/);
+        if (match) return parseInt(match[1], 10)
+
+        return '0.0'
+    } else if(ua.indexOf("opera") > -1 || ua.indexOf('opr') > -1){
+        let match = ua.match(/opr\/(\d+)/);
+        if (match) return parseInt(match[1], 10)
+        return '0.0'
+    } else if(ua.indexOf('edg') > -1){
+        let match = ua.match(/edg\/(\d+)/);
+        if (match) return parseInt(match[1], 10)
+        return '0.0'
+    } else if(isSafari){
+        let match = ua.match(/version\/(\d+)/);
+        if (match) return parseInt(match[1], 10)
+        return '0.0'
+    } else if(isChrome){
+        let match = ua.match(/chrome\/(\d+)/);
+        if (match) return parseInt(match[1], 10)
+        return '0.0'
+    }
+
+    return '0.0'
 }
 
 export const removeTransferFee = () => {

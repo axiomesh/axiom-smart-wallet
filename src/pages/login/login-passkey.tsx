@@ -77,6 +77,8 @@ const LoginPasskey: React.FC = () => {
         const isOpen = await isTrustedDevice({
             email: email,
             device_id: deviceId,
+            device_name: navigator.platform,
+            device_version: getDeviceVersion(),
         });
         setIsTrustOpen(isOpen);
     }
@@ -118,6 +120,7 @@ const LoginPasskey: React.FC = () => {
                         let axiomAccount = await Axiom.Wallet.AxiomWallet.fromPassword(sha256(pwd), transferSalt);
                         window.axiom = axiomAccount;
                         const address = await axiomAccount.getAddress();
+                        console.log('address', address)
                         const device_id = localStorage.getItem('visitorId');
                         const hash = await axiomAccount.deployWalletAccout();
                         try {
@@ -179,7 +182,7 @@ const LoginPasskey: React.FC = () => {
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
-            if(version && version.version == 16) {
+            if(version && version.version >= 16) {
                 type = 'platform'
             }
         }
@@ -265,7 +268,7 @@ const LoginPasskey: React.FC = () => {
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
-            if(version && version.version == 16) {
+            if(version && version.version >= 16) {
                 transports = ["internal", getTransportType(res.transport_type)]
             }
         }
@@ -285,8 +288,13 @@ const LoginPasskey: React.FC = () => {
                 authentication = list[index].value;
             }
         } catch (e){
-            setBioResultStatus("failed");
             console.log('274', e)
+            const string = e.toString(), expr = /The operation either timed out or was not allowed/;
+            if(string.search(expr) > 0) {
+                setBioResultStatus("cancel");
+            }else {
+                setBioResultStatus("failed");
+            }
             return ;
         }
         let token: any;

@@ -85,7 +85,7 @@ const AddDeviceModal = (props: any) => {
         const browser = detectBrowser();
         if(browser === "safari") {
             const version = getSafariVersion();
-            if(version && version.version == 16) {
+            if(version && version.version >= 16) {
                 transports = ["internal", getTransportType(res.transport_type)]
             }
         }
@@ -128,6 +128,8 @@ const AddDeviceModal = (props: any) => {
             const isTrusted = await isTrustedDevice({
                 email: userInfo.email,
                 device_id: userInfo.device_id,
+                device_name: navigator.platform,
+                device_version: getDeviceVersion(),
             });
 
             if(isTrusted === -1){
@@ -160,7 +162,7 @@ const AddDeviceModal = (props: any) => {
                         </i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 40px 40px">
-                        <div style={{fontSize: 14, fontWeight: 500, color: '#4B5563'}}>After adding the trusted device, AxiomWallet allows quick login via trusted</div>
+                        <div style={{fontSize: 14, fontWeight: 500, color: '#4B5563'}}>After adding the trusted device, AxiomWallet allows quick login via trusted.</div>
                         <div className={styles.keyBtn} onClick={handlePasskeyClick}>
                             <KeyBioIcon fontSize="24px" />
                             <span>Continue</span></div>

@@ -90,7 +90,7 @@ export async function checkPassword(data: any) {
 }
 
 
-export async function lockPage(email: string) {
+export async function lockPageData(email: string) {
     const res = await request({
         url: `/api/axm-wallet/account/lock`,
         method: 'post',
@@ -281,13 +281,22 @@ export async function checkBioPasskey(data: any) {
     return res?.data;
 }
 
-export async function getAllNft(address, type) {
-    const res = await axios(`/api/v2/addresses/${address}/tokens?type=${type}`);
-    return res.data;
-}
+// export async function getAllNft(address, type) {
+//     const res = await axios(`/api/v2/addresses/${address}/tokens?type=${type}`);
+//     return res.data;
+// }
 
-export async function getNftList(address) {
-    const res = await axios(`/api/v2/tokens/${address}/instances`);
+const jsonToUrlEncode = (data:any) =>
+    Object.entries(data)
+        // .filter((item) => item[1] !== undefined)
+        .map(
+            (res: any) =>
+                `${res[0]}=${window.encodeURIComponent(res[1])}`,
+        )
+        .join('&');
+
+export async function getNftList(address, data?:any) {
+    const res = await axios(`/api/v2/tokens/${address}/instances?${jsonToUrlEncode(data)}`);
     return res.data;
 }
 

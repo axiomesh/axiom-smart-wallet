@@ -6,7 +6,7 @@ export default defineConfig({
   jsMinifier: 'terser',
   proxy: {
     '/api/v2': {
-      target: 'http://10.2.69.126:8080',
+      target: 'http://10.2.69.59:8080',
       changeOrigin: true,
       // pathRewrite: {
       //   '^/api/v2': '',
@@ -33,6 +33,13 @@ export default defineConfig({
       changeOrigin: true,
       pathRewrite: {
         '^/api/bundler': '',
+      }
+    },
+    '/api/paymaster': {
+      target: 'http://10.2.69.244:10088',
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api/paymaster': '',
       }
     },
     'api/ws': {

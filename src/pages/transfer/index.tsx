@@ -30,6 +30,7 @@ import SetBioPayModal from "@/components/setBioPayModal";
 import BioResultModal from '@/components/BioResultModal';
 import { startAuthentication } from '@simplewebauthn/browser';
 import FirstTransferModal from '@/components/TransferModal/first'
+import {aqua} from "@umijs/utils/compiled/color/color-name";
 
 function Loading (props: any) {
     return <div className='loader' {...props}></div>
@@ -156,7 +157,7 @@ const Transfer = (props: any) => {
     const [resultName, setResultName] = useState("");
     const [form, setForm] = useState<FormProps>(transferForm.value ? transferForm : {chain: options[0], to: "", value: "", send: null});
     const [sessionForm, setSessionForm] = useState<FormProps>();
-    const {showSuccessToast, showErrorToast} = Toast();
+    const {showErrorToast} = Toast();
     const [gasFee, setGasFee] = useState("");
     const [passord, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState("");
@@ -167,7 +168,6 @@ const Transfer = (props: any) => {
     const [btnLoading, setBtnLoading] = useState(false);
     const [gasLoading, setGasLoading] = useState(false);
     const [submitFlag, setSubmitFlag] = useState(false);
-    const [isTransfinite, setIsTransfinite] = useState(false);
     const [info, setInfo] = useState<any>();
     const [isClicked, setIsClicked] = useState(false);
     const [pinLoading, setPinLoading] = useState(false);
@@ -328,7 +328,7 @@ const Transfer = (props: any) => {
             getGas(sendValue, form.send).then((res: any) => {
                 setGasLoading(false);
                 setGasFee(res);
-                if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
+                if((parseUnits(res, 18) + parseUnits(sendValue, 18)) > parseUnits(addressBalance, 18)) {
                     setValueError("Gas fee is insufficient");
                 }
             })
@@ -476,13 +476,16 @@ const Transfer = (props: any) => {
             const gas = await getGas(sendValue, form.send);
             if(isMax) {
                 const max: string | undefined = await hanldeGetMax();
+                const bal = balance.toString().replace(/,/g, "")
                 if(max) {
-                    sendValue = max;
+                    const maxValue = parseUnits(bal, 18) - parseUnits(gas.toString(), 18)
+                    sendValue = formatUnits(maxValue, 18);
+                    form.value = sendValue;
                 }else {
                     return;
                 }
             }else {
-                if((Number(gas) + Number(sendValue)) > Number(addressBalance)) {
+                if((parseUnits(gas, 18) + parseUnits(sendValue, 18)) > parseUnits(addressBalance, 18)) {
                     setValueError("Gas fee is insufficient");
                     setBtnLoading(false)
                     return;
@@ -520,8 +523,6 @@ const Transfer = (props: any) => {
             if(sessionKey && status === '2') {
                 isLimit = await handleVerifyLimit();
             }
-            console.log('isLimit', isLimit)
-            setIsTransfinite(isLimit)
 
             setTransferInfo({
                 send: form.send.value,
@@ -838,7 +839,7 @@ const Transfer = (props: any) => {
                                 setPasswordError(`Invalid password`)
                             }
                         }else {
-                            setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow !")
+                            setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow!")
                         }
                     }).catch((err: any) => {
                         setPasswordError(err)
@@ -915,10 +916,11 @@ const Transfer = (props: any) => {
         getGas(sendValue, form.send).then((res: any) => {
             setGasLoading(false);
             setGasFee(res);
-            if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
+            if((parseUnits(res, 18) + parseUnits(sendValue, 18)) > parseUnits(addressBalance, 18)) {
                 setValueError("Gas fee is insufficient");
             }
         })
+        // await handleMax()
     }
 
     const generateRandomSixDigits = () => {
@@ -1001,7 +1003,7 @@ const Transfer = (props: any) => {
         getGas(sendValue, form.send).then((res: any) => {
             setGasLoading(false);
             setGasFee(res);
-            if((Number(res) + Number(sendValue)) > Number(addressBalance)) {
+            if((parseUnits(res, 18) + parseUnits(sendValue, 18)) > parseUnits(addressBalance, 18)) {
                 setValueError("Gas fee is insufficient");
             }
         })
@@ -1024,7 +1026,7 @@ const Transfer = (props: any) => {
     return (
         <>
             {isLock === 0 && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account has been frozen for 24 hours and transactions cannot be sent normally. {lockTimes}</span></div>}
-            {isLock === 1 && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account is currently locked. Please try again tomorrow !</span></div>}
+            {isLock === 1 && <div className={styles.toast}><img src={require("@/assets/transfer/free-toast.png")} alt=""/><span>Your account is currently locked. Please try again tomorrow!</span></div>}
             {isSetPassword ? <div className={styles.transfer}>
                 <div className={styles.transferTitle}>
                     <h1>Transfer</h1>
@@ -1166,7 +1168,8 @@ const Transfer = (props: any) => {
                 <img style={{width: "800px"}} src={require('@/assets/transfer/set-transfer-bg.png')} alt="" />
                 <p className={styles.noPasswordTitle}>Transfer to any address on Axiomesh & Ethereum</p>
                 <p className={styles.noPasswordDesc}>Set a transfer password to use</p>
-                <div style={{width: "320px", margin: "0 auto"}}><Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword)) ? true : false} >Set transfer password first <i className={styles.noPasswordIcon}></i></Button></div>
+                <div style={{width: "320px", margin: "0 auto"}}>
+                    <Button loading={btnLoading} onClick={confirmCallback} disabled={(isLock >= 0 || (form.to === "" && isSetPassword)) ? true : false} >Set transfer password first <i className={styles.noPasswordIcon}></i></Button></div>
             </div>
             }
             <FirstTransferModal

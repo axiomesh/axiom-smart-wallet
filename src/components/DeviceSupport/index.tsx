@@ -7,25 +7,14 @@ import {
     ModalBody,
 } from '@chakra-ui/react';
 import useContinueButton from "@/hooks/ContinueButton";
+import {getDeviceVersion} from "@/utils/system";
+import {SuccessIcon} from "@/components/Icons";
+import {detectBrowser, getBrowserVersion} from "@/utils/utils";
 
 
 const DeviceSupport = (props: any) => {
-    const [isOpen, setIsOpen] = useState(props.isOpen);
-    const [version, setVersion] = useState(props.version);
-    const [device, setDevice] = useState(props.device);
-    const {Button} = useContinueButton();
-
-    useEffect(() => {
-        setIsOpen(props.isOpen)
-    },[props.isOpen])
-
-    useEffect(() => {
-        setVersion(props.version)
-    },[props.version])
-
-    useEffect(() => {
-        setDevice(props.device)
-    },[props.device])
+    const { isOpen } = props;
+    const ua = navigator.userAgent;
 
     const onClose = () => {
         props.onClose()
@@ -43,7 +32,15 @@ const DeviceSupport = (props: any) => {
                             <div className={styles.deviceSupportContentList}>
                                 <div className={styles.deviceSupportContentItem}>
                                     <i className={styles.deviceSupportContentItemNoIcon}></i>
-                                    <span className={styles.deviceSupportContentItemText}>{device} {version}</span>
+                                    <span className={styles.deviceSupportContentItemText}>{detectBrowser()} {getBrowserVersion()}</span>
+                                </div>
+                            </div>
+
+                            <div className={styles.deviceSupportContentList}>
+                                <div className={styles.deviceSupportContentItem}>
+                                    {/*<i className={styles.deviceSupportContentItemNoIcon}></i>*/}
+                                    <SuccessIcon width='24px' height='24px' />
+                                    <span className={styles.deviceSupportContentItemText}>{getDeviceVersion()}</span>
                                 </div>
                             </div>
                         </div>

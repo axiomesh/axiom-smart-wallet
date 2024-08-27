@@ -111,8 +111,6 @@ function Layout(props: any) {
     useEffect(() => {
         // @ts-ignore
         const ws = new WebSocket(`${window.socketUrl}/axm-wallet/notice/${email}`);
-        console.log('114',ws);
-        console.log('broser', navigator)
         initSocket(ws);
 
         return () => {

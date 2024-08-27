@@ -15,7 +15,7 @@ import {sendVerifyCode, checkUser, isNewDevice} from '@/services/login';
 import {setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { getToken } from "@/utils/help";
-import { detectBrowser, getSafariVersion, getChromeVersion, removeTransferFee } from "@/utils/utils";
+import {detectBrowser, getSafariVersion, getChromeVersion, removeTransferFee, getIsActiveBrowser} from "@/utils/utils";
 import DeviceSupport from "@/components/DeviceSupport";
 import {getDeviceVersion} from "@/utils/system";
 
@@ -27,10 +27,7 @@ function Login(props: any) {
     const [mail, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const [version, setVersion] = useState("");
-    const [device, setDevice] = useState("");
     const {showErrorToast} = Toast();
-    // const [deviceId, setDeviceId] = useState('');
 
     const validateName = (value: string) => {
         const reg =  /^(.+)@(.+)$/;
@@ -64,6 +61,9 @@ function Login(props: any) {
 
     React.useEffect(() => {
         // @ts-ignore
+        if(!getIsActiveBrowser()){
+            setIsOpen(true);
+        }
         let unblock =  history.block((tx:any, action:any) => {
             if (tx.action === 'POP') {
                 return false;
@@ -72,22 +72,6 @@ function Login(props: any) {
                 tx.retry()
             }
         });
-        const browser = detectBrowser();
-        if(browser === 'chrome') {
-            const version = getChromeVersion();
-            if(version && version.version < 67) {
-                setIsOpen(true);
-                setVersion(version.allVersion);
-                setDevice(browser);
-            }
-        }else if(browser === "safari") {
-            const version = getSafariVersion();
-            if(version && version.version < 16) {
-                setIsOpen(true);
-                setVersion(version.allVersion);
-                setDevice(browser);
-            }
-        }
     }, [])
 
     // const getDeviceId = () => {
@@ -120,32 +104,39 @@ function Login(props: any) {
         }
         setLoading(true)
         setMail(mail);
-        const userType = await checkUser(mail);
-        if(userType === 0) {
-            try{
-                setLoading(true)
-                await sendVerifyCode(mail)
-                history.push(`/verify-code`);
-            } catch (e){
-                console.log(e);
-                // @ts-ignore
-                showErrorToast(e);
-            } finally {
-                setLoading(false)
+        try {
+            const userType = await checkUser(mail);
+            if(userType === 0) {
+                try{
+                    setLoading(true)
+                    await sendVerifyCode(mail)
+                    history.push(`/verify-code`);
+                } catch (e){
+                    console.log(e);
+                    // @ts-ignore
+                    showErrorToast(e);
+                } finally {
+                    setLoading(false)
+                }
+            }else {
+                const res = await isNewDevice({
+                    email: mail,
+                    device_name: navigator.platform,
+                    device_version: getDeviceVersion(),
+                    // device_id: deviceId,
+                })
+                if(res){
+                    history.replace(`/register-passkey`)
+                } else {
+                    setLoading(false)
+                    history.push(`/login-passkey`);
+                }
             }
-        }else {
-            const res = await isNewDevice({
-                email: mail,
-                device_name: navigator.platform,
-                device_version: getDeviceVersion(),
-                // device_id: deviceId,
-            })
-            if(res){
-                history.replace(`/register-passkey`)
-            } else {
-                setLoading(false)
-                history.push(`/login-passkey`);
-            }
+
+        } catch (e){
+            showErrorToast(e);
+        } finally {
+            setLoading(false)
         }
 
     }
@@ -216,7 +207,7 @@ function Login(props: any) {
                   </div>
               </div>
               <Right />
-              <DeviceSupport isOpen={isOpen} version={version} device={device}/>
+              <DeviceSupport isOpen={isOpen} />
           </div>
       </div>
   );

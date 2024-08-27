@@ -15,6 +15,8 @@ import {getUserInfo} from "@/services/login";
 import Prompt from "@/components/Prompt";
 import Page from '@/components/Page'
 import AlertPro from "@/components/Alert";
+import {parseEther} from "viem";
+import {JsonRpcProvider} from "ethers";
 
 let loadTimer:any = null;
 const ResetTransfer = (props: any) => {
@@ -68,8 +70,16 @@ const ResetTransfer = (props: any) => {
         history.push('/security')
     }
 
-    const handleSendEmail = () => {
+    const handleSendEmail = async () => {
         if(!btnLoading) {
+            const rpc_provider = new JsonRpcProvider(window.RPC_URL);
+            const balance = await rpc_provider.getBalance(userInfo.address);
+            // @ts-ignore
+            if(balance < parseEther(window.GasLimit)){
+                // @ts-ignore
+                showErrorToast(`Your current account AXC balance is less than ${window.GasLimit}, please recharge and try again.`)
+                return;
+            }
             setBtnLoading(true);
         sendVerifyCode(email).then((res: any) => {
             sessionStorage.setItem('EndTime', (new Date()).getTime() + res)

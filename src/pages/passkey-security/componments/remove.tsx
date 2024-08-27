@@ -29,6 +29,8 @@ const RemoveDeviceModal = (props: any) => {
         }
     }
 
+    console.log(info)
+
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} closeOnOverlayClick={false} isCentered>
@@ -47,7 +49,7 @@ const RemoveDeviceModal = (props: any) => {
                         </div>
                         <div className={styles.collapseItem}>
                             <div className={styles.collapseItemIcon}>
-                                {info.type === 'mac' ? <MacIcon /> : <WindowsIcon />}
+                                {info?.device_type?.toLowerCase().includes('mac')  ? <MacIcon /> : <WindowsIcon />}
                             </div>
                             <div>
                                 {info.device_name}

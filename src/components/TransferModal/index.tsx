@@ -131,16 +131,20 @@ const TransferModal = (props: any) => {
                         <i className={styles.transferClose} onClick={onClose}><CloseIcon fontSize="12px" /></i>
                     </ModalHeader>
                     <ModalBody padding="20px 40px 40px 40px">
-                        {isFree ? <div className={styles.transferFreeToast}>
-                            <img src={require("@/assets/transfer/free-toast.png")} alt="" />
-                            <span>Password-free payment update will be activated after this transfer transaction.</span>
-                        </div> : null}
+                        {/*{isFree ? <div className={styles.transferFreeToast}>*/}
+                        {/*    <img src={require("@/assets/transfer/free-toast.png")} alt="" />*/}
+                        {/*    <span>Password-free payment update will be activated after this transfer transaction.</span>*/}
+                        {/*</div> : null}*/}
                         <div className={styles.transferDetail}>
                             <h1 style={{paddingBottom: "8px"}}>DETAILS</h1>
                             <div className={styles.transferSend}>
                                 <div className={styles.transferSendItem}>
                                     <span className={styles.transferSendItemTitle}>Send</span>
-                                    <div className={styles.transferSendItemContent}><img src={require("@/assets/token/wAXC.png")} alt=""/><Tooltip fontSize="14px" borderRadius="4px" zIndex="9999999" hasArrow bg='gray.900' placement='top' label={info?.value}><span className={styles.transferSendItemContentText}>{info?.value}</span></Tooltip><span>{info?.send}</span></div>
+                                    <div className={styles.transferSendItemContent}>
+                                        <img src={require("@/assets/token/wAXC.png")} alt=""/>
+                                        <Tooltip fontSize="14px" borderRadius="4px" zIndex="9999999" hasArrow bg='gray.900' placement='top' label={info?.value}>
+                                            <span className={styles.transferSendItemContentText}>{info?.value}</span></Tooltip>
+                                        <span>{info?.send}</span></div>
                                     {/* <div className={styles.transferSendItemContent}><img src={require("@/assets/token/wAXC.png")} alt=""/><Tooltip fontSize="14px" borderRadius="4px" zIndex="9999999" hasArrow bg='gray.900' placement='top' label={"1231212323112312321312312312312331212312312"}><span className={styles.transferSendItemContentText}pan className={styles.transferSendItemContentText}>1231212323112312321312312312312331212312312</span></Tooltip><span>AXC</span></div> */}
                                 </div>
                                 <div className={styles.transferSendItem} style={{alignItems: "start"}}>
@@ -155,7 +159,10 @@ const TransferModal = (props: any) => {
                                 </div>
                                 <div className={styles.transferSendItem} style={{alignItems: "start"}}>
                                     <span className={styles.transferSendItemTitle}>Gas fee</span>
-                                    <div className={`${styles.transferSendItemContent} ${styles.transferSendItemPrice}`}><span className={styles.transferSendItemText}>{info?.gas} {info?.send}</span><span className={styles.transferSendItemNum}>$ {info?.gasPrice}</span></div>
+                                    <div className={`${styles.transferSendItemContent} ${styles.transferSendItemPrice}`}>
+                                        <span className={styles.transferSendItemText}>{info?.gas} {info?.send}</span>
+                                        <span className={styles.transferSendItemNum}>$ {info?.gasPrice}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

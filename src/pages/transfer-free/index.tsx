@@ -61,6 +61,7 @@ const TransferFree = (props: any) => {
     const [bioStatus, setBioStatus] = useState<string>("");
     const [dateEdit, setDateEdit] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [value, setValue] = useState('');
     const [form] = Form.useForm();
 
     const isFreeTransfer = () => {
@@ -81,17 +82,12 @@ const TransferFree = (props: any) => {
 
     useEffect(() => {
         if(isFreeTransfer()) {
-            // setSessionKey(sessionStorage.getItem("sk"))
             setIsSwitch(true)
         }
-
-        // const limit = sessionStorage.getItem("freeLimit");
         const freeLimit = sessionStorage.getItem("freeLimit")
         const timer = sessionStorage.getItem("limit_timer");
         if(freeLimit) {
             setFreeLimit(freeLimit)
-            // setOldLimit(limit)
-            // limit_timer
 
             form.setFields([{ name: 'max', errors: [], value: freeLimit }])
             if(timer){
@@ -130,9 +126,15 @@ const TransferFree = (props: any) => {
 
         }
         // handleLockTimes()
+        console.log(freeForm);
         if(freeForm.timer || freeForm.max) {
             setIsSwitch(true);
-            setIsDisabled(false);
+            if(freeForm.max === freeLimit && freeForm.timer === Number(timer)){
+                setIsDisabled(true);
+            } else {
+                setIsDisabled(false);
+            }
+            //
         }
     },[])
 
@@ -145,9 +147,10 @@ const TransferFree = (props: any) => {
                 })
             } else {
                 const {max, timer} =  await form.getFieldsValue();
+                console.log(timer)
                 dispatch({
                     type: 'global/setFreeForm',
-                    payload: {max, timer: dayjs(timer).endOf('date').valueOf()},
+                    payload: {max, timer: timer ? dayjs(timer).endOf('date').valueOf() : null},
                 })
             }
         });
@@ -188,7 +191,13 @@ const TransferFree = (props: any) => {
 
     const handleChange = (e: any) => {
         if(!e.target.checked) {
-            openModal('Attention', handleCancel)
+            const status = sessionStorage.getItem("freeStatus")
+           if(status === '2') {
+               openModal('Attention', handleCancel)
+           } else {
+               setIsSwitch(e.target.checked);
+               handleCancel()
+           }
         } else {
             setIsSwitch(e.target.checked)
         }
@@ -209,6 +218,7 @@ const TransferFree = (props: any) => {
 
     const handleSaveFree = async (axiom: any, isBio: boolean) => {
         const { max, timer } = await form.getFieldsValue();
+        setFreeLimit(max)
         if(isBio) {
 
             const res = await checkBioPasskeyCreate({
@@ -220,7 +230,7 @@ const TransferFree = (props: any) => {
             const browser = detectBrowser();
             if(browser === "safari") {
                 const version = getSafariVersion();
-                if(version && version.version == 16) {
+                if(version && version.version >= 16) {
                     transports = ["internal", getTransportType(res.transport_type)]
                 }
             }
@@ -269,10 +279,8 @@ const TransferFree = (props: any) => {
         setPinLoading(true);
         setMsg("");
         let axiom:any;
-        const {max} = form.getFieldsValue();
         try {
             axiom = await Axiom.Wallet.AxiomWallet.fromEncryptedKey(sha256(password), info.transfer_salt, info.enc_private_key, info.address);
-            setFreeLimit(max)
         }catch (e: any) {
             console.log('308',e);
             setPinLoading(false);
@@ -287,7 +295,7 @@ const TransferFree = (props: any) => {
                             setMsg(`Invalid password`)
                         }
                     }else {
-                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow !")
+                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow!")
                     }
                 }).catch((err: any) => {
                     setMsg(err)
@@ -310,7 +318,7 @@ const TransferFree = (props: any) => {
         await form.validateFields();
         const times = await transferLockTime({email});
         if(times.time_left) {
-            showErrorToast("Your account is currently frozen. Please try again tomorrow ！");
+            showErrorToast("Your account is currently frozen. Please try again tomorrow！");
             return;
         }
         setMsg("");
@@ -378,6 +386,15 @@ const TransferFree = (props: any) => {
         }
     }
 
+    const handleInputChange = (e) => {
+        let inputValue = e.target.value;
+        console.log('22111');
+        if(/^[0-9,.]*$/.test(inputValue)){
+            setValue(inputValue);
+            // form.setFields([{ name: 'max', errors: [], value: e.target.value }])
+        }
+    }
+
     return (
         <ChakraProvider theme={theme}>
             <Page needBack backFn={() => history.push('/security')}>
@@ -387,7 +404,10 @@ const TransferFree = (props: any) => {
                 <div className={styles.freeSwitch}>
                     <Flex align="center">
                         <Switch id='email-alerts' size='lg' colorScheme='yellow' isChecked={isSwitch} onChange={handleChange} />
-                        {sessionStorage.getItem("freeStatus" ) === '1' && sessionStorage.getItem("limit_timer") && Number(sessionStorage.getItem("limit_timer")) >= new Date().getTime()? <Tooltip overlayInnerStyle={{background: '#171923', borderRadius: 4, width: 322, textAlign: 'center'}} title='Password-free payment will be activated after your next successful transfer transaction.'>
+                        {sessionStorage.getItem("freeStatus" ) === '1' && sessionStorage.getItem("limit_timer") && Number(sessionStorage.getItem("limit_timer")) >= new Date().getTime()? <Tooltip
+                            overlayInnerStyle={{background: '#171923', borderRadius: 4, width: 322, textAlign: 'center'}}
+                            title={sessionStorage.getItem("freeStep") === '1' ? 'Password-free payment update will be activated after your next successful transfer transaction.' : 'Password-free payment will be activated after your next successful transfer transaction.'}
+                        >
                             <Flex align="center"  className={styles.pending}><TimerIcon fontSize={24} /><div>Pending activation</div></Flex>
                         </Tooltip>: null}
                     </Flex>
@@ -407,10 +427,17 @@ const TransferFree = (props: any) => {
                                 validateTrigger="onBlur"
                                 name="max"
                                 placeholder='100-5000'
-                                label={<span className={styles.freeSettingCenterTitle}>Daily transfer limit</span>}
+                                label={<span className={styles.freeSettingCenterTitle}>Transfer limit</span>}
                                 rules={[{ validator: validatorInput }]}
+                                getValueFromEvent={(e) => {
+                                    const { value } = e.target;
+                                    if(/^[0-9,.]*$/.test(value)){
+                                        return value;
+                                    }
+                                }}
                             >
                                 <Input
+                                    value={value}
                                     autoComplete="off"
                                     placeholder='100-5000'
                                     prefix='HK$'
@@ -462,7 +489,16 @@ const TransferFree = (props: any) => {
                         >{freeLimit ? "Update" : "Confirm"}</AntdButton>
                     </div>
                 </div>}
-                <VerifyTransferModal bioPay={handleBioPay} tip="Password-free payment will be activated after your next successful transfer transaction." isOpenBio={isOpenBio} pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false)}} errorMsg={msg} />
+                <VerifyTransferModal
+                    bioPay={handleBioPay}
+                    tip={ freeLimit ? "Password-free payment update will be activated after your next successful transfer transaction.":"Password-free payment will be activated after your next successful transfer transaction."}
+                    isOpenBio={isOpenBio}
+                    pinLoading={pinLoading}
+                    onSubmit={handleSubmit}
+                    isOpen={isOpen}
+                    onClose={() => {setIsOpen(false)}}
+                    errorMsg={msg}
+                />
                 <ModalComponent buttonText="I understand, proceed to confirm">After turning off the password-free payments, you'll need to initiate a new activation transaction to enable it again.</ModalComponent>
                 <BioResultModal status={bioStatus} isOpen={bioResultOpen} onClose={() => {setBioResultOpen(false)}} />
             </div>

@@ -72,13 +72,11 @@ const Home = (props:any) => {
     const initNftList = async (type) => {
         try {
             setNftLoading(true);
-            const res = await getNftList(userInfo.address, type);
-            // const res = await getAllNft('0xE55Db6E6743111F35F18af34E8331AB1E27214de', type);
-            console.log(res)
-            if(res){
-                const fitlerData = (res.items || []).filter(li => li?.token?.address === window.NFT_CONTRACT);
+            const addr = type === 'ERC-721' ? window.NFT_CONTRACT_721 : window.NFT_CONTRACT_1155;
+            const nftRes = await getNftList(addr);
+            if(nftRes){
+                const fitlerData = (nftRes.items || []).filter(li => li?.owner?.hash === userInfo.address);
                 if(fitlerData.length > 0){
-                    const nftRes = await getNftList(window.NFT_CONTRACT, type);
                     setNftList(nftRes.items)
                     setPageParams(nftRes.next_page_params)
                 } else {
@@ -169,18 +167,30 @@ const Home = (props:any) => {
         // }
     }, [priceList, activeKey]);
 
-    const loadMoreItems = async (page) => {
-        // 模拟异步加载
-        // await loadData(num * 3, page + 1)
-        const params = {
-            page,
-            size: num * 3,
+    const loadMoreItems = async () => {
+        if(nextPageParams){
+            try {
+                setNftLoading(true);
+                const addr = activeType === 'ERC-721' ? window.NFT_CONTRACT_721 : window.NFT_CONTRACT_1155;
+                const nftRes = await getNftList(addr, nextPageParams);
+                if(nftRes){
+                    const fitlerData = (nftRes.items || []).filter(li => li?.owner?.hash === userInfo.address);
+                    if(fitlerData.length > 0){
+                        setNftList([...nftList, ...nftRes.items])
+                        setPageParams(nftRes.next_page_params)
+                    } else {
+                        setNftList(nftList)
+                        setPageParams(nftRes.next_page_params)
+                    }
+                } else {
+                    setNftList(nftList)
+                    setPageParams(null)
+                }
+            } finally {
+                setNftLoading(false)
+            }
         }
-        setCurrent(page);
-        // const data = await getDappList(params);
-        // setTotal(data.total);
-        // const newList = [...list, ...data.list];
-        // setList(newList);
+
     };
 
     const handleTabChange = (type) => {
@@ -196,7 +206,7 @@ const Home = (props:any) => {
                     <MenuButton
                         bg='#F7FAFC'
                         as={Button}
-                        w="150px"
+                        w="160px"
                         rightIcon={<SelectDownIcon className='select_down_icon' w='12px' />}
                         borderRadius="20px"
                         border="1px solid #EDF2F7"
@@ -316,7 +326,6 @@ const Home = (props:any) => {
                                 hasMore={current * 3 * num < total}
                                 num={num}
                             />
-                            {/*{(current * num * 3 >= total && total > 0 ?<div className='no-more'>no more dApps</div> : null}*/}
                         </div> : <Empty title="No results" />}
                     </Box> : null}
                 </Box>

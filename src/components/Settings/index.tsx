@@ -8,7 +8,6 @@ const Settings = () => {
     const email: string | any = getMail();
 
     const handleLock = async () => {
-        await lockPage(email);
         history.replace('/lock')
     }
     return (
