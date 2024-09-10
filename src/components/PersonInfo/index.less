@@ -20,14 +20,18 @@
     bottom: -4px;
   }
   .information {
-    display: flex;
-    flex-direction: column;
+    //display: flex;
+    //flex-direction: column;
     margin-left: 8px;
-    min-width: 200px;
+    max-width: 160px;
     .email {
       font-size: 18px;
       font-weight: 600;
       color: #fff;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .address {
       font-size: 14px;

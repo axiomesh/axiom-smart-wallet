@@ -400,11 +400,9 @@ const Transfer = (props: any) => {
         const value = parseUnits(sendValue, decimals);
         try{
             if(form.send.value === "AXC") {
-                const res = await axiom.checkTransferLimit(form.to, value);
-                return res;
+                return  await axiom.checkTransferLimit(form.to, value);
             }else {
-                const res = await axiom.checkTransferErc20Limit(form.send.contract, form.to, value);
-                return res;
+                return  await axiom.checkTransferErc20Limit(form.send.contract, form.to, value);
             }
         } catch (e){
             return false
@@ -523,6 +521,8 @@ const Transfer = (props: any) => {
             if(sessionKey && status === '2') {
                 isLimit = await handleVerifyLimit();
             }
+
+            console.log('isLimit', isLimit)
 
             setTransferInfo({
                 send: form.send.value,
@@ -834,12 +834,12 @@ const Transfer = (props: any) => {
                         const times = await passwordTimes({email});
                         if(times > 0) {
                             if(times < 4) {
-                                setPasswordError(`Invalid password ，only ${times} attempts are allowed today!`)
+                                setPasswordError(`Invalid password,only ${times} attempts are allowed today!`)
                             }else {
                                 setPasswordError(`Invalid password`)
                             }
                         }else {
-                            setPasswordError("Invalid password ，your account is currently locked. Please try again tomorrow!")
+                            setPasswordError("Invalid password,your account is currently locked. Please try again tomorrow!")
                         }
                     }).catch((err: any) => {
                         setPasswordError(err)

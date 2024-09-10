@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import {checkUnlockPasskeyCreate, checkUnlockPasskey, isTrustedDevice, isOpenBio, lockPageData} from "@/services/login";
 import { startAuthentication } from '@simplewebauthn/browser';
-import {detectBrowser, getSafariVersion, getTransportType} from '@/utils/utils';
+import {detectBrowser, getSafariVersion, getTransportType, removeLogin} from '@/utils/utils';
 import BioResultModal from '@/components/BioResultModal';
 import {connect} from "@@/exports";
 import {getDeviceVersion} from "@/utils/system";
@@ -36,7 +36,8 @@ function LockPage(props: any) {
 
     useEffect(() => {
         handleGetAuth()
-        if(!email) history.replace('/login')
+        if(!email) history.replace('/login');
+        removeLogin();
         dispatch({
             type: 'global/setFreeForm',
             payload: "",
@@ -106,9 +107,9 @@ function LockPage(props: any) {
         const visitorId = localStorage.getItem('visitorId');
         let transports = [getTransportType(auth.transport_type)];
         const browser = detectBrowser();
-        if(browser === "safari") {
+        if(browser.toLowerCase()  === "safari") {
             const version = getSafariVersion();
-            if(version && version.version >= 16) {
+            if(version && version.version == 16) {
                 transports = ["internal", getTransportType(auth.transport_type)]
             }
         }
@@ -132,8 +133,8 @@ function LockPage(props: any) {
         }catch (error: any) {
             console.log(error, '------lock')
             setOpenBioResult(true);
-            const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-            if(string.search(expr) > 0) {
+            const string = error.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission./;
+            if(string.search(expr) > 0 || string.search(expr1) > 0) {
                 setBioResultStatus("cancel");
             }else {
                 setBioResultStatus("failed");

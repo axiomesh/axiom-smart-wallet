@@ -7,7 +7,7 @@ import eth from '@/assets/currency/eth/eth.png';
 import axc from '@/assets/currency/axc/axc.png';
 import { Popover } from 'antd';
 const DAppCard = (props) => {
-  const { isHome, item = {}, onClick } = props;
+  const { isHome, item = {}, type } = props;
   const [isHover, setIsHover] = useState()
 
   // const { name } = useModel('global');
@@ -22,7 +22,7 @@ const DAppCard = (props) => {
   const handleCardClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    history.push(`/nft-detail?id=${item?.id}`)
+    history.push(`/nft-detail?type=${type}&id=${item?.id}`)
   }
 
   return (

@@ -7,17 +7,15 @@ import {
     PopoverBody,
     PopoverArrow,
 } from '@chakra-ui/react';
-import { history, useLocation } from 'umi';
+import { history } from 'umi';
 import {useEffect, useState} from "react";
 import Right from './componments/right';
 import {
-    addPrivateKey,
     registerAddress,
     registerPasskey,
     registerPasskeySave,
     checkPasskeyCreate,
     checkPasskey,
-    isOpenBio,
     isTrustedDevice
 } from '@/services/login';
 import {getMail, setToken} from "@/utils/help";
@@ -59,8 +57,8 @@ const LoginPasskey: React.FC = () => {
             const fpPromise = import('@/utils/v3')
             .then(FingerprintJS => FingerprintJS.load())
             fpPromise.then(fp => fp.get()).then(async (result) => {
-                console.log(result);
                 const visitorId = result.visitorId;
+                console.log('FingerprintJS', visitorId)
                 setDeviceId(visitorId);
                 localStorage.setItem('visitorId', visitorId);
                 await hanldeIsOpenBio(visitorId);
@@ -100,8 +98,8 @@ const LoginPasskey: React.FC = () => {
                 // setBioResultStatus("success");
             }catch (error: any) {
                 setOpenBioResult(true);
-                const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-                if(string.search(expr) > 0) {
+                const string = error.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /The request is not allowed by the user agent or the platform in the current context/;
+                if(string.search(expr) > 0 || string.search(expr1) > 0) {
                     setBioResultStatus("cancel");
                 }else {
                     setBioResultStatus("failed");
@@ -153,8 +151,8 @@ const LoginPasskey: React.FC = () => {
             }catch (error: any) {
                 console.log(error, '------verify')
                 setOpenBioResult(true);
-                const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-                if(string.search(expr) > 0) {
+                const string = error.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /The request is not allowed by the user agent or the platform in the current context/;
+                if(string.search(expr) > 0 || string.search(expr1) > 0) {
                     setBioResultStatus("cancel");
                 }else {
                     setBioResultStatus("failed");
@@ -180,10 +178,10 @@ const LoginPasskey: React.FC = () => {
         }
         let type = register.authenticator_type;
         const browser = detectBrowser();
-        if(browser === "safari") {
+        if(browser.toLowerCase()  === "safari") {
             const version = getSafariVersion();
-            if(version && version.version >= 16) {
-                type = 'platform'
+            if(version && version.version == 16) {
+                type = 'cross-platform'
             }
         }
         const registerObj: any = {
@@ -209,11 +207,10 @@ const LoginPasskey: React.FC = () => {
         let publicKeyCredential: any;
         try {
             publicKeyCredential = await startRegistration(registerObj)
-            console.log(JSON.stringify(publicKeyCredential, null, 2))
         }catch (error: any) {
             console.log(error, '------------register')
-            const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-            if(string.search(expr) > 0) {
+            const string = error.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /The request is not allowed by the user agent or the platform in the current context/;
+            if(string.search(expr) > 0 || string.search(expr1) > 0) {
                 setBioResultStatus("cancel");
             }else {
                 setBioResultStatus("failed");
@@ -266,9 +263,9 @@ const LoginPasskey: React.FC = () => {
         const verifyRes = JSON.parse(res.credentials_json);
         let transports = [getTransportType(res.transport_type)];
         const browser = detectBrowser();
-        if(browser === "safari") {
+        if(browser.toLowerCase()  === "safari") {
             const version = getSafariVersion();
-            if(version && version.version >= 16) {
+            if(version && version.version == 16) {
                 transports = ["internal", getTransportType(res.transport_type)]
             }
         }
@@ -288,9 +285,8 @@ const LoginPasskey: React.FC = () => {
                 authentication = list[index].value;
             }
         } catch (e){
-            console.log('274', e)
-            const string = e.toString(), expr = /The operation either timed out or was not allowed/;
-            if(string.search(expr) > 0) {
+            const string = e.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /The request is not allowed by the user agent or the platform in the current context/;
+            if(string.search(expr) > 0 || string.search(expr1) > 0) {
                 setBioResultStatus("cancel");
             }else {
                 setBioResultStatus("failed");

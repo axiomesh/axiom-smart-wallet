@@ -96,7 +96,7 @@ const FirstTransferModal = (props: any) => {
                 setTime(i)
                 if (i === 0){
                     clearInterval(t);
-                    showErrorToast("Password verification timeout");
+                    showErrorToast("Verification timeout");
                     props.onClose();
                 }
                 i--;

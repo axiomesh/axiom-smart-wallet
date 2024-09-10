@@ -54,11 +54,21 @@ const passkeySecurity = (props: any) => {
         }
     })
 
-    const handleGetTipList = () => {
-        return [
+    const handleGetTipList = (type) => {
+        // item.device_type === "Mac" || item.device_type === "Windows"
+        if(type === "Mac") return [
             "Safari on MacOS",
             "Chrome on MacOS",
-            "Opera on Windows"
+        ]
+        if(type === "Windows") return [
+            "Safari on Windows",
+            "Chrome on Windows",
+        ]
+
+        return [
+            "Safari on MacOS",
+            "Chrome on MacOS/Windows",
+            "Edge on Windows"
         ]
     }
 
@@ -148,9 +158,11 @@ const passkeySecurity = (props: any) => {
                                             <div className={styles.passkeyItemBottomTip}>Where you can log in current account with Passkey</div>
                                             <div className={styles.passkeyItemBottomContent}>
                                                 {
-                                                    handleGetTipList().map((tip: string, tipIndex: number) => {
+                                                    handleGetTipList(item.device_type).map((tip: string, tipIndex: number) => {
                                                         return (
-                                                            <div key={tipIndex} className={styles.passkeyItemBottomContentItem}>{item.device_type === "Mac" || item.device_type === "Windows" ? <img src={require("@/assets/passkey/pc.png")} alt="" /> : <img src={require("@/assets/passkey/phone.png")} alt="" />}<span>{tip}</span></div>
+                                                            <div key={tipIndex} className={styles.passkeyItemBottomContentItem}>
+                                                                {item.device_type === "Mac" || item.device_type === "Windows" ? <img src={require("@/assets/passkey/pc.png")} alt="" /> : <img src={require("@/assets/passkey/phone.png")} alt="" />}
+                                                                <span>{tip}</span></div>
                                                         )
                                                     })
                                                 }

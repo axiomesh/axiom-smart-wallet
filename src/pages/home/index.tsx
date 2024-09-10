@@ -52,6 +52,7 @@ const Home = (props:any) => {
     const [nextPageParams, setPageParams] = useState({});
     const [activeTab, setActiveTab] = useState('ERC-721');
     const [nftLoading, setNftLoading] = useState(false);
+    const [h, setH] = useState(0);
     // @ts-ignore
     const rpc_provider = new JsonRpcProvider(window.RPC_URL);
     // @ts-ignore
@@ -73,12 +74,19 @@ const Home = (props:any) => {
         try {
             setNftLoading(true);
             const addr = type === 'ERC-721' ? window.NFT_CONTRACT_721 : window.NFT_CONTRACT_1155;
-            const nftRes = await getNftList(addr);
-            if(nftRes){
+            const res = await getNftList(addr);
+            //
+            if(res.data){
+                const nftRes = res.data;
                 const fitlerData = (nftRes.items || []).filter(li => li?.owner?.hash === userInfo.address);
+                // const fitlerData = (nftRes.items || []).filter(li => li?.owner?.hash === '0xDb543662a4f4Ae138b773782f19C5dd4C2298642');
                 if(fitlerData.length > 0){
-                    setNftList(nftRes.items)
-                    setPageParams(nftRes.next_page_params)
+                    const w = document.getElementById('outlet')?.clientWidth;
+                    const activeW = w - 80 - 328;
+                    const max = parseInt(activeW / 242);
+                    setH(Math.ceil(fitlerData.length / max) * 300);
+                    setNftList(fitlerData)
+                    setPageParams(nftRes.next_page_params);
                 } else {
                     setNftList([])
                     setPageParams(null)
@@ -167,21 +175,31 @@ const Home = (props:any) => {
         // }
     }, [priceList, activeKey]);
 
-    const loadMoreItems = async () => {
+    const loadMoreItems = async (page) => {
         if(nextPageParams){
             try {
                 setNftLoading(true);
-                const addr = activeType === 'ERC-721' ? window.NFT_CONTRACT_721 : window.NFT_CONTRACT_1155;
-                const nftRes = await getNftList(addr, nextPageParams);
-                if(nftRes){
+                const addr = activeTab === 'ERC-721' ? window.NFT_CONTRACT_721 : window.NFT_CONTRACT_1155;
+                const res = await getNftList(addr, {...nextPageParams, page});
+                setCurrent(page);
+                if(res.data){
+                    const nftRes = res.data;
                     const fitlerData = (nftRes.items || []).filter(li => li?.owner?.hash === userInfo.address);
+                    // const fitlerData = (nftRes.items || []).filter(li => li?.owner?.hash === '0xDb543662a4f4Ae138b773782f19C5dd4C2298642');
+                    let activeList = nftList;
                     if(fitlerData.length > 0){
-                        setNftList([...nftList, ...nftRes.items])
+                        activeList = [...nftList, ...fitlerData]
                         setPageParams(nftRes.next_page_params)
                     } else {
-                        setNftList(nftList)
                         setPageParams(nftRes.next_page_params)
                     }
+
+                    const w = document.getElementById('outlet')?.clientWidth;
+                    const activeW = w - 80 - 328;
+                    const max = parseInt(activeW / 242);
+                    setH(Math.ceil(activeList.length / max) * 300);
+                    setNftList(activeList)
+
                 } else {
                     setNftList(nftList)
                     setPageParams(null)
@@ -199,7 +217,7 @@ const Home = (props:any) => {
     }
 
     return (
-        <div className={styles.homePage}>
+        <div className={styles.homePage} style={{height: h}}>
             <Box mb="20px">
                 <Menu>
                     {/*<MenuButton as={Button} rightIcon={<ChevronDownIcon />}>*/}
@@ -312,21 +330,21 @@ const Home = (props:any) => {
                         {nftList?.length || nftLoading ? <div>
                             {/*{list.map(item => <DAppCard item={item} isHome/>)}*/}
                             <div className='dapp-list'>
-                                {nftLoading ? <>
-                                    <SkeletonCard />
-                                    <SkeletonCard />
-                                    <SkeletonCard />
-                                    {num === 4 ? <SkeletonCard /> : null}
-                                </> : nftList.map(item => <DAppCard item={item} isHome/>)}
+                                {current === 1 && nftLoading ? <>
+                                        <SkeletonCard />
+                                        <SkeletonCard />
+                                        <SkeletonCard />
+                                    </> : null}
+                                {!nftLoading ? [...nftList].map(item => <DAppCard type={activeTab} item={item} isHome/>) : null}
                             </div>
                             <ScrollLoader
                                 firstLoading={nftLoading}
-                                loadMore={loadMoreItems}
                                 current={current}
-                                hasMore={current * 3 * num < total}
-                                num={num}
+                                loadMore={loadMoreItems}
+                                hasMore={nextPageParams}
                             />
                         </div> : <Empty title="No results" />}
+
                     </Box> : null}
                 </Box>
                 <Box>

@@ -40,18 +40,20 @@ const SetTransferPassword = (props: Props) => {
         const regex = /^(?=.*[a-zA-Z])(?=.*\d).+$/;
         setNewErrorText('');
         if(e.target.value.length >= 8){
-
             if(regex.test(newValue)){
                 setProgress(100);
                 setProgressText('')
-            } else if(!stringRegex.test(newValue)){
+            } else if(!stringRegex.test(newValue) && !numRegex.test(newValue)){
                 setProgress(50);
                 setProgressText('Add a letter to improve!')
+            } else if(!stringRegex.test(newValue)){
+                setProgress(75);
+                setProgressText('Add a letter to improve!')
             } else if(!numRegex.test(newValue)){
-                setProgress(50);
+                setProgress(75);
                 setProgressText('Add a number to improve!')
             } else {
-                setProgress(50);
+                setProgress(75);
                 setProgressText('Add a letter to improve!')
             }
 

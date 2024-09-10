@@ -124,9 +124,9 @@ const BioPayment = (props: any) => {
             })
             let transports = [getTransportType(res.transport_type)];
             const browser = detectBrowser();
-            if(browser === "safari") {
+            if(browser.toLowerCase() === "safari") {
                 const version = getSafariVersion();
-                if(version && version.version >= 16) {
+                if(version && version.version == 16) {
                     transports = ["internal", getTransportType(res.transport_type)]
                 }
             }
@@ -170,7 +170,7 @@ const BioPayment = (props: any) => {
                 showErrorToast(error)
                 return;
             }
-            setIsSwitch(true);
+            // setIsSwitch(true);
             const userRes = await getUserInfo(email, deviceId);
             if(userRes){
                 dispatch({
@@ -225,22 +225,25 @@ const BioPayment = (props: any) => {
         setPinLoading(true);
         setMsg("");
         let axiom:any;
+        console.log('submit')
+        console.log('Axiom.Wallet.AxiomWallet', Axiom.Wallet.AxiomWallet.fromEncryptedKey)
         try {
             axiom = await Axiom.Wallet.AxiomWallet.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address);
         }catch (e: any) {
             setPinLoading(false);
+            console.log('232', e)
             const string = e.toString(), expr = /invalid hexlify value/, expr2 = /Malformed UTF-8 data/,  expr3 = /invalid private key/;
             if(string.search(expr) > 0 || string.search(expr2) > 0 || string.search(expr3) > 0) {
                 wrongPassword({email}).then(async () => {
                     const times = await passwordTimes({email})
                     if(times > 0) {
                         if(times < 4) {
-                            setMsg(`Invalid password , only ${times} attempts are allowed today!`)
+                            setMsg(`Invalid password,only ${times} attempts are allowed today!`)
                         }else {
                             setMsg(`Invalid password`)
                         }
                     }else {
-                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow!")
+                        setMsg("Invalid password,your account is currently locked. Please try again tomorrow!")
                     }
                 }).catch((err: any) => {
                     setMsg(err)
@@ -321,7 +324,7 @@ const BioPayment = (props: any) => {
                 </div>
             </Page>
             <BioResultModal isOpen={resultOpen} status={resultStatus} onVerify={handleVerifyOpen} onClose={handleResultClose} loadingTip="Only use it on a safety device" />
-            <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false);}} errorMsg={msg} />
+            <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false); setPinLoading(true);}} errorMsg={msg} />
             <BioAxiomResultModal isOpen={axiomResultOpen} onClose={() => {setAxiomResultOpen(false)}} status={axiomResultStatus} name={""} />
         </ChakraProvider>
     )

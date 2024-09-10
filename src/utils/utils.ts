@@ -81,20 +81,19 @@ export const getBrowserName = () =>{
   export const detectBrowser = () => {
     let userAgent = navigator.userAgent.toLowerCase();
     let isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-    let isChrome = /chrome|crios|crmo/i.test(userAgent) && !isSafari;
-
+    let isChrome =/chrome|crios|crmo/i.test(userAgent) && !/edge|edg|opr|qq/i.test(userAgent) && !isSafari;
     if (isSafari) {
-        return "safari"
+        return "Safari"
     } else if (isChrome) {
-        return "chrome"
+        return "Chrome"
     } else if(userAgent.indexOf("opera") > -1 || userAgent.indexOf("opr") > -1){
-        return "opera";
-    }else if(userAgent.indexOf("firefox")){
-        return "firefox";
-    }else if(userAgent.indexOf("edg")){
-        return "edge";
+        return "Opera";
+    }else if(userAgent.indexOf("firefox") > -1){
+        return "Firefox";
+    }else if(userAgent.indexOf("edg") > -1){
+        return "Edge";
     }else {
-        return "other"
+        return "Other"
     }
 }
 
@@ -121,28 +120,17 @@ export const getSafariVersion = () => {
 }
 
 export const getIsActiveBrowser = () =>{
-
     const ua = navigator.userAgent.toLowerCase();
     let isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-    let isChrome = /chrome|crios|crmo/i.test(ua) && !isSafari;
+    let isChrome = /chrome|crios|crmo/i.test(ua) && !/edge|edg|opr|qq/i.test(ua) && !isSafari;
 
-    if(ua.indexOf("firefox") > -1){
-        return false;
-    } else if(ua.indexOf("opera") > -1 || ua.indexOf('opr') > -1){
-        let match = ua.match(/opr\/(\d+)/);
-        let matchAll = ua.match(/opr\/([\d.]+)/);
-        if (match && matchAll) {
-            let version = parseInt(match[1], 10);
-            if(version >= 54) return true
-            return false
-        }
-        return false
-    } else if(ua.indexOf('edg') > -1){
+    if(ua.indexOf('edg') > -1){
         let match = ua.match(/edg\/(\d+)/);
         let matchAll = ua.match(/edg\/([\d.]+)/);
+        if(ua.includes('mac')) return false;
         if (match && matchAll) {
             let version = parseInt(match[1], 10);
-            if(version >= 18) return true
+            if(version >= 128) return true
             return false
         }
         return false
@@ -151,7 +139,7 @@ export const getIsActiveBrowser = () =>{
         let matchAll = ua.match(/version\/([\d.]+)/);
         if (match && matchAll) {
            let safariVersion = parseInt(match[1], 10);
-           if(safariVersion >= 16) return true
+           if(safariVersion > 16) return true
             return false
         }
         return false
@@ -160,7 +148,7 @@ export const getIsActiveBrowser = () =>{
         let matchAll = ua.match(/chrome\/([\d.]+)/);
         if (match && matchAll) {
             let version = parseInt(match[1], 10);
-            if(version >= 67) return true
+            if(version >= 128) return true
             return false
         }
         return false
@@ -171,7 +159,7 @@ export const getIsActiveBrowser = () =>{
 
 export const getChromeVersion = () => {
   let userAgent = navigator.userAgent.toLowerCase();
-  let isChrome = /chrome|crios|crmo/i.test(userAgent) && !/edge|edg|opr/i.test(userAgent);
+  let isChrome = /chrome|crios|crmo/i.test(userAgent) && !/edge|edg|opr|qq/i.test(userAgent);
 
   if (isChrome) {
       let match = userAgent.match(/chrome\/(\d+)/);
@@ -197,7 +185,7 @@ export const getBrowserVersion = () =>{
 
     const ua = navigator.userAgent.toLowerCase();
     let isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-    let isChrome = /chrome|crios|crmo/i.test(ua) && !isSafari;
+    let isChrome = /chrome|crios|crmo/i.test(ua) && !/edge|edg|opr|qq/i.test(ua) && !isSafari;
     if(ua.indexOf("firefox") > -1){
         let match = ua.match(/firefox\/(\d+)/);
         if (match) return parseInt(match[1], 10)
@@ -237,6 +225,15 @@ export const removeTransferFee = () => {
     sessionStorage.removeItem("ow");
     sessionStorage.removeItem("freeStatus")
     sessionStorage.removeItem("freeStep")
+}
+
+export const removeLogin = () => {
+    sessionStorage.removeItem('sessionKey');
+    sessionStorage.removeItem("key");
+    sessionStorage.removeItem("allowCredentials");
+    sessionStorage.removeItem("ow");
+    sessionStorage.removeItem("sr");
+    sessionStorage.removeItem("verify_code");
 }
 
 export const getTransportType = (type) => {

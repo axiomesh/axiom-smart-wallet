@@ -3,7 +3,8 @@ window.symbol = '$';
 // @ts-ignore
 window.salt= '0';
 window.accountSalt= '0'
-window.GasLimit = '0.1'
+window.GasLimit = '0.1';
+window.localChain = 'Axiomledger Gemini'
 // AXM RPC
 
 window.ETH_RPC = "https://eth-sepolia.g.alchemy.com/v2/uxsdJERFKDg5pOJ1pFiaebgU1r2VNGZs"
@@ -26,12 +27,12 @@ window.WUSDC_CONTRACT = "0x993F00eb9C73e3E4eAe3d6Afb4Ba65A6b8B5E597"
 window.WAXC_CONTRACT = "0x62B864FbF36c5BAb14bF1EBafE1dA94DAb56e9f8"
 window.PAYMASTER = "0x000000000000000000000000000000000000100b" // token paymaster
 window.ENTRY_POINT = "0x0000000000000000000000000000000000001008"
-window.AXM_BROWSER = 'http://10.2.69.208:8080';
+window.AXM_BROWSER = 'http://10.2.69.59:8080';
 window.socketUrl='wss://axmwallet.io';
 window.RPID="localhost";
 // window.RPID="axmwallet.io";
 window.NFT_CONTRACT_721 = '0xd057dE21FeBc92a13CB8330DEB4661Dd21441825';
-window.NFT_CONTRACT_1155 = '';
+window.NFT_CONTRACT_1155 = '0x91647d47c76d2cc8a079644ad5283d24f6e56eaa';
 window.GUARDIAN='0x539193d0e19859d812e2d2b3763886CB200814d9';
 window.BUNDLER_URL=`http://10.2.69.244:4337`;
 window.RPC_URL=`http://10.2.69.244:28881`;
@@ -60,7 +61,7 @@ window.PAYMASTER_APPKEY="a_T4zwcJZ0fc3jqv1mhIg1AZ2g7jrXpVgWH3gPMrYSo"
 // window.socketUrl='wss://axmwallettest.bcds.io';
 // window.rpId="axmwallettest.bcds.io";
 // window.NFT_CONTRACT_721 = '0xd057dE21FeBc92a13CB8330DEB4661Dd21441825';
-// window.NFT_CONTRACT_1155 = '';
+// window.NFT_CONTRACT_1155 = '0x91647d47c76d2cc8a079644ad5283d24f6e56eaa';
 // window.GUARDIAN='0x539193d0e19859d812e2d2b3763886CB200814d9';
 // window.BrowserUrl = 'https://axmwallettest.bcds.io';
 // window.BUNDLER_URL=`${window.BrowserUrl}/api/bundler/`;

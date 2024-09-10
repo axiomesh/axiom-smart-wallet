@@ -13,12 +13,16 @@ import {exchangeAddress, getQueryParam} from "@/utils/help";
 const NftDetail = (props:any) => {
     const [info, setInfo] = useState({});
     const handleUrlClick = () => {
+        // const params = getQueryParam('id');
+        // window.open(`${window.AXM_BROWSER}/token/${info?.token?.address}/instance/${params}`)
         window.open(`${window.AXM_BROWSER}/token/${info?.token?.address}`)
     }
 
     const getInfo = async () => {
         const params = getQueryParam('id');
-        const res = await getNftDetail(window.NFT_CONTRACT, params);
+        const type = getQueryParam('type');
+        const addr = type === 'ERC-721' ? window.NFT_CONTRACT_721 : window.NFT_CONTRACT_1155;
+        const res = await getNftDetail(addr, params);
         setInfo(res);
     }
 
@@ -66,7 +70,7 @@ const NftDetail = (props:any) => {
                 <div className={styles.bottomDetailBody}>
                     <Flex>
                         <div className={styles.label}>Chain</div>
-                        <div className={styles.value}>AXM</div>
+                        <div className={styles.value}>{window.localChain}</div>
                     </Flex>
                     <Flex>
                         <div className={styles.label}>Token ID</div>

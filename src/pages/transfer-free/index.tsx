@@ -83,6 +83,10 @@ const TransferFree = (props: any) => {
     useEffect(() => {
         if(isFreeTransfer()) {
             setIsSwitch(true)
+        } else {
+            sessionStorage.removeItem("freeStatus")
+            sessionStorage.removeItem("limit_timer")
+            sessionStorage.removeItem("freeLimit");
         }
         const freeLimit = sessionStorage.getItem("freeLimit")
         const timer = sessionStorage.getItem("limit_timer");
@@ -228,9 +232,9 @@ const TransferFree = (props: any) => {
             const verifyRes = JSON.parse(res.credentials_json);
             let transports = [getTransportType(res.transport_type)];
             const browser = detectBrowser();
-            if(browser === "safari") {
+            if(browser.toLowerCase()  === "safari") {
                 const version = getSafariVersion();
-                if(version && version.version >= 16) {
+                if(version && version.version == 16) {
                     transports = ["internal", getTransportType(res.transport_type)]
                 }
             }
@@ -290,12 +294,12 @@ const TransferFree = (props: any) => {
                     const times = await passwordTimes({email})
                     if(times > 0) {
                         if(times < 4) {
-                            setMsg(`Invalid password , only ${times} attempts are allowed today!`)
+                            setMsg(`Invalid password,only ${times} attempts are allowed today!`)
                         }else {
                             setMsg(`Invalid password`)
                         }
                     }else {
-                        setMsg("Invalid password , your account is currently locked. Please try again tomorrow!")
+                        setMsg("Invalid password,your account is currently locked. Please try again tomorrow!")
                     }
                 }).catch((err: any) => {
                     setMsg(err)
@@ -333,6 +337,7 @@ const TransferFree = (props: any) => {
 
     const validatorInput = (rule: any, value: any, callback: any) => {
         const activeValue = Number(value);
+        console.log(activeValue)
         if (value && (activeValue || activeValue === 0)) {
             const strList = value.split('.');
             if (strList.length > 1 && strList[1].length > 18) {
@@ -345,7 +350,8 @@ const TransferFree = (props: any) => {
                 }
             }
         } else {
-            callback('please enter daily transfer limit');
+            // callback('please enter daily transfer limit');
+            callback('please enter transfer limit');
         }
         callback();
     };
@@ -431,9 +437,7 @@ const TransferFree = (props: any) => {
                                 rules={[{ validator: validatorInput }]}
                                 getValueFromEvent={(e) => {
                                     const { value } = e.target;
-                                    if(/^[0-9,.]*$/.test(value)){
-                                        return value;
-                                    }
+                                    return value.replace(/^\D*(\d*(?:\.\d{0,18})?).*$/g, '$1');
                                 }}
                             >
                                 <Input

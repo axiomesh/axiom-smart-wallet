@@ -15,7 +15,11 @@ import {sendVerifyCode, checkUser, isNewDevice} from '@/services/login';
 import {setMail} from "@/utils/help";
 import Toast from "@/hooks/Toast";
 import { getToken } from "@/utils/help";
-import {detectBrowser, getSafariVersion, getChromeVersion, removeTransferFee, getIsActiveBrowser} from "@/utils/utils";
+import {
+    removeTransferFee,
+    getIsActiveBrowser,
+    getBrowserVersion
+} from "@/utils/utils";
 import DeviceSupport from "@/components/DeviceSupport";
 import {getDeviceVersion} from "@/utils/system";
 
@@ -61,7 +65,7 @@ function Login(props: any) {
 
     React.useEffect(() => {
         // @ts-ignore
-        if(!getIsActiveBrowser()){
+        if(!getIsActiveBrowser() || getBrowserVersion() === '0.0'){
             setIsOpen(true);
         }
         let unblock =  history.block((tx:any, action:any) => {

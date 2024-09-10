@@ -5,7 +5,7 @@ import Menu from '@/components/Menu'
 import PersonInfo from "@/components/PersonInfo";
 import Settings from "@/components/Settings";
 import {clearSessionData, getMail} from "@/utils/help";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
 import {getUserInfo, refreshToken} from "@/services/login";
 
 
@@ -126,7 +126,7 @@ function Layout(props: any) {
         <Settings />
         <Logo />
       </div>
-      <div className={styles.outlet}>
+      <div className={styles.outlet} id="outlet">
         <Outlet />
       </div>
     </div>

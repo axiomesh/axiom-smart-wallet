@@ -83,9 +83,9 @@ const AddDeviceModal = (props: any) => {
         const verifyRes = JSON.parse(res.credentials_json);
         let transports = [getTransportType(res.transport_type)];
         const browser = detectBrowser();
-        if(browser === "safari") {
+        if(browser.toLowerCase()  === "safari") {
             const version = getSafariVersion();
-            if(version && version.version >= 16) {
+            if(version && version.version == 16) {
                 transports = ["internal", getTransportType(res.transport_type)]
             }
         }

@@ -32,7 +32,7 @@ const DeviceSupport = (props: any) => {
                             <div className={styles.deviceSupportContentList}>
                                 <div className={styles.deviceSupportContentItem}>
                                     <i className={styles.deviceSupportContentItemNoIcon}></i>
-                                    <span className={styles.deviceSupportContentItemText}>{detectBrowser()} {getBrowserVersion()}</span>
+                                    <span className={styles.deviceSupportContentItemText}>{detectBrowser()} {detectBrowser() === 'Other' ? '' : getBrowserVersion()}</span>
                                 </div>
                             </div>
 

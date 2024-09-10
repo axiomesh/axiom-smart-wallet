@@ -296,8 +296,8 @@ const jsonToUrlEncode = (data:any) =>
         .join('&');
 
 export async function getNftList(address, data?:any) {
-    const res = await axios(`/api/v2/tokens/${address}/instances?${jsonToUrlEncode(data)}`);
-    return res.data;
+    return  await axios(`/api/v2/tokens/${address}/instances${data ? `?${jsonToUrlEncode(data || {})}` : ''}`);
+    // const res = await axios(`/api/v2/tokens/${address}/instances`)
 }
 
 // /api/v2/tokens/0x0d96356DE55cf67D07d8Df2c78DA371c5268DaF7/instances/7

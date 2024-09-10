@@ -7,7 +7,9 @@ import { connect, history } from 'umi';
 import handleClipboard from "@/utils/clipboard"
 import {AlertIcon, FailIcon} from "@/components/Icons";
 import {Tooltip} from "@chakra-ui/react";
+import {Tooltip as AntdTooltip } from "antd";
 import {PayStatus} from "@/pages/home/config";
+import {removeLogin} from "@/utils/utils";
 
 const PersonInfo = (props: any) => {
     const {info, userInfo} = props;
@@ -40,11 +42,7 @@ const PersonInfo = (props: any) => {
     }
 
     const handleConfirm = async () => {
-        sessionStorage.removeItem('sessionKey');
-        sessionStorage.removeItem("key");
-        sessionStorage.removeItem("allowCredentials");
-        sessionStorage.removeItem("ow");
-        sessionStorage.removeItem("sr");
+        removeLogin();
         const deviceId: string | null = localStorage.getItem('visitorId');
         await logout(email, deviceId)
         history.replace('/login');
@@ -64,9 +62,12 @@ const PersonInfo = (props: any) => {
                 </Tooltip> : null}
             </div>
             <div className={styles.information}>
-                <span className={styles.email}>{info.email}</span>
+                <AntdTooltip hasArrow title={info.email?.length > 13 ? info.email : ''} placement='top'>
+                    <div className={styles.email}>{info.email}</div>
+                </AntdTooltip>
+
                 {/*@ts-ignore*/}
-                <span className={styles.address}>{exchangeAddress(info.address)} <i className={styles.downIcon}></i></span>
+                <div className={styles.address}>{exchangeAddress(info.address)} <i className={styles.downIcon}></i></div>
             </div>
             <div className={styles.white}></div>
             {isHover && <div className={`${styles.logoutModal} hover-content`}>
