@@ -20,6 +20,7 @@ import AddDeviceModal from './componments/add';
 import RemoveDeviceModal from "@/pages/passkey-security/componments/remove";
 import dayjs from "dayjs";
 import {Tooltip} from "antd";
+import {getDeviceVersion} from "@/utils/system";
 
 const tabList = ['Passkey', 'Device'];
 const passkeySecurity = (props: any) => {
@@ -190,7 +191,7 @@ const passkeySecurity = (props: any) => {
                                         <div style={{color: '#718096', fontSize: 14}}>{item.device_version}</div>
                                     </div>
                                 </div>
-                                <div className="collapse-label-right">
+                               <div className="collapse-label-right">
                                     <div>
                                         {item.is_trusted_device === 1  ? <ButtonPro style={{paddingLeft: 27,paddingRight: 27, height: 48}} onClick={() => handleCancel(item)}>Deauthorize</ButtonPro> :
                                             item.is_current_device && item.is_trusted_device !== 1 ? <ButtonPro onClick={() => handleAdd(item.device_id)} style={{paddingLeft: 27,paddingRight: 27, height: 48}}>Authorize</ButtonPro> : null}

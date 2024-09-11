@@ -76,7 +76,7 @@ const BioPayment = (props: any) => {
         const deviceId = localStorage.getItem("visitorId");
 
         if(!e.target.checked) {
-            if(times.time_left) {
+            if(times?.time_left) {
                 showErrorToast("Your account is currently frozen. Please try again tomorrow！");
                 return;
             }

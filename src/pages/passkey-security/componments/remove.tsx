@@ -20,7 +20,7 @@ const RemoveDeviceModal = (props: any) => {
     const handleRemove = async () => {
         try{
             setLoading(true);
-            await removeTrustDevice({email: userInfo.email, device_id: userInfo.device_id});
+            await removeTrustDevice({email: userInfo.email, device_id: info.usage_records[0].device_id});
             loadData();
             showSuccessToast('Trusted device removed successfully!')
         } finally {

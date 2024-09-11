@@ -266,7 +266,7 @@ const Transfer = (props: any) => {
         const times = await transferLockTime({email});
         setBtnLoading(false);
         // 0
-        if(times.time_left){
+        if(times?.time_left){
             if(times?.lock_type === 0) {
                 setIsLock(0);
                 countdown(times.time_left)
@@ -456,7 +456,7 @@ const Transfer = (props: any) => {
                 return;
             }
             const times = await transferLockTime({email});
-            if(times.time_left){
+            if(times?.time_left){
                 if(times?.lock_type === 0) {
                     setIsLock(0);
                     countdown(times.time_left);

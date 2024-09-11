@@ -16,7 +16,8 @@ import {
     registerPasskeySave,
     checkPasskeyCreate,
     checkPasskey,
-    isTrustedDevice
+    isTrustedDevice,
+    checkUser
 } from '@/services/login';
 import {getMail, setToken} from "@/utils/help";
 import LogoutModal from "@/pages/login/componments/logout-modal";
@@ -108,8 +109,9 @@ const LoginPasskey: React.FC = () => {
         }else {
             try {
                 const res = await handleVerifyPasskey();
+                const userType = await checkUser(email);
                 console.log(res);
-                if(res) {
+                if(res && userType === 0) {
                     const code = localStorage.getItem('verify_code');
                     if(code) {
                         // const salt = generateRandomBytes(16);
@@ -118,7 +120,6 @@ const LoginPasskey: React.FC = () => {
                         let axiomAccount = await Axiom.Wallet.AxiomWallet.fromPassword(sha256(pwd), transferSalt);
                         window.axiom = axiomAccount;
                         const address = await axiomAccount.getAddress();
-                        console.log('address', address)
                         const device_id = localStorage.getItem('visitorId');
                         const hash = await axiomAccount.deployWalletAccout();
                         try {
@@ -143,6 +144,11 @@ const LoginPasskey: React.FC = () => {
                     }else {
                         setBioResultStatus("back");
                     }
+                    setTimeout(() => {
+                        history.replace('/home');
+                    }, 1000)
+                } else {
+                    setBioResultStatus("back");
                     setTimeout(() => {
                         history.replace('/home');
                     }, 1000)

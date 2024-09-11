@@ -321,7 +321,7 @@ const TransferFree = (props: any) => {
     const handleConfirm = async () => {
         await form.validateFields();
         const times = await transferLockTime({email});
-        if(times.time_left) {
+        if(times?.time_left) {
             showErrorToast("Your account is currently frozen. Please try again tomorrow！");
             return;
         }
