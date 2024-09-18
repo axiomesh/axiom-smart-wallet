@@ -110,6 +110,7 @@ function Login(props: any) {
         setMail(mail);
         try {
             const userType = await checkUser(mail);
+            sessionStorage.setItem('userType', userType)
             if(userType === 0) {
                 try{
                     setLoading(true)

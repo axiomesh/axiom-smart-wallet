@@ -109,9 +109,8 @@ const LoginPasskey: React.FC = () => {
         }else {
             try {
                 const res = await handleVerifyPasskey();
-                const userType = await checkUser(email);
-                console.log(res);
-                if(res && userType === 0) {
+                const userType = sessionStorage.getItem('userType');
+                if(res && userType === '0') {
                     const code = localStorage.getItem('verify_code');
                     if(code) {
                         // const salt = generateRandomBytes(16);
