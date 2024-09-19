@@ -133,7 +133,7 @@ function LockPage(props: any) {
         }catch (error: any) {
             console.log(error, '------lock')
             setOpenBioResult(true);
-            const string = error.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission./;
+            const string = error.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /The request is not allowed by the user agent or the platform in the current context/;
             if(string.search(expr) > 0 || string.search(expr1) > 0) {
                 setBioResultStatus("cancel");
             }else {

@@ -788,8 +788,8 @@ const Transfer = (props: any) => {
             setBioStatus("success");
             openResult();
         }catch(error: any) {
-            const string = error.toString(), expr = /The operation either timed out or was not allowed/;
-            if(string.search(expr) > 0) {
+            const string = error.toString(), expr = /The operation either timed out or was not allowed/, expr1 = /The request is not allowed by the user agent or the platform in the current context/;
+            if(string.search(expr) > 0 || string.search(expr1) > 0) {
                 setBioStatus("cancel");
             }else {
                 setBioStatus("failed");

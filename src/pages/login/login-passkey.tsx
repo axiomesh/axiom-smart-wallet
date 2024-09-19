@@ -110,47 +110,49 @@ const LoginPasskey: React.FC = () => {
             try {
                 const res = await handleVerifyPasskey();
                 const userType = sessionStorage.getItem('userType');
-                if(res && userType === '0') {
-                    const code = localStorage.getItem('verify_code');
-                    if(code) {
-                        // const salt = generateRandomBytes(16);
-                        const pwd = new Date().getTime().toString() + 'a';
-                        const transferSalt = generateRandomBytes(16);
-                        let axiomAccount = await Axiom.Wallet.AxiomWallet.fromPassword(sha256(pwd), transferSalt);
-                        window.axiom = axiomAccount;
-                        const address = await axiomAccount.getAddress();
-                        const device_id = localStorage.getItem('visitorId');
-                        const hash = await axiomAccount.deployWalletAccout();
-                        try {
-                            // 上链
-                            if(hash){
-                                await registerAddress({
-                                    email: email,
-                                    address: address,
-                                    device_id: device_id,
-                                    enc_private_key: axiomAccount.getEncryptedPrivateKey(),
-                                    user_salt: window.accountSalt,
-                                    transfer_pwd: pwd,
-                                    transfer_salt: transferSalt,
-                                })
-                                setBioResultStatus("first");
-                                localStorage.removeItem('verify_code');
+                if(res) {
+                    if(userType === '0'){
+                        const code = localStorage.getItem('verify_code');
+                        if(code) {
+                            // const salt = generateRandomBytes(16);
+                            const pwd = new Date().getTime().toString() + 'a';
+                            const transferSalt = generateRandomBytes(16);
+                            let axiomAccount = await Axiom.Wallet.AxiomWallet.fromPassword(sha256(pwd), transferSalt);
+                            window.axiom = axiomAccount;
+                            const address = await axiomAccount.getAddress();
+                            const device_id = localStorage.getItem('visitorId');
+                            const hash = await axiomAccount.deployWalletAccout();
+                            try {
+                                // 上链
+                                if(hash){
+                                    await registerAddress({
+                                        email: email,
+                                        address: address,
+                                        device_id: device_id,
+                                        enc_private_key: axiomAccount.getEncryptedPrivateKey(),
+                                        user_salt: window.accountSalt,
+                                        transfer_pwd: pwd,
+                                        transfer_salt: transferSalt,
+                                    })
+                                    setBioResultStatus("first");
+                                    localStorage.removeItem('verify_code');
+                                }
+                            }catch (error: any) {
+                                showErrorToast(error)
+                                return;
                             }
-                        }catch (error: any) {
-                            showErrorToast(error)
-                            return;
+                        }else {
+                            setBioResultStatus("back");
                         }
-                    }else {
+                        setTimeout(() => {
+                            history.replace('/home');
+                        }, 1000)
+                    } else {
                         setBioResultStatus("back");
+                        setTimeout(() => {
+                            history.replace('/home');
+                        }, 1000)
                     }
-                    setTimeout(() => {
-                        history.replace('/home');
-                    }, 1000)
-                } else {
-                    setBioResultStatus("back");
-                    setTimeout(() => {
-                        history.replace('/home');
-                    }, 1000)
                 }
 
             }catch (error: any) {
