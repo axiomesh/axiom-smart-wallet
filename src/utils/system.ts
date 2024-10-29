@@ -7,7 +7,7 @@ export const getMacVersion = () => {
 
 export const getWindowsVersion = () => {
     const ua = navigator.userAgent;
-    const reg = /nt [\d._]+/gi;
+    const reg = /windows nt [\d._]+/gi;
     const v_info = ua.match(reg) || '';
     return Array.isArray(v_info) ? v_info[0] : v_info;
 }
