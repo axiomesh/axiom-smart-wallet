@@ -22,6 +22,7 @@ import dayjs from "dayjs";
 import {Tooltip} from "antd";
 import MacPng from '@/assets/passkey/Mac.png';
 import windowsPng from '@/assets/passkey/Windows.png';
+import Iphone from '@/assets/passkey/Iphone.png';
 import {getDeviceVersion} from "@/utils/system";
 
 const tabList = ['Passkey', 'Device'];
@@ -118,6 +119,7 @@ const passkeySecurity = (props: any) => {
         setDeviceInfo(item);
     }
 
+
     return (
         <Page needBack backFn={() => history.push('/security')}>
             <div>
@@ -143,7 +145,7 @@ const passkeySecurity = (props: any) => {
                                 return (
                                     <div className={styles.passkeyItem} key={index}>
                                         <div className={styles.passkeyItemTop}>
-                                            <img src={item?.device_name?.toLowerCase()?.includes('mac') ? MacPng : windowsPng} alt="" />
+                                            <img src={item.device_type.toLowerCase()?.includes('iphone')? Iphone : item?.device_name?.toLowerCase()?.includes('mac') ? MacPng : windowsPng} alt="" />
                                             <div className={styles.passkeyItemTopRight}>
                                                 <p>Key {convertTimestampToDate(item.active_time)}</p>
                                                 <div className={styles.passkeyItemTopRightBtn}>
