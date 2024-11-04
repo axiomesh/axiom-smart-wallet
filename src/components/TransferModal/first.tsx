@@ -96,6 +96,9 @@ const FirstTransferModal = (props: any) => {
                 setTime(i)
                 if (i === 0){
                     clearInterval(t);
+                    setTime(30);
+                    setIsLoading(false);
+                    setError('');
                     showErrorToast("Verification timeout");
                     props.onClose();
                 }
@@ -125,6 +128,9 @@ const FirstTransferModal = (props: any) => {
     }
 
     const onClose = () => {
+        setTime(30);
+        setIsLoading(false);
+        setError('');
         props.onClose()
     }
 
@@ -217,7 +223,7 @@ const FirstTransferModal = (props: any) => {
                                 <div className={styles.transferBioButton} onClick={handleBioPay}><img src={require("@/assets/transfer/bio.png")} alt="" /><span>Confirm</span></div>
                                 <div className={styles.transferBioText} style={{marginTop: 0}} onClick={() => setIsBio(false)}>Confirm with password</div>
                             </div> : <><p className={styles.transferTitle}>Transfer password verification</p>
-                                <ModalInputPassword isForget={true} isLoading={isLoading} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
+                                <ModalInputPassword isForget={true} isLoading={false} onSubmit={handleSubmit} isError={error}  clearError={handleClear}/>
                                 {userInfo.bio_payment_status === 1 && <div className={styles.transferBioText} onClick={() => setIsBio(true)}>Confirm with passkey</div>}
                             </>}
                         </>}

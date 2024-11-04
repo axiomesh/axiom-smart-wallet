@@ -225,8 +225,6 @@ const BioPayment = (props: any) => {
         setPinLoading(true);
         setMsg("");
         let axiom:any;
-        console.log('submit')
-        console.log('Axiom.Wallet.AxiomWallet', Axiom.Wallet.AxiomWallet.fromEncryptedKey)
         try {
             axiom = await Axiom.Wallet.AxiomWallet.fromEncryptedKey(sha256(password), userInfo.transfer_salt, userInfo.enc_private_key, userInfo.address);
         }catch (e: any) {
@@ -287,7 +285,8 @@ const BioPayment = (props: any) => {
                 await checkBioPasskey({
                     email: email,
                     result: JSON.stringify(updatePublicKey),
-                    device_id: deviceId
+                    device_id: deviceId,
+                    credential_id: publicKey.id,
                 })
                 setIsSwitch(true);
             }catch (error: any) {

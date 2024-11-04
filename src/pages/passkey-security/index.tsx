@@ -145,7 +145,7 @@ const passkeySecurity = (props: any) => {
                                 return (
                                     <div className={styles.passkeyItem} key={index}>
                                         <div className={styles.passkeyItemTop}>
-                                            <img src={item.device_type.toLowerCase()?.includes('iphone')? Iphone : item?.device_name?.toLowerCase()?.includes('mac') ? MacPng : windowsPng} alt="" />
+                                            <img src={item.device_type.toLowerCase()?.includes('iphone')? Iphone : item?.device_type?.toLowerCase()?.includes('mac') ? MacPng : windowsPng} alt="" />
                                             <div className={styles.passkeyItemTopRight}>
                                                 <p>Key {convertTimestampToDate(item.active_time)}</p>
                                                 <div className={styles.passkeyItemTopRightBtn}>

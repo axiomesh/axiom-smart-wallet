@@ -124,18 +124,21 @@ function Login(props: any) {
                     setLoading(false)
                 }
             }else {
-                const res = await isNewDevice({
-                    email: mail,
-                    device_name: navigator.platform,
-                    device_version: getDeviceVersion(),
-                    // device_id: deviceId,
-                })
-                if(res){
-                    history.replace(`/register-passkey`)
-                } else {
-                    setLoading(false)
-                    history.push(`/login-passkey`);
-                }
+                // const res = await isNewDevice({
+                //     email: mail,
+                //     device_name: navigator.platform,
+                //     device_version: getDeviceVersion(),
+                //     // device_id: deviceId,
+                // })
+                // if(res){
+                //     history.replace(`/register-passkey`)
+                // } else {
+                //     setLoading(false)
+                //     history.push(`/login-passkey`);
+                // }
+
+                setLoading(false)
+                history.push(`/login-passkey`);
             }
 
         } catch (e){
