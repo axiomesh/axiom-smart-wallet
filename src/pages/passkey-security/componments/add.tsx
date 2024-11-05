@@ -110,7 +110,7 @@ const AddDeviceModal = (props: any) => {
             device_id: userInfo.device_id,
             result: JSON.stringify(authentication),
             credential_id,
-            device_type: getDeviceType(),
+            device_type: 'Mac',
             device_name: navigator.platform,
             device_version: getDeviceVersion(),
             browser_type: getBrowserName(),

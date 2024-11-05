@@ -65,7 +65,7 @@ const passkeySecurity = (props: any) => {
             "Chrome on MacOS",
         ]
         if(type === "Windows") return [
-            "Safari on Windows",
+            "Edge on Windows",
             "Chrome on Windows",
         ]
 
