@@ -209,7 +209,7 @@ const LoginPasskey: React.FC = () => {
             },
             excludeCredentials: [],
             timeout: 30000,
-            attestation: "none"
+            attestation: "direct"
         }
         console.log(JSON.stringify(registerObj), '--------registerObj')
         let publicKeyCredential: any;
@@ -251,6 +251,16 @@ const LoginPasskey: React.FC = () => {
     }
 
     const getAuth = async (verifyRes, transports, id) => {
+        console.log('startAuthentication', {
+            challenge: verifyRes.publicKey.challenge,
+            rpId: verifyRes.publicKey.rpId,
+            allowCredentials: [{
+                "type": "public-key",
+                "id": id,
+                "transports": transports
+            }],
+            userVerification: "required"
+        })
        return await startAuthentication({
             challenge: verifyRes.publicKey.challenge,
             rpId: verifyRes.publicKey.rpId,
