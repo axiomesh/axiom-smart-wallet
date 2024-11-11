@@ -442,7 +442,7 @@ const TransferFree = (props: any) => {
                             >
                                 <Input
                                     value={value}
-                                    maxLength={3}
+                                    maxLength={4}
                                     autoComplete="off"
                                     placeholder='100-5000'
                                     prefix='HK$'

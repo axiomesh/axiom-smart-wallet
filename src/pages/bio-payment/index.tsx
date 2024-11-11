@@ -307,6 +307,8 @@ const BioPayment = (props: any) => {
     const handleVerifyOpen = () => {
         setResultOpen(false);
         setIsOpen(true);
+        setPinLoading(false);
+        setMsg('');
     }
 
     return (
@@ -323,7 +325,7 @@ const BioPayment = (props: any) => {
                 </div>
             </Page>
             <BioResultModal isOpen={resultOpen} status={resultStatus} onVerify={handleVerifyOpen} onClose={handleResultClose} loadingTip="Only use it on a safety device" />
-            <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false); setPinLoading(true);}} errorMsg={msg} />
+            <VerifyTransferModal pinLoading={pinLoading} onSubmit={handleSubmit} isOpen={isOpen} onClose={() => {setIsOpen(false); setPinLoading(false);}} errorMsg={msg} />
             <BioAxiomResultModal isOpen={axiomResultOpen} onClose={() => {setAxiomResultOpen(false)}} status={axiomResultStatus} name={""} />
         </ChakraProvider>
     )

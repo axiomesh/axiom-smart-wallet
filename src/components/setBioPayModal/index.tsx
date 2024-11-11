@@ -142,6 +142,8 @@ const SetBioPayModal = (props: any) => {
     const handleVerifyOpen = () => {
         setResultOpen(false);
         setIsOpen(true);
+        setPinLoading(false);
+        setMsg('');
     }
 
     return (

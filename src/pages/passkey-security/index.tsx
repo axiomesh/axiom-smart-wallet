@@ -190,7 +190,7 @@ const passkeySecurity = (props: any) => {
                                             <span style={{color: '#000', fontSize: 16, fontWeight: 600, marginRight: 8}}>{item.device_name}</span>
                                             {item.is_trusted_device === 1  ?<Tooltip title='Support account login using this trusted device’s passkey.'>
                                                 <ActiveDeviceIcon />
-                                            </Tooltip> : <Tooltip title='Add the current device as a trusted device and log in to your account using the local Passkey.'><DeviceIcon /></Tooltip>}
+                                            </Tooltip> :  item.is_current_device ? <Tooltip title='Add the current device as a trusted device and log in to your account using the local Passkey.'><DeviceIcon /></Tooltip> : null}
                                         </div>
                                         <div style={{color: '#718096', fontSize: 14}}>{item.device_version}</div>
                                     </div>

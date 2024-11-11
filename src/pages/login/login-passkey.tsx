@@ -209,7 +209,11 @@ const LoginPasskey: React.FC = () => {
             },
             excludeCredentials: [],
             timeout: 30000,
-            attestation: "direct"
+            // attestation: "direct"
+            attestation: "none",
+            extensions: {
+                credProps: true
+            }
         }
         console.log(JSON.stringify(registerObj), '--------registerObj')
         let publicKeyCredential: any;
