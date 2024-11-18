@@ -97,6 +97,18 @@ export const getBrowserName = () =>{
     }
 }
 
+
+export const getDeviceName = () => {
+    let userAgent = navigator.userAgent.toLowerCase();
+    if(navigator?.userAgentData && navigator?.userAgentData?.brands.length > 2) {
+        let brands = navigator?.userAgentData?.brands;
+        return brands[1].brand;
+    }
+
+    return detectBrowser()
+
+}
+
 export const getSafariVersion = () => {
   let userAgent = navigator.userAgent.toLowerCase();
   let isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
